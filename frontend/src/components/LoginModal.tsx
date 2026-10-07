@@ -18,6 +18,7 @@ export const LoginModal: React.FC<{
   const DEMO_ACCOUNTS: Record<string, any> = {
     teacher_ravi: { id: 1, username: 'teacher_ravi', role: 'STAFF', full_name: 'Ravi Kumar (Staff)', school_name: 'Corporation Higher Secondary School, R.S. Puram' },
     hm_raman: { id: 2, username: 'hm_raman', role: 'HEADMASTER', full_name: 'Dr. K. Ramanathan (HM)', school_name: 'Corporation Higher Secondary School, Siddhapudur' },
+    hm_rspuram: { id: 2, username: 'hm_rspuram', role: 'HEADMASTER', full_name: 'Dr. K. Ramanathan (HM)', school_name: 'Corporation Higher Secondary School, R.S. Puram' },
     commissioner: { id: 3, username: 'commissioner', role: 'COMMISSIONER', full_name: 'M. Sivaguru Prabakaran IAS (Commissioner)' },
     admin: { id: 4, username: 'admin', role: 'ADMIN', full_name: 'System Administrator' },
   };
