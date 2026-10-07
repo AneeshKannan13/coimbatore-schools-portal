@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: coimbatore_schools_db
+    restart: always
+    environment:
+      POSTGRES_USER: ccmc_admin
+      POSTGRES_PASSWORD: CcmcSecurePassword2026!
+      POSTGRES_DB: coimbatore_schools
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../database/views/reporting_views.sql:/docker-entrypoint-initdb.d/init_views.sql
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../docker/Dockerfile.backend
+    container_name: coimbatore_schools_api
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://ccmc_admin:CcmcSecurePassword2026!@db:5432/coimbatore_schools
+      SECRET_KEY: coimbatore-corporation-super-secure-jwt-secret-key-2026-adj
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: ../docker/Dockerfile.frontend
+    container_name: coimbatore_schools_web
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
