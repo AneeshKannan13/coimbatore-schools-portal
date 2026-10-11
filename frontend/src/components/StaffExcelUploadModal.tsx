@@ -97,20 +97,20 @@ export const StaffExcelUploadModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="glass-card max-w-5xl w-full p-6 shadow-2xl border border-white/60 max-h-[92vh] flex flex-col">
+    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-50 p-3 sm:p-4">
+      <div className="glass-card max-w-5xl w-full p-4 sm:p-6 shadow-2xl border border-white/60 max-h-[92vh] flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-slate-200">
+        <div className="flex justify-between items-start sm:items-center pb-3 sm:pb-4 border-b border-slate-200 gap-2">
           <div>
-            <h2 className="text-xl font-black text-[#650000] flex items-center gap-2">
-              <Users className="w-6 h-6 text-[#8B0000]" />
-              Bulk Staff Details Upload — Excel Import Engine
+            <h2 className="text-base sm:text-xl font-black text-[#650000] flex items-center gap-2">
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-[#8B0000] shrink-0" />
+              <span>Bulk Staff Details Upload</span>
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
-              Upload staff info: Name, Designation, Subject, Contact, Education, Location, Native &amp; more
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+              Upload staff info: Name, Designation, Subject, Contact, Education, Location, Native & more
             </p>
           </div>
-          <button onClick={resetState} className="text-slate-400 hover:text-slate-600 text-2xl font-bold cursor-pointer">&times;</button>
+          <button onClick={resetState} className="text-slate-400 hover:text-slate-600 text-2xl font-bold cursor-pointer w-8 h-8 flex items-center justify-center shrink-0" aria-label="Close modal">&times;</button>
         </div>
 
         {/* Body */}
@@ -213,8 +213,8 @@ export const StaffExcelUploadModal: React.FC<{
                   <h4 className="text-xs font-bold text-slate-700 mb-1">
                     Preview (First {previewData.preview_data.length} of {previewData.valid_count} valid records)
                   </h4>
-                  <div className="overflow-x-auto border border-slate-200 rounded-xl">
-                    <table className="w-full text-left text-xs">
+                  <div className="table-scroll-container border border-slate-200 rounded-xl">
+                    <table className="w-full text-left text-xs min-w-[720px]">
                       <thead className="bg-[#8B0000] text-white">
                         <tr>
                           <th className="p-2">Staff Name</th>
@@ -254,16 +254,16 @@ export const StaffExcelUploadModal: React.FC<{
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between items-center pt-4 border-t border-slate-200">
-          <button onClick={resetState} className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 cursor-pointer">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 pt-3 sm:pt-4 border-t border-slate-200">
+          <button onClick={resetState} className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 cursor-pointer text-center">
             Cancel
           </button>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             {!previewData ? (
               <button
                 onClick={handlePreview}
                 disabled={loading || !file}
-                className="primary-button px-5 py-2 text-xs font-bold rounded-xl shadow-md transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                className="primary-button px-5 py-2.5 text-xs font-bold rounded-xl shadow-md transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
               >
                 {loading ? 'Validating...' : 'Validate & Preview'} <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -271,17 +271,17 @@ export const StaffExcelUploadModal: React.FC<{
               <>
                 <button
                   onClick={() => { setPreviewData(null); setFile(null); setErrorMsg(''); }}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer text-center"
                 >
                   Re-upload
                 </button>
                 <button
                   onClick={handleConfirmCommit}
                   disabled={loading || previewData.valid_count === 0}
-                  className="gold-button px-6 py-2 text-xs font-black rounded-xl shadow-md transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                  className="gold-button px-6 py-2.5 text-xs font-black rounded-xl shadow-md transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  {loading ? 'Committing...' : `Commit ${previewData.valid_count} Staff Records`}
+                  {loading ? 'Committing...' : `Commit ${previewData.valid_count} Records`}
                 </button>
               </>
             )}

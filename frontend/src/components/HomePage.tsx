@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Building2, Users, GraduationCap, Award, ChevronRight, LogIn, 
-  MapPin, Activity, Sparkles 
+  MapPin, Activity, Sparkles, Menu, X, Search 
 } from 'lucide-react';
 import apiClient from '../api';
 
 export const HomePage: React.FC<{ onOpenLogin: () => void }> = ({ onOpenLogin }) => {
   const [data, setData] = useState<any>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [directoryZone, setDirectoryZone] = useState('All');
+  const [directorySearch, setDirectorySearch] = useState('');
+
   const defaultSchools = [
     { id: 1, school_code: "CCM-01", school_name: "Corporation Higher Secondary School, R.S. Puram", zone: "West", ward: "Ward 23", school_type: "Higher Secondary", student_count: 840, teacher_count: 42 },
     { id: 2, school_code: "CCM-02", school_name: "Corporation Higher Secondary School, Siddhapudur", zone: "Central", ward: "Ward 31", school_type: "Higher Secondary", student_count: 760, teacher_count: 38 },
@@ -46,61 +50,78 @@ export const HomePage: React.FC<{ onOpenLogin: () => void }> = ({ onOpenLogin })
     return () => clearInterval(interval);
   }, [slides.length]);
 
+  const filteredSchools = schools.filter(s => {
+    const matchesZone = directoryZone === 'All' || s.zone === directoryZone;
+    const matchesSearch = s.school_name.toLowerCase().includes(directorySearch.toLowerCase()) ||
+                          s.school_code.toLowerCase().includes(directorySearch.toLowerCase()) ||
+                          s.ward.toLowerCase().includes(directorySearch.toLowerCase());
+    return matchesZone && matchesSearch;
+  });
+
   return (
-    <div className="min-h-screen bg-[#F8F8F8] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F8F8F8] flex flex-col font-sans overflow-x-hidden">
       {/* Top Govt Bar */}
-      <div className="bg-[#650000] text-white px-6 py-1.5 text-xs flex justify-between items-center border-b border-[#FFD700]/30 shadow-xs">
-        <div className="flex items-center gap-3">
-          <span className="font-extrabold text-[#FFD700] tracking-wider">TAMIL NADU GOVERNMENT</span>
-          <span>•</span>
-          <span className="text-white/90">Coimbatore City Municipal Corporation Education Department</span>
+      <div className="bg-[#650000] text-white px-3 sm:px-6 py-1 text-[10px] sm:text-xs flex justify-between items-center border-b border-[#FFD700]/30 shadow-xs">
+        <div className="flex items-center gap-1.5 sm:gap-3 truncate">
+          <span className="font-extrabold text-[#FFD700] tracking-wider whitespace-nowrap">TAMIL NADU GOVT</span>
+          <span className="hidden sm:inline">•</span>
+          <span className="text-white/90 truncate hidden sm:inline">Coimbatore City Municipal Corporation</span>
         </div>
-        <div className="flex gap-4 text-xs font-semibold">
+        <div className="flex gap-2 sm:gap-4 text-[10px] sm:text-xs font-semibold shrink-0">
           <span className="cursor-pointer hover:text-[#FFD700] transition">English / தமிழ்</span>
-          <span>•</span>
+          <span className="text-white/40">•</span>
           <span className="cursor-pointer hover:text-[#FFD700] transition">Accessibility</span>
         </div>
       </div>
 
-      {/* Main Navigation Header (Red Gradient Background with Corporation Logo Left & CM Image Top-Right) */}
+      {/* Main Navigation Header */}
       <header className="sticky top-0 z-40 bg-gradient-to-r from-[#650000] via-[#8B0000] to-[#B31312] text-white shadow-lg border-b-2 border-[#FFD700]">
-        <div className="max-w-7xl mx-auto px-6 py-2.5 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex justify-between items-center gap-2">
           
           {/* Left: Coimbatore Corporation Logo & Title */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
             <img
               src="/coimbatore_corp_logo.png"
               alt="Coimbatore Corporation Official Logo"
-              className="h-12 md:h-14 w-auto object-contain drop-shadow-md"
+              className="h-9 sm:h-12 md:h-14 w-auto object-contain drop-shadow-md shrink-0"
             />
-            <div>
-              <h1 className="text-base md:text-xl font-black text-white tracking-tight leading-tight">
-                Coimbatore City Municipal Corporation
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-base md:text-xl font-black text-white tracking-tight leading-tight truncate">
+                Coimbatore Corporation Schools
               </h1>
-              <p className="text-[11px] md:text-xs font-bold text-[#FFD700] uppercase tracking-wider">
-                Government Schools – Education Performance & AI Analytics Portal
+              <p className="text-[9px] sm:text-[11px] md:text-xs font-bold text-[#FFD700] uppercase tracking-wider truncate">
+                Education Performance & AI Analytics Portal
               </p>
             </div>
           </div>
 
-          {/* Right: Navigation + CM Image */}
-          <div className="flex items-center gap-5">
-            <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold text-white/90">
+          {/* Right: Desktop Navigation + CM Image + Mobile Menu Button */}
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <nav className="hidden lg:flex items-center gap-5 text-sm font-semibold text-white/90">
               <a href="#hero" className="hover:text-[#FFD700] transition">Home</a>
               <a href="#stats" className="hover:text-[#FFD700] transition">Statistics</a>
               <a href="#schools" className="hover:text-[#FFD700] transition">Schools</a>
               <button
                 onClick={onOpenLogin}
-                className="gold-button px-5 py-2 rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition cursor-pointer flex items-center gap-1.5"
+                className="gold-button px-4 py-2 rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition cursor-pointer flex items-center gap-1.5"
               >
                 <LogIn className="w-4 h-4 text-[#650000]" />
                 PORTAL LOGIN
               </button>
             </nav>
 
+            {/* Quick Login button on tablet/mobile */}
+            <button
+              onClick={onOpenLogin}
+              className="lg:hidden gold-button px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1 cursor-pointer"
+            >
+              <LogIn className="w-3.5 h-3.5 text-[#650000]" />
+              <span>Login</span>
+            </button>
+
             {/* Honourable Tamil Nadu Chief Minister Portrait */}
-            <div className="flex items-center gap-2 pl-2 border-l border-white/20">
-              <div className="text-right hidden sm:block">
+            <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-white/20">
+              <div className="text-right hidden md:block">
                 <p className="text-[10px] font-bold text-[#FFD700] uppercase tracking-wider leading-none">
                   Hon'ble Chief Minister
                 </p>
@@ -108,20 +129,65 @@ export const HomePage: React.FC<{ onOpenLogin: () => void }> = ({ onOpenLogin })
                   Tamil Nadu
                 </p>
               </div>
-              <div className="relative group">
-                <img
-                  src="/hon_cm_tn.jpg"
-                  alt="Honourable Chief Minister of Tamil Nadu"
-                  className="w-[50px] sm:w-[60px] h-[60px] sm:h-[72px] object-cover object-top rounded-xl border-2 border-[#FFD700] shadow-md transition group-hover:scale-105"
-                />
-              </div>
+              <img
+                src="/hon_cm_tn.jpg"
+                alt="Honourable Chief Minister of Tamil Nadu"
+                className="w-10 sm:w-[48px] md:w-[60px] h-12 sm:h-[58px] md:h-[72px] object-cover object-top rounded-lg sm:rounded-xl border border-[#FFD700] shadow-md"
+              />
             </div>
+
+            {/* Hamburger button for mobile */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-1.5 rounded-lg text-white hover:bg-white/10 transition cursor-pointer"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6 text-[#FFD700]" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden bg-[#650000]/98 backdrop-blur-xl border-t border-[#FFD700]/30 px-4 py-4 space-y-3 shadow-xl">
+            <nav className="flex flex-col space-y-2 text-sm font-bold text-white">
+              <a 
+                href="#hero" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-[#FFD700] transition"
+              >
+                🏠 Home
+              </a>
+              <a 
+                href="#stats" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-[#FFD700] transition"
+              >
+                📊 Portal Statistics
+              </a>
+              <a 
+                href="#schools" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-2 rounded-lg hover:bg-white/10 hover:text-[#FFD700] transition"
+              >
+                🏫 Schools Directory
+              </a>
+            </nav>
+            <div className="pt-2 border-t border-white/20 flex flex-col gap-2">
+              <button
+                onClick={() => { setMobileMenuOpen(false); onOpenLogin(); }}
+                className="w-full gold-button py-2.5 rounded-xl text-xs uppercase tracking-wider font-black shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <LogIn className="w-4 h-4 text-[#650000]" />
+                PORTAL SIGN IN
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Hero Banner Slider */}
-      <section id="hero" className="relative h-[480px] bg-slate-950 overflow-hidden">
+      <section id="hero" className="relative min-h-[440px] sm:h-[480px] bg-slate-950 overflow-hidden flex items-center">
         {slides.map((s: any, idx: number) => (
           <div
             key={idx}
@@ -134,28 +200,28 @@ export const HomePage: React.FC<{ onOpenLogin: () => void }> = ({ onOpenLogin })
               alt={s.title}
               className="w-full h-full object-cover object-center opacity-40 scale-105 transition duration-1000"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#650000]/95 via-[#8B0000]/80 to-transparent flex items-center">
-              <div className="max-w-7xl mx-auto px-6 w-full">
-                <div className="max-w-2xl text-white space-y-4">
-                  <span className="inline-block bg-[#FFD700] text-[#650000] text-xs font-black uppercase tracking-wider px-3.5 py-1 rounded-full shadow-md">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#650000]/95 via-[#8B0000]/85 to-transparent flex items-center">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full py-8">
+                <div className="max-w-2xl text-white space-y-3 sm:space-y-4">
+                  <span className="inline-block bg-[#FFD700] text-[#650000] text-[10px] sm:text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
                     {s.category || 'Education Department'}
                   </span>
-                  <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+                  <h2 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight">
                     {s.title}
                   </h2>
-                  <p className="text-sm md:text-base text-white/90 leading-relaxed font-medium">
+                  <p className="text-xs sm:text-sm md:text-base text-white/90 leading-relaxed font-medium line-clamp-3 sm:line-clamp-none">
                     {s.description}
                   </p>
-                  <div className="flex gap-4 pt-2">
+                  <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-4 pt-2">
                     <button
                       onClick={onOpenLogin}
-                      className="gold-button px-6 py-2.5 rounded-xl font-black text-sm flex items-center gap-2 shadow-lg transition cursor-pointer"
+                      className="gold-button px-5 sm:px-6 py-2.5 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition cursor-pointer w-full sm:w-auto"
                     >
                       Access Official Portal <ChevronRight className="w-4 h-4" />
                     </button>
                     <a
                       href="#schools"
-                      className="px-6 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-sm backdrop-blur-md border border-white/20 transition"
+                      className="px-5 sm:px-6 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm backdrop-blur-md border border-white/20 transition text-center w-full sm:w-auto"
                     >
                       Explore Schools Directory
                     </a>
@@ -167,13 +233,13 @@ export const HomePage: React.FC<{ onOpenLogin: () => void }> = ({ onOpenLogin })
         ))}
 
         {/* Slide Indicators */}
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+        <div className="absolute bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 flex gap-1.5 sm:gap-2 z-20">
           {slides.map((_: any, idx: number) => (
             <button
               key={idx}
               onClick={() => setCurrentSlide(idx)}
               className={`h-2 rounded-full transition-all ${
-                idx === currentSlide ? 'w-8 bg-[#FFD700]' : 'w-2 bg-white/50'
+                idx === currentSlide ? 'w-6 sm:w-8 bg-[#FFD700]' : 'w-2 bg-white/50'
               }`}
             />
           ))}
@@ -181,75 +247,106 @@ export const HomePage: React.FC<{ onOpenLogin: () => void }> = ({ onOpenLogin })
       </section>
 
       {/* KPI Cards / Statistics Section (Glassmorphism Cards) */}
-      <section id="stats" className="max-w-7xl mx-auto px-6 -mt-12 relative z-30 w-full">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="glass-card p-5 border-l-4 border-l-[#8B0000] hover:border-[#FFD700] transition">
-            <div className="flex items-center gap-2 text-[#8B0000] mb-2">
-              <Building2 className="w-5 h-5 text-[#8B0000]" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Corporation Schools</span>
+      <section id="stats" className="max-w-7xl mx-auto px-3 sm:px-6 -mt-8 sm:-mt-12 relative z-30 w-full">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+          <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#8B0000] hover:border-[#FFD700] transition">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[#8B0000] mb-1 sm:mb-2">
+              <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B0000] shrink-0" />
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-600 truncate">Schools</span>
             </div>
-            <div className="text-3xl font-black text-[#650000]">{data?.stats?.total_schools || 42}</div>
-            <p className="text-xs text-slate-500 mt-1">Across 5 Zones & 100 Wards</p>
+            <div className="text-2xl sm:text-3xl font-black text-[#650000]">{data?.stats?.total_schools || 42}</div>
+            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">Across 5 Zones & 100 Wards</p>
           </div>
 
-          <div className="glass-card p-5 border-l-4 border-l-[#FFC928] hover:border-[#8B0000] transition">
-            <div className="flex items-center gap-2 text-[#8B0000] mb-2">
-              <Users className="w-5 h-5 text-[#8B0000]" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Enrolled Students</span>
+          <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#FFC928] hover:border-[#8B0000] transition">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[#8B0000] mb-1 sm:mb-2">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B0000] shrink-0" />
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-600 truncate">Students</span>
             </div>
-            <div className="text-3xl font-black text-[#650000]">
+            <div className="text-2xl sm:text-3xl font-black text-[#650000]">
               {data?.stats?.total_students?.toLocaleString() || '18,750'}
             </div>
-            <p className="text-xs text-slate-500 mt-1">EMIS Tracked Records</p>
+            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">EMIS Tracked Records</p>
           </div>
 
-          <div className="glass-card p-5 border-l-4 border-l-[#8B0000] hover:border-[#FFD700] transition">
-            <div className="flex items-center gap-2 text-[#8B0000] mb-2">
-              <GraduationCap className="w-5 h-5 text-[#8B0000]" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Teaching Staff</span>
+          <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#8B0000] hover:border-[#FFD700] transition">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[#8B0000] mb-1 sm:mb-2">
+              <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B0000] shrink-0" />
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-600 truncate">Teaching Staff</span>
             </div>
-            <div className="text-3xl font-black text-[#650000]">{data?.stats?.total_teachers || 950}</div>
-            <p className="text-xs text-slate-500 mt-1">PG & BT Assistants</p>
+            <div className="text-2xl sm:text-3xl font-black text-[#650000]">{data?.stats?.total_teachers || 950}</div>
+            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">PG & BT Assistants</p>
           </div>
 
-          <div className="glass-card p-5 border-l-4 border-l-[#FFC928] hover:border-[#8B0000] transition">
-            <div className="flex items-center gap-2 text-[#8B0000] mb-2">
-              <Activity className="w-5 h-5 text-[#8B0000]" />
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Avg Attendance</span>
+          <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#FFC928] hover:border-[#8B0000] transition">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[#8B0000] mb-1 sm:mb-2">
+              <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B0000] shrink-0" />
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-600 truncate">Attendance</span>
             </div>
-            <div className="text-3xl font-black text-[#650000]">{data?.stats?.avg_attendance || '91.4'}%</div>
-            <p className="text-xs text-slate-500 mt-1">Corporation Monthly Benchmark</p>
+            <div className="text-2xl sm:text-3xl font-black text-[#650000]">{data?.stats?.avg_attendance || '91.4'}%</div>
+            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">Corporation Benchmark</p>
           </div>
         </div>
       </section>
 
       {/* Public School Directory */}
-      <section id="schools" className="max-w-7xl mx-auto px-6 py-16 w-full">
-        <div className="flex justify-between items-end mb-8">
+      <section id="schools" className="max-w-7xl mx-auto px-3 sm:px-6 py-10 sm:py-16 w-full">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <span className="text-xs font-black text-[#B31312] uppercase tracking-widest">Directory</span>
-            <h3 className="text-2xl font-black text-[#650000] mt-1">Corporation Educational Institutions</h3>
-            <p className="text-sm text-slate-600 mt-1">Official list of Corporation Higher Secondary and High Schools in Coimbatore</p>
+            <span className="text-[10px] sm:text-xs font-black text-[#B31312] uppercase tracking-widest">Directory</span>
+            <h3 className="text-xl sm:text-2xl font-black text-[#650000] mt-1">Corporation Educational Institutions</h3>
+            <p className="text-xs sm:text-sm text-slate-600 mt-0.5">Official list of Corporation Higher Secondary and High Schools in Coimbatore</p>
+          </div>
+
+          {/* Search & Zone Filter for Mobile & Desktop */}
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+            <div className="relative flex-1 sm:w-56">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search school or ward..."
+                value={directorySearch}
+                onChange={(e) => setDirectorySearch(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-xl"
+              />
+            </div>
+            <div className="table-scroll-container flex gap-1 bg-slate-100 p-1 rounded-xl">
+              {['All', 'North', 'South', 'East', 'West', 'Central'].map(z => (
+                <button
+                  key={z}
+                  onClick={() => setDirectoryZone(z)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                    directoryZone === z
+                      ? 'bg-[#8B0000] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {z}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {schools.map((s) => (
-            <div key={s.id} className="glass-card p-5 hover:shadow-lg transition border hover:border-[#FFD700]">
-              <div className="flex justify-between items-start mb-3">
-                <span className="px-2.5 py-1 bg-[#8B0000]/10 text-[#8B0000] text-xs font-black rounded-lg font-mono">
-                  {s.school_code}
-                </span>
-                <span className="text-xs font-bold px-2 py-0.5 bg-[#FFD700]/20 text-[#650000] rounded">
-                  {s.zone} Zone
-                </span>
-              </div>
-              <h4 className="font-black text-slate-900 text-base line-clamp-2 mb-2">
-                {s.school_name}
-              </h4>
-              <div className="text-xs text-slate-600 space-y-1 mb-4">
-                <div className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#8B0000]" /> {s.ward}</div>
-                <div>Category: <span className="font-bold text-slate-800">{s.school_type}</span></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {filteredSchools.map((s) => (
+            <div key={s.id} className="glass-card p-4 sm:p-5 hover:shadow-lg transition border hover:border-[#FFD700] flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-2.5">
+                  <span className="px-2 py-0.5 bg-[#8B0000]/10 text-[#8B0000] text-[11px] font-black rounded-lg font-mono">
+                    {s.school_code}
+                  </span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 bg-[#FFD700]/20 text-[#650000] rounded">
+                    {s.zone} Zone
+                  </span>
+                </div>
+                <h4 className="font-black text-slate-900 text-sm sm:text-base line-clamp-2 mb-2">
+                  {s.school_name}
+                </h4>
+                <div className="text-xs text-slate-600 space-y-1 mb-4">
+                  <div className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#8B0000]" /> {s.ward}</div>
+                  <div>Category: <span className="font-bold text-slate-800">{s.school_type}</span></div>
+                </div>
               </div>
               <div className="flex justify-between items-center pt-3 border-t border-slate-200/80 text-xs">
                 <div>
@@ -261,39 +358,44 @@ export const HomePage: React.FC<{ onOpenLogin: () => void }> = ({ onOpenLogin })
               </div>
             </div>
           ))}
+          {filteredSchools.length === 0 && (
+            <div className="col-span-full py-12 text-center text-slate-500 text-sm glass-card">
+              No educational institutions found matching "{directorySearch}".
+            </div>
+          )}
         </div>
       </section>
 
       {/* Official Footer */}
-      <footer className="bg-gradient-to-r from-[#650000] via-[#8B0000] to-[#650000] text-white py-12 border-t-2 border-[#FFD700] mt-auto">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-xs">
+      <footer className="bg-gradient-to-r from-[#650000] via-[#8B0000] to-[#650000] text-white py-8 sm:py-12 border-t-2 border-[#FFD700] mt-auto safe-pb">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 text-xs">
           <div>
-            <div className="flex items-center gap-3 text-white font-bold text-base mb-2">
-              <img src="/coimbatore_corp_logo.png" alt="Logo" className="h-10 w-auto" />
+            <div className="flex items-center gap-2.5 text-white font-bold text-sm sm:text-base mb-2">
+              <img src="/coimbatore_corp_logo.png" alt="Logo" className="h-9 w-auto" />
               <span>Coimbatore City Municipal Corporation</span>
             </div>
-            <p className="leading-relaxed text-white/80">
+            <p className="leading-relaxed text-white/80 text-[11px] sm:text-xs">
               Department of School Education. Dedicated to data-driven academic monitoring, student growth analytics, and teacher empowerment.
             </p>
           </div>
           <div>
-            <h5 className="font-black text-[#FFD700] text-sm mb-3 uppercase tracking-wider">Security & Compliance</h5>
-            <ul className="space-y-1.5 text-white/90 font-medium">
+            <h5 className="font-black text-[#FFD700] text-xs sm:text-sm mb-2.5 uppercase tracking-wider">Security & Compliance</h5>
+            <ul className="space-y-1 text-white/90 font-medium text-[11px] sm:text-xs">
               <li>• Role-Based Access Control (RBAC)</li>
               <li>• Student Data Privacy Protected</li>
               <li>• Automated Audit Trail Logging</li>
               <li>• High-Throughput Normalized Database</li>
             </ul>
           </div>
-          <div>
-            <h5 className="font-black text-[#FFD700] text-sm mb-3 uppercase tracking-wider">Portal Access</h5>
+          <div className="sm:col-span-2 lg:col-span-1">
+            <h5 className="font-black text-[#FFD700] text-xs sm:text-sm mb-2.5 uppercase tracking-wider">Portal Access</h5>
             <button
               onClick={onOpenLogin}
-              className="gold-button px-4 py-2 rounded-lg font-black transition cursor-pointer"
+              className="gold-button px-4 py-2 rounded-lg font-black transition cursor-pointer w-full sm:w-auto text-center"
             >
               Universal Portal Sign In
             </button>
-            <p className="mt-3 text-white/60">© 2026 Coimbatore City Municipal Corporation. All rights reserved.</p>
+            <p className="mt-3 text-white/60 text-[10px] sm:text-[11px]">© 2026 Coimbatore City Municipal Corporation. All rights reserved.</p>
           </div>
         </div>
       </footer>

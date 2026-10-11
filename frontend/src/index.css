@@ -63,3 +63,50 @@
   background: linear-gradient(135deg, #FFE135, #FFD700);
   box-shadow: 0 4px 14px rgba(255, 201, 40, 0.45);
 }
+
+/* Mobile View & Touch Optimization Utilities */
+@media (max-width: 640px) {
+  /* Prevent iOS Safari auto-zoom on input focus */
+  input[type="text"],
+  input[type="password"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  .glass-card {
+    border-radius: 16px;
+  }
+
+  .glass-card-dark {
+    border-radius: 16px;
+  }
+}
+
+/* Smooth horizontal touch scrolling for data tables & chips */
+.table-scroll-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #8B0000 #f1f5f9;
+}
+
+.table-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-scroll-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.table-scroll-container::-webkit-scrollbar-thumb {
+  background: #B31312;
+  border-radius: 4px;
+}
+
+/* Safe area support for notched phones */
+.safe-pb {
+  padding-bottom: env(safe-area-inset-bottom, 1rem);
+}

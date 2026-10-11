@@ -26,29 +26,29 @@ export const SchoolDetailModal: React.FC<{
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="glass-card max-w-5xl w-full p-6 shadow-2xl border border-white/60 max-h-[92vh] flex flex-col">
+    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-50 p-3 sm:p-4">
+      <div className="glass-card max-w-5xl w-full p-4 sm:p-6 shadow-2xl border border-white/60 max-h-[92vh] flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-start pb-4 border-b border-slate-200">
+        <div className="flex justify-between items-start pb-3 sm:pb-4 border-b border-slate-200">
           <div className="flex items-center gap-3">
             <img
               src="/coimbatore_corp_logo.png"
               alt="Logo"
-              className="h-12 w-auto object-contain hidden sm:block"
+              className="h-10 sm:h-12 w-auto object-contain hidden sm:block"
             />
             <div>
               <div className="flex items-center gap-2">
-                <span className="px-2.5 py-0.5 bg-[#8B0000]/10 text-[#8B0000] text-[10px] font-black rounded font-mono">
+                <span className="px-2 py-0.5 bg-[#8B0000]/10 text-[#8B0000] text-[10px] font-black rounded font-mono">
                   {data?.school?.code}
                 </span>
-                <span className="text-xs font-bold text-slate-500">
+                <span className="text-[11px] sm:text-xs font-bold text-slate-500">
                   Zone: {data?.school?.zone} • {data?.school?.ward}
                 </span>
               </div>
-              <h2 className="text-xl font-black text-[#650000] mt-0.5">
+              <h2 className="text-base sm:text-xl font-black text-[#650000] mt-0.5">
                 {data?.school?.name || 'School Detailed Analysis'}
               </h2>
-              <p className="text-xs text-slate-600 font-medium">
+              <p className="text-[11px] sm:text-xs text-slate-600 font-medium">
                 Headmaster: <b className="text-slate-800">{data?.school?.headmaster_name}</b> | EMIS: {data?.school?.emis_number}
               </p>
             </div>
@@ -56,51 +56,52 @@ export const SchoolDetailModal: React.FC<{
 
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 font-bold text-2xl cursor-pointer"
+            className="text-slate-400 hover:text-slate-600 font-bold text-2xl cursor-pointer w-8 h-8 flex items-center justify-center shrink-0"
+            aria-label="Close modal"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* School Executive KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 my-4">
-          <div className="glass-card p-3 border-l-4 border-l-[#8B0000]">
-            <div className="text-[10px] font-bold text-slate-500 uppercase">Enrolled Students</div>
-            <div className="text-xl font-black text-[#650000]">{data?.stats?.total_students}</div>
-            <p className="text-[10px] text-slate-400">Class 9 to 12</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 my-3 sm:my-4">
+          <div className="glass-card p-2.5 sm:p-3 border-l-4 border-l-[#8B0000]">
+            <div className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase truncate">Enrolled Students</div>
+            <div className="text-lg sm:text-xl font-black text-[#650000]">{data?.stats?.total_students}</div>
+            <p className="text-[9px] sm:text-[10px] text-slate-400 truncate">Class 9 to 12</p>
           </div>
-          <div className="glass-card p-3 border-l-4 border-l-[#FFC928]">
-            <div className="text-[10px] font-bold text-slate-500 uppercase">Teaching Staff</div>
-            <div className="text-xl font-black text-[#650000]">{data?.stats?.total_staff}</div>
-            <p className="text-[10px] text-slate-400">PG & BT Teachers</p>
+          <div className="glass-card p-2.5 sm:p-3 border-l-4 border-l-[#FFC928]">
+            <div className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase truncate">Teaching Staff</div>
+            <div className="text-lg sm:text-xl font-black text-[#650000]">{data?.stats?.total_staff}</div>
+            <p className="text-[9px] sm:text-[10px] text-slate-400 truncate">PG & BT Teachers</p>
           </div>
-          <div className="glass-card p-3 border-l-4 border-l-emerald-600">
-            <div className="text-[10px] font-bold text-slate-500 uppercase">Avg Attendance</div>
-            <div className="text-xl font-black text-emerald-700">{data?.stats?.avg_school_attendance}%</div>
-            <p className="text-[10px] text-slate-400">Staff: {data?.stats?.avg_staff_attendance}%</p>
+          <div className="glass-card p-2.5 sm:p-3 border-l-4 border-l-emerald-600">
+            <div className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase truncate">Avg Attendance</div>
+            <div className="text-lg sm:text-xl font-black text-emerald-700">{data?.stats?.avg_school_attendance}%</div>
+            <p className="text-[9px] sm:text-[10px] text-slate-400 truncate">Staff: {data?.stats?.avg_staff_attendance}%</p>
           </div>
-          <div className="glass-card p-3 border-l-4 border-l-[#8B0000]">
-            <div className="text-[10px] font-bold text-slate-500 uppercase">Pass Benchmark</div>
-            <div className="text-xl font-black text-[#650000]">{data?.stats?.overall_pass_percentage}%</div>
-            <p className="text-[10px] text-rose-600 font-bold">{data?.stats?.risk_students_count} Risk Cohort</p>
+          <div className="glass-card p-2.5 sm:p-3 border-l-4 border-l-[#8B0000]">
+            <div className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase truncate">Pass Benchmark</div>
+            <div className="text-lg sm:text-xl font-black text-[#650000]">{data?.stats?.overall_pass_percentage}%</div>
+            <p className="text-[9px] sm:text-[10px] text-rose-600 font-bold truncate">{data?.stats?.risk_students_count} Risk Cohort</p>
           </div>
         </div>
 
         {/* Tab switcher */}
-        <div className="flex gap-2 border-b border-slate-200 pb-2 mb-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 border-b border-slate-200 pb-2 mb-3">
           <button
             onClick={() => setActiveTab('staff')}
-            className={`px-4 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer text-center ${
               activeTab === 'staff'
                 ? 'primary-button shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 bg-slate-100'
             }`}
           >
-            Staff Details & Leave Status ({data?.staff?.length || 0})
+            Staff Details & Leave ({data?.staff?.length || 0})
           </button>
           <button
             onClick={() => setActiveTab('standards')}
-            className={`px-4 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer text-center ${
               activeTab === 'standards'
                 ? 'gold-button shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 bg-slate-100'
@@ -113,8 +114,8 @@ export const SchoolDetailModal: React.FC<{
         {/* Body tables */}
         <div className="flex-1 overflow-y-auto">
           {activeTab === 'staff' ? (
-            <div className="overflow-x-auto rounded-xl border border-slate-200">
-              <table className="w-full text-left text-xs">
+            <div className="table-scroll-container rounded-xl border border-slate-200">
+              <table className="w-full text-left text-xs min-w-[620px]">
                 <thead className="bg-[#8B0000] text-white">
                   <tr>
                     <th className="p-2.5">Staff Name</th>
@@ -156,8 +157,8 @@ export const SchoolDetailModal: React.FC<{
               </table>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-slate-200">
-              <table className="w-full text-left text-xs">
+            <div className="table-scroll-container rounded-xl border border-slate-200">
+              <table className="w-full text-left text-xs min-w-[580px]">
                 <thead className="bg-[#8B0000] text-white">
                   <tr>
                     <th className="p-2.5">Standard & Section</th>

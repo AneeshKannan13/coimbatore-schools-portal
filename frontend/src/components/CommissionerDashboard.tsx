@@ -41,35 +41,35 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
   return (
     <div className="space-y-6">
       {/* Top Corporation Command Bar */}
-      <div className="glass-card p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-l-4 border-l-[#8B0000]">
-        <div className="flex items-center gap-4">
+      <div className="glass-card p-4 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-l-4 border-l-[#8B0000]">
+        <div className="flex items-center gap-3 sm:gap-4">
           <img
             src="/coimbatore_corp_logo.png"
             alt="Logo"
-            className="h-14 w-auto object-contain hidden sm:block"
+            className="h-10 sm:h-14 w-auto object-contain hidden sm:block"
           />
           <div>
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-[#8B0000]/10 text-[#8B0000] rounded-full text-xs font-black uppercase tracking-wider">
-                Corporation Central Command
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span className="px-2.5 py-0.5 bg-[#8B0000]/10 text-[#8B0000] rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider">
+                Central Command
               </span>
-              <span className="text-xs text-slate-500 font-bold">Executive Monitoring Portal</span>
+              <span className="text-[11px] sm:text-xs text-slate-500 font-bold">Executive Monitoring</span>
             </div>
-            <h2 className="text-2xl font-black text-[#650000] mt-1">
+            <h2 className="text-xl sm:text-2xl font-black text-[#650000] mt-1">
               Coimbatore City Municipal Corporation
             </h2>
-            <p className="text-xs text-slate-600 font-medium">
+            <p className="text-[11px] sm:text-xs text-slate-600 font-medium">
               Education Directorate • Multi-School Unified Performance Dashboard & AI Insights
             </p>
           </div>
         </div>
 
         {/* Tab & Zone Filter Switcher */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex gap-1.5 bg-slate-100 p-1.5 rounded-2xl mr-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+          <div className="grid grid-cols-2 gap-1 bg-slate-100 p-1.5 rounded-2xl w-full sm:w-auto">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer text-center ${
                 activeTab === 'overview'
                   ? 'primary-button shadow-md'
                   : 'text-slate-600 hover:text-slate-900'
@@ -79,7 +79,7 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
             </button>
             <button
               onClick={() => setActiveTab('staff')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer text-center ${
                 activeTab === 'staff'
                   ? 'gold-button shadow-md'
                   : 'text-slate-600 hover:text-slate-900'
@@ -89,13 +89,13 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl">
-            <span className="text-xs font-bold text-slate-500 pl-2">Zone:</span>
+          <div className="table-scroll-container flex items-center gap-1 bg-slate-100 p-1 rounded-2xl w-full sm:w-auto">
+            <span className="text-[11px] font-bold text-slate-500 pl-2 shrink-0">Zone:</span>
             {['All', 'North', 'South', 'East', 'West', 'Central'].map((z) => (
               <button
                 key={z}
                 onClick={() => setSelectedZone(z)}
-                className={`px-2.5 py-1 rounded-xl text-xs font-bold transition cursor-pointer ${
+                className={`px-2.5 py-1 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer shrink-0 ${
                   selectedZone === z
                     ? 'bg-[#8B0000] text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -111,41 +111,41 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
       {activeTab === 'overview' ? (
         <>
           {/* Commissioner Overview KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="glass-card p-5 border-l-4 border-l-[#8B0000]">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Corporation Schools</div>
-              <div className="text-2xl font-black text-[#650000]">{data?.kpis?.total_schools || 42}</div>
-              <p className="text-xs text-slate-500 mt-1">100% On-boarded on EMIS</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+            <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#8B0000]">
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 sm:mb-1 truncate">Corp Schools</div>
+              <div className="text-xl sm:text-2xl font-black text-[#650000]">{data?.kpis?.total_schools || 42}</div>
+              <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">100% On EMIS</p>
             </div>
 
-            <div className="glass-card p-5 border-l-4 border-l-[#FFC928]">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Corporation Average</div>
-              <div className="text-2xl font-black text-[#650000]">{data?.kpis?.corporation_avg_score || 71.4}%</div>
-              <p className="text-xs text-emerald-700 font-bold mt-1">Pass Benchmark: {data?.kpis?.overall_pass_percentage}%</p>
+            <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#FFC928]">
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 sm:mb-1 truncate">Corp Average</div>
+              <div className="text-xl sm:text-2xl font-black text-[#650000]">{data?.kpis?.corporation_avg_score || 71.4}%</div>
+              <p className="text-[10px] sm:text-xs text-emerald-700 font-bold mt-0.5 truncate">Pass: {data?.kpis?.overall_pass_percentage}%</p>
             </div>
 
-            <div className="glass-card p-5 border-l-4 border-l-[#8B0000]">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Attendance Baseline</div>
-              <div className="text-2xl font-black text-[#650000]">{data?.kpis?.overall_attendance || 92.3}%</div>
-              <p className="text-xs text-slate-500 mt-1">Staff Rate: {data?.kpis?.staff_attendance}%</p>
+            <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#8B0000]">
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 sm:mb-1 truncate">Attendance Base</div>
+              <div className="text-xl sm:text-2xl font-black text-[#650000]">{data?.kpis?.overall_attendance || 92.3}%</div>
+              <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">Staff: {data?.kpis?.staff_attendance}%</p>
             </div>
 
-            <div className="glass-card p-5 border-l-4 border-l-[#FFC928]">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">High Risk Alert Cohort</div>
-              <div className="text-2xl font-black text-rose-700">{data?.kpis?.high_risk_students || 136}</div>
-              <p className="text-xs text-rose-600 font-bold mt-1">Intervention Mandated</p>
+            <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#FFC928]">
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 sm:mb-1 truncate">High Risk Alert</div>
+              <div className="text-xl sm:text-2xl font-black text-rose-700">{data?.kpis?.high_risk_students || 136}</div>
+              <p className="text-[10px] sm:text-xs text-rose-600 font-bold mt-0.5 truncate">Mandated Focus</p>
             </div>
           </div>
 
           {/* AI Commissioner Strategic Insights */}
-          <div className="glass-card-dark p-6 shadow-xl border border-[#FFD700]/30">
+          <div className="glass-card-dark p-4 sm:p-6 shadow-xl border border-[#FFD700]/30">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-5 h-5 text-[#FFD700]" />
-              <h3 className="text-base font-black text-white">AI Corporation Executive Intelligence & Risk Alerts</h3>
+              <Sparkles className="w-5 h-5 text-[#FFD700] shrink-0" />
+              <h3 className="text-sm sm:text-base font-black text-white">AI Corporation Executive Intelligence & Risk Alerts</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               {data?.ai_insights?.map((alert: string, idx: number) => (
-                <div key={idx} className="bg-black/20 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 text-xs text-white/95 flex items-start gap-2.5">
+                <div key={idx} className="bg-black/20 backdrop-blur-md p-3 sm:p-3.5 rounded-2xl border border-white/20 text-xs text-white/95 flex items-start gap-2.5">
                   <span className="w-2 h-2 rounded-full bg-[#FFD700] mt-1 shrink-0" />
                   <span>{alert}</span>
                 </div>
@@ -154,11 +154,11 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
           </div>
 
           {/* Zone-Wise Comparison Bar Chart */}
-          <div className="glass-card p-6">
-            <h3 className="font-black text-[#650000] text-xs uppercase tracking-wider mb-4">
+          <div className="glass-card p-4 sm:p-6">
+            <h3 className="font-black text-[#650000] text-xs uppercase tracking-wider mb-3 sm:mb-4">
               Zone-Wise Comparative Pass Percentage & Attendance
             </h3>
-            <div className="h-64">
+            <div className="h-56 sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={zoneData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
@@ -173,16 +173,17 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
           </div>
 
           {/* School-Wise Analysis Table */}
-          <div className="glass-card p-6">
-            <div className="flex justify-between items-center mb-4">
+          <div className="glass-card p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
               <div>
-                <h3 className="font-black text-[#650000] text-base">Corporation Schools Directory & Performance Matrix</h3>
-                <p className="text-xs text-slate-500">Real-time status of examinations, pass percentages, and upload verification</p>
+                <h3 className="font-black text-[#650000] text-sm sm:text-base">Corporation Schools Directory & Performance Matrix</h3>
+                <p className="text-[11px] sm:text-xs text-slate-500">Real-time status of examinations, pass percentages, and upload verification</p>
               </div>
+              <span className="text-[10px] text-slate-400 sm:hidden">⇄ Swipe table horizontally</span>
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-slate-200">
-              <table className="w-full text-left text-xs">
+            <div className="table-scroll-container rounded-xl border border-slate-200">
+              <table className="w-full text-left text-xs min-w-[640px]">
                 <thead className="bg-[#8B0000] text-white">
                   <tr>
                     <th className="p-3">School Code</th>
@@ -230,38 +231,38 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
         /* ----------------- COMMISSIONER STAFF PERFORMANCE MODULE ----------------- */
         <div className="space-y-6">
           {/* Staff KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="glass-card p-5 border-l-4 border-l-[#8B0000]">
-              <div className="text-[11px] font-bold uppercase text-slate-500">Total Teaching Staff</div>
-              <div className="text-2xl font-black text-[#650000]">{staffData?.kpis?.total_staff || 950}</div>
-              <p className="text-[11px] text-slate-400 mt-1">Across 42 Schools</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+            <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#8B0000]">
+              <div className="text-[10px] sm:text-[11px] font-bold uppercase text-slate-500 truncate">Teaching Staff</div>
+              <div className="text-xl sm:text-2xl font-black text-[#650000] mt-0.5">{staffData?.kpis?.total_staff || 950}</div>
+              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 truncate">Across 42 Schools</p>
             </div>
-            <div className="glass-card p-5 border-l-4 border-l-emerald-600">
-              <div className="text-[11px] font-bold uppercase text-slate-500">Avg Staff Attendance</div>
-              <div className="text-2xl font-black text-emerald-700">{staffData?.kpis?.avg_staff_attendance || 94.6}%</div>
-              <p className="text-[11px] text-slate-400 mt-1">Benchmark: 95.0%</p>
+            <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-emerald-600">
+              <div className="text-[10px] sm:text-[11px] font-bold uppercase text-slate-500 truncate">Staff Attendance</div>
+              <div className="text-xl sm:text-2xl font-black text-emerald-700 mt-0.5">{staffData?.kpis?.avg_staff_attendance || 94.6}%</div>
+              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 truncate">Target: 95.0%</p>
             </div>
-            <div className="glass-card p-5 border-l-4 border-l-[#FFC928]">
-              <div className="text-[11px] font-bold uppercase text-slate-500">Staff on Leave</div>
-              <div className="text-2xl font-black text-[#650000]">{staffData?.kpis?.staff_on_leave || 18}</div>
-              <p className="text-[11px] text-slate-400 mt-1">Current Month Cohort</p>
+            <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#FFC928]">
+              <div className="text-[10px] sm:text-[11px] font-bold uppercase text-slate-500 truncate">Staff on Leave</div>
+              <div className="text-xl sm:text-2xl font-black text-[#650000] mt-0.5">{staffData?.kpis?.staff_on_leave || 18}</div>
+              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 truncate">Current Cohort</p>
             </div>
-            <div className="glass-card p-5 border-l-4 border-l-rose-600">
-              <div className="text-[11px] font-bold uppercase text-slate-500">High Leave Cases</div>
-              <div className="text-2xl font-black text-rose-700">{staffData?.kpis?.high_leave_cases || 12}</div>
-              <p className="text-[11px] text-rose-600 font-bold mt-1">Under Review</p>
+            <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-rose-600">
+              <div className="text-[10px] sm:text-[11px] font-bold uppercase text-slate-500 truncate">High Leave Cases</div>
+              <div className="text-xl sm:text-2xl font-black text-rose-700 mt-0.5">{staffData?.kpis?.high_leave_cases || 12}</div>
+              <p className="text-[10px] sm:text-[11px] text-rose-600 font-bold mt-0.5 truncate">Under Review</p>
             </div>
           </div>
 
           {/* AI Staff Intelligence Alerts */}
-          <div className="glass-card-dark p-6 shadow-xl border border-[#FFD700]/30">
+          <div className="glass-card-dark p-4 sm:p-6 shadow-xl border border-[#FFD700]/30">
             <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-5 h-5 text-[#FFD700]" />
-              <h3 className="text-base font-black text-white">AI Staff Performance & Student Correlation Insights</h3>
+              <Sparkles className="w-5 h-5 text-[#FFD700] shrink-0" />
+              <h3 className="text-sm sm:text-base font-black text-white">AI Staff Performance & Student Correlation Insights</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3">
               {staffData?.insights?.map((ins: string, idx: number) => (
-                <div key={idx} className="bg-black/20 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 text-xs text-white/95 flex items-start gap-2">
+                <div key={idx} className="bg-black/20 backdrop-blur-md p-3 sm:p-3.5 rounded-2xl border border-white/20 text-xs text-white/95 flex items-start gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#FFD700] mt-1 shrink-0" />
                   <span>{ins}</span>
                 </div>
@@ -270,16 +271,17 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
           </div>
 
           {/* School-wise Staff Comparison Table */}
-          <div className="glass-card p-6">
-            <div className="flex justify-between items-center mb-4">
+          <div className="glass-card p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
               <div>
-                <h3 className="font-black text-[#650000] text-base">School-Wise Staff Attendance & Academic Correlation</h3>
-                <p className="text-xs text-slate-500">Monitoring teacher attendance rate vs average student pass percentage</p>
+                <h3 className="font-black text-[#650000] text-sm sm:text-base">School-Wise Staff Attendance & Academic Correlation</h3>
+                <p className="text-[11px] sm:text-xs text-slate-500">Monitoring teacher attendance rate vs average student pass percentage</p>
               </div>
+              <span className="text-[10px] text-slate-400 sm:hidden">⇄ Swipe table horizontally</span>
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-slate-200">
-              <table className="w-full text-left text-xs">
+            <div className="table-scroll-container rounded-xl border border-slate-200">
+              <table className="w-full text-left text-xs min-w-[650px]">
                 <thead className="bg-[#8B0000] text-white">
                   <tr>
                     <th className="p-3">School Name</th>

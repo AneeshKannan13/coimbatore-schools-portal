@@ -57,18 +57,19 @@ export const StaffProfileModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="glass-card max-w-2xl w-full p-6 shadow-2xl border border-white/60 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-50 p-3 sm:p-4">
+      <div className="glass-card max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-white/60 max-h-[92vh] overflow-y-auto">
         <div className="flex justify-between items-center border-b border-slate-200 pb-3 mb-4">
           <div className="flex items-center gap-2">
-            <UserPlus className="w-5 h-5 text-[#8B0000]" />
-            <h3 className="text-base font-black text-[#650000]">
+            <UserPlus className="w-5 h-5 text-[#8B0000] shrink-0" />
+            <h3 className="text-sm sm:text-base font-black text-[#650000]">
               {staffData ? 'Edit Staff Profile & Personal Info' : 'Add New Teaching Staff Profile'}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer"
+            className="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer w-8 h-8 flex items-center justify-center shrink-0"
+            aria-label="Close modal"
           >
             <X className="w-5 h-5" />
           </button>

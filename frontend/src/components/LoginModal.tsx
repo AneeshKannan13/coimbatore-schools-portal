@@ -60,31 +60,32 @@ export const LoginModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="glass-card max-w-md w-full p-8 shadow-2xl relative border border-white/60">
+    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-50 p-3 sm:p-4">
+      <div className="glass-card max-w-md w-full p-5 sm:p-8 shadow-2xl relative border border-white/60 max-h-[92vh] overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 text-2xl font-bold cursor-pointer"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl font-bold cursor-pointer w-8 h-8 flex items-center justify-center"
+          aria-label="Close modal"
         >
           &times;
         </button>
 
         {/* Official Coimbatore Logo */}
-        <div className="text-center mb-6">
-          <div className="flex justify-center mb-3">
+        <div className="text-center mb-5 sm:mb-6 pt-1">
+          <div className="flex justify-center mb-2.5">
             <img
               src="/coimbatore_corp_logo.png"
               alt="Coimbatore City Municipal Corporation"
-              className="h-16 w-auto object-contain drop-shadow-md"
+              className="h-12 sm:h-16 w-auto object-contain drop-shadow-md"
             />
           </div>
-          <h2 className="text-xl font-black text-[#650000] tracking-tight">
+          <h2 className="text-base sm:text-xl font-black text-[#650000] tracking-tight">
             Coimbatore City Municipal Corporation
           </h2>
-          <p className="text-xs font-bold text-[#B31312] mt-0.5 uppercase tracking-wider">
+          <p className="text-[10px] sm:text-xs font-bold text-[#B31312] mt-0.5 uppercase tracking-wider">
             Government School Performance & Analytics Portal
           </p>
-          <p className="text-[11px] text-slate-500 mt-1">
+          <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1">
             Sign in with your assigned User ID and Password
           </p>
         </div>

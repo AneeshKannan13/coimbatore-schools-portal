@@ -46,48 +46,50 @@ export function App() {
   return (
     <div className="min-h-screen bg-[#F8F8F8] flex flex-col font-sans">
       {/* Official Gov Header */}
-      <div className="bg-[#650000] text-white px-6 py-1.5 text-xs flex justify-between items-center border-b border-[#FFD700]/30 shadow-xs">
-        <div className="flex items-center gap-3">
-          <span className="font-extrabold text-[#FFD700] tracking-wider">TAMIL NADU GOVERNMENT</span>
-          <span>•</span>
-          <span className="text-white/90">Coimbatore City Municipal Corporation</span>
+      <div className="bg-[#650000] text-white px-3 sm:px-6 py-1 text-[10px] sm:text-xs flex justify-between items-center border-b border-[#FFD700]/30 shadow-xs">
+        <div className="flex items-center gap-1.5 sm:gap-3 truncate">
+          <span className="font-extrabold text-[#FFD700] tracking-wider whitespace-nowrap">TAMIL NADU GOVT</span>
+          <span className="hidden sm:inline">•</span>
+          <span className="text-white/90 truncate hidden sm:inline">Coimbatore City Municipal Corporation</span>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="font-mono text-[#FFD700] flex items-center gap-1.5 font-bold">
-            <span className="w-2 h-2 rounded-full bg-[#FFD700] animate-pulse" /> SESSION ACTIVE
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          <span className="font-mono text-[#FFD700] flex items-center gap-1 font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-pulse" /> ACTIVE
           </span>
-          <span>•</span>
-          <span className="text-white/70">EMIS Network Secure</span>
+          <span className="hidden sm:inline text-white/40">•</span>
+          <span className="text-white/70 hidden sm:inline">EMIS Network Secure</span>
         </div>
       </div>
 
       {/* Main Authenticated Header (Red gradient with Coimbatore Corporation Logo Left & CM image Top-Right) */}
       <header className="sticky top-0 z-40 bg-gradient-to-r from-[#650000] via-[#8B0000] to-[#B31312] text-white shadow-lg border-b-2 border-[#FFD700]">
-        <div className="max-w-7xl mx-auto px-6 py-2.5 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex justify-between items-center gap-2">
           
           {/* Left: Coimbatore Corporation Logo & Title */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
             <img
               src="/coimbatore_corp_logo.png"
               alt="Coimbatore Corporation Official Logo"
-              className="h-12 md:h-14 w-auto object-contain drop-shadow-md"
+              className="h-9 sm:h-12 md:h-14 w-auto object-contain drop-shadow-md shrink-0"
             />
-            <div>
-              <h1 className="text-base md:text-xl font-black text-white tracking-tight leading-tight">
-                Coimbatore City Municipal Corporation
+            <div className="min-w-0">
+              <h1 className="text-xs sm:text-base md:text-xl font-black text-white tracking-tight leading-tight truncate">
+                Coimbatore Corporation Schools
               </h1>
-              <div className="flex items-center gap-2 text-[11px] md:text-xs text-white/90 mt-0.5">
-                <span className="font-extrabold text-[#FFD700] uppercase tracking-wider">{currentUser.role} PORTAL</span>
-                <span>•</span>
-                <span>User: <b>{currentUser.username}</b></span>
+              <div className="flex flex-wrap items-center gap-1.5 text-[10px] sm:text-xs text-white/90 mt-0.5">
+                <span className="font-extrabold text-[#FFD700] uppercase tracking-wider px-1.5 py-0.2 bg-black/20 rounded">
+                  {currentUser.role}
+                </span>
+                <span className="hidden sm:inline">•</span>
+                <span className="truncate max-w-[120px] sm:max-w-none"><b>{currentUser.username}</b></span>
               </div>
             </div>
           </div>
 
           {/* Right: CM Image + Logout */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 pl-2 border-l border-white/20">
-              <div className="text-right hidden sm:block">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-white/20">
+              <div className="text-right hidden md:block">
                 <p className="text-[10px] font-bold text-[#FFD700] uppercase tracking-wider leading-none">
                   Hon'ble Chief Minister
                 </p>
@@ -98,29 +100,31 @@ export function App() {
               <img
                 src="/hon_cm_tn.jpg"
                 alt="Honourable Chief Minister of Tamil Nadu"
-                className="w-[50px] sm:w-[58px] h-[60px] sm:h-[68px] object-cover object-top rounded-xl border-2 border-[#FFD700] shadow-md"
+                className="w-10 sm:w-[48px] md:w-[58px] h-12 sm:h-[58px] md:h-[68px] object-cover object-top rounded-lg sm:rounded-xl border border-[#FFD700] shadow-md"
               />
             </div>
 
             <button
               onClick={handleLogout}
-              className="gold-button flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black shadow-md cursor-pointer ml-2"
+              className="gold-button flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black shadow-md cursor-pointer shrink-0"
+              title="Sign Out"
             >
-              <LogOut className="w-3.5 h-3.5 text-[#650000]" /> Sign Out
+              <LogOut className="w-3.5 h-3.5 text-[#650000]" />
+              <span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Body Content automatically routed by verified DB role */}
-      <main className="max-w-7xl mx-auto px-6 py-6 flex-1 w-full">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex-1 w-full">
         {currentUser.role === 'STAFF' && <StaffDashboard user={currentUser} />}
         {currentUser.role === 'HEADMASTER' && <HeadmasterDashboard user={currentUser} />}
         {currentUser.role === 'COMMISSIONER' && <CommissionerDashboard user={currentUser} />}
         {currentUser.role === 'ADMIN' && <AdminDashboard user={currentUser} />}
       </main>
 
-      <footer className="bg-gradient-to-r from-[#650000] via-[#8B0000] to-[#650000] border-t-2 border-[#FFD700] py-4 text-center text-xs text-white/80 font-medium">
+      <footer className="bg-gradient-to-r from-[#650000] via-[#8B0000] to-[#650000] border-t-2 border-[#FFD700] py-3.5 px-4 text-center text-[11px] sm:text-xs text-white/80 font-medium safe-pb">
         © 2026 Coimbatore City Municipal Corporation • Government Schools Performance & AI Analytics Portal
       </footer>
     </div>

@@ -57,24 +57,24 @@ export const StaffDashboard: React.FC<{ user: any }> = ({ user }) => {
   return (
     <div className="space-y-6">
       {/* Top Banner with Teacher Information */}
-      <div className="glass-card p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-l-4 border-l-[#8B0000]">
-        <div className="flex items-center gap-4">
+      <div className="glass-card p-4 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-l-4 border-l-[#8B0000]">
+        <div className="flex items-center gap-3 sm:gap-4">
           <img
             src="/coimbatore_corp_logo.png"
             alt="Logo"
-            className="h-14 w-auto object-contain hidden sm:block"
+            className="h-10 sm:h-14 w-auto object-contain hidden sm:block"
           />
           <div>
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-[#8B0000]/10 text-[#8B0000] rounded-full text-xs font-black uppercase tracking-wider">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span className="px-2.5 py-0.5 bg-[#8B0000]/10 text-[#8B0000] rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider">
                 Staff Portal
               </span>
-              <span className="text-xs text-slate-500 font-bold">{user.school_name || 'Corporation HSS'}</span>
+              <span className="text-[11px] sm:text-xs text-slate-500 font-bold">{user.school_name || 'Corporation HSS'}</span>
             </div>
-            <h2 className="text-2xl font-black text-[#650000] mt-1">
+            <h2 className="text-xl sm:text-2xl font-black text-[#650000] mt-1">
               Welcome, {user.username}
             </h2>
-            <p className="text-xs text-slate-600 font-medium">
+            <p className="text-[11px] sm:text-xs text-slate-600 font-medium">
               Subject-Handling Teacher & Class Performance Analytics
             </p>
           </div>
@@ -82,7 +82,7 @@ export const StaffDashboard: React.FC<{ user: any }> = ({ user }) => {
 
         <button
           onClick={() => setShowUploadModal(true)}
-          className="gold-button flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition cursor-pointer"
+          className="gold-button flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition cursor-pointer w-full md:w-auto"
         >
           <Upload className="w-4 h-4 text-[#650000]" />
           Upload Exam Marks (.xlsx)
@@ -90,98 +90,105 @@ export const StaffDashboard: React.FC<{ user: any }> = ({ user }) => {
       </div>
 
       {/* Standard & Section Filter Tabs */}
-      <div className="glass-card p-3 flex flex-wrap items-center gap-3">
-        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 pl-2">
-          <Filter className="w-3.5 h-3.5 text-[#8B0000]" /> Class Selection:
-        </span>
-        {['9', '10', '11', '12'].map((std) => (
-          <button
-            key={std}
-            onClick={() => setSelectedStandard(std)}
-            className={`px-4 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-              selectedStandard === std
-                ? 'primary-button shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            {std}th Standard
-          </button>
-        ))}
-        <div className="h-5 w-px bg-slate-300 mx-2" />
-        {['A', 'B', 'C'].map((sec) => (
-          <button
-            key={sec}
-            onClick={() => setSelectedSection(sec)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-              selectedSection === sec
-                ? 'bg-[#FFC928] text-[#650000] font-black shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            Section {sec}
-          </button>
-        ))}
+      <div className="glass-card p-3 flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3">
+        <div className="table-scroll-container flex items-center gap-1.5 sm:gap-2 pb-1 sm:pb-0">
+          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1 shrink-0 pl-1">
+            <Filter className="w-3.5 h-3.5 text-[#8B0000]" /> Class:
+          </span>
+          {['9', '10', '11', '12'].map((std) => (
+            <button
+              key={std}
+              onClick={() => setSelectedStandard(std)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer shrink-0 ${
+                selectedStandard === std
+                  ? 'primary-button shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              {std}th Std
+            </button>
+          ))}
+        </div>
+        
+        <div className="table-scroll-container flex items-center gap-1.5 sm:gap-2 pt-1 sm:pt-0 sm:border-l sm:border-slate-300 sm:pl-3">
+          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider shrink-0 pl-1">
+            Section:
+          </span>
+          {['A', 'B', 'C'].map((sec) => (
+            <button
+              key={sec}
+              onClick={() => setSelectedSection(sec)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer shrink-0 ${
+                selectedSection === sec
+                  ? 'bg-[#FFC928] text-[#650000] font-black shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              Sec {sec}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="glass-card p-5 border-l-4 border-l-[#8B0000]">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Total Students</span>
-            <Users className="w-5 h-5 text-[#8B0000]" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#8B0000]">
+          <div className="flex items-center justify-between text-slate-500 mb-1 sm:mb-2">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider truncate">Total Students</span>
+            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B0000] shrink-0" />
           </div>
-          <div className="text-2xl font-black text-[#650000]">
+          <div className="text-xl sm:text-2xl font-black text-[#650000]">
             {data?.kpis?.total_students || 38}
           </div>
-          <p className="text-xs text-slate-400 mt-1">{selectedStandard}th Standard Sec {selectedSection}</p>
+          <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 truncate">{selectedStandard}th Std Sec {selectedSection}</p>
         </div>
 
-        <div className="glass-card p-5 border-l-4 border-l-[#FFC928]">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Class Average</span>
-            <TrendingUp className="w-5 h-5 text-[#8B0000]" />
+        <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#FFC928]">
+          <div className="flex items-center justify-between text-slate-500 mb-1 sm:mb-2">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider truncate">Class Average</span>
+            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B0000] shrink-0" />
           </div>
-          <div className="text-2xl font-black text-[#650000]">
+          <div className="text-xl sm:text-2xl font-black text-[#650000]">
             {data?.kpis?.class_average || 68.4}%
           </div>
-          <p className="text-xs text-emerald-700 font-bold mt-1">+3.2% vs previous exam</p>
+          <p className="text-[10px] sm:text-xs text-emerald-700 font-bold mt-0.5 truncate">+3.2% vs prev</p>
         </div>
 
-        <div className="glass-card p-5 border-l-4 border-l-[#8B0000]">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Pass Percentage</span>
-            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+        <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#8B0000]">
+          <div className="flex items-center justify-between text-slate-500 mb-1 sm:mb-2">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider truncate">Pass Percentage</span>
+            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0" />
           </div>
-          <div className="text-2xl font-black text-emerald-700">
+          <div className="text-xl sm:text-2xl font-black text-emerald-700">
             {data?.kpis?.pass_percentage || 86.8}%
           </div>
-          <p className="text-xs text-slate-400 mt-1">Passing threshold: 35%</p>
+          <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 truncate">Passing: 35%</p>
         </div>
 
-        <div className="glass-card p-5 border-l-4 border-l-[#FFC928]">
-          <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Needs Attention</span>
-            <AlertTriangle className="w-5 h-5 text-[#8B0000]" />
+        <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#FFC928]">
+          <div className="flex items-center justify-between text-slate-500 mb-1 sm:mb-2">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider truncate">Attention Needed</span>
+            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B0000] shrink-0" />
           </div>
-          <div className="text-2xl font-black text-rose-700">
+          <div className="text-xl sm:text-2xl font-black text-rose-700">
             {data?.kpis?.students_needing_attention || 5}
           </div>
-          <p className="text-xs text-rose-600 font-bold mt-1">AI Early Warning Flag</p>
+          <p className="text-[10px] sm:text-xs text-rose-600 font-bold mt-0.5 truncate">AI Warning</p>
         </div>
       </div>
 
       {/* Analytics Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 glass-card p-6">
-          <h3 className="font-black text-[#650000] text-xs uppercase tracking-wider mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+        <div className="md:col-span-2 glass-card p-4 sm:p-6">
+          <h3 className="font-black text-[#650000] text-xs uppercase tracking-wider mb-3 sm:mb-4">
             Subject-Wise Performance Averages
           </h3>
-          <div className="h-64">
+          <div className="h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="name" stroke="#64748B" fontSize={12} />
-                <YAxis stroke="#64748B" fontSize={12} />
+                <XAxis dataKey="name" stroke="#64748B" fontSize={11} />
+                <YAxis stroke="#64748B" fontSize={11} />
                 <Tooltip />
                 <Bar dataKey="average" fill="#8B0000" radius={[6, 6, 0, 0]} />
               </BarChart>
@@ -189,14 +196,14 @@ export const StaffDashboard: React.FC<{ user: any }> = ({ user }) => {
           </div>
         </div>
 
-        <div className="glass-card p-6 flex flex-col items-center">
-          <h3 className="font-black text-[#650000] text-xs uppercase tracking-wider mb-4 w-full text-left">
+        <div className="glass-card p-4 sm:p-6 flex flex-col items-center">
+          <h3 className="font-black text-[#650000] text-xs uppercase tracking-wider mb-3 sm:mb-4 w-full text-left">
             Pass vs Fail Distribution
           </h3>
-          <div className="h-52 w-full flex items-center justify-center">
+          <div className="h-44 sm:h-52 w-full flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={passFailData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70}>
+                <Pie data={passFailData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65}>
                   {passFailData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
@@ -217,22 +224,26 @@ export const StaffDashboard: React.FC<{ user: any }> = ({ user }) => {
       </div>
 
       {/* Student List with AI Performance Insights */}
-      <div className="glass-card p-6">
-        <div className="flex justify-between items-center mb-4">
+      <div className="glass-card p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
-            <h3 className="font-black text-[#650000] text-base">Class Students & Mark Evaluations</h3>
-            <p className="text-xs text-slate-500">Click any student to inspect detailed AI performance and risk diagnostics</p>
+            <h3 className="font-black text-[#650000] text-sm sm:text-base">Class Students & Mark Evaluations</h3>
+            <p className="text-[11px] sm:text-xs text-slate-500">Click any student to inspect detailed AI performance diagnostics</p>
           </div>
           <button
             onClick={() => loadStudentProfile(1)}
-            className="px-3 py-1.5 bg-[#8B0000]/10 hover:bg-[#8B0000]/20 text-[#8B0000] text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5"
+            className="px-3 py-1.5 bg-[#8B0000]/10 hover:bg-[#8B0000]/20 text-[#8B0000] text-xs font-bold rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#FFC928]" /> Sample Student AI Insight
           </button>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200">
-          <table className="w-full text-left text-xs">
+        <div className="sm:hidden text-[10px] text-slate-400 mb-1 flex items-center gap-1">
+          <span>⇄ Swipe table horizontally to view all columns</span>
+        </div>
+
+        <div className="table-scroll-container rounded-xl border border-slate-200">
+          <table className="w-full text-left text-xs min-w-[540px]">
             <thead className="bg-[#8B0000] text-white">
               <tr>
                 <th className="p-3">EMIS ID</th>
@@ -269,7 +280,7 @@ export const StaffDashboard: React.FC<{ user: any }> = ({ user }) => {
                   <td className="p-3">
                     <button
                       onClick={() => loadStudentProfile(st.id)}
-                      className="text-[#8B0000] hover:text-[#B31312] font-black text-xs underline cursor-pointer"
+                      className="text-[#8B0000] hover:text-[#B31312] font-black text-xs underline cursor-pointer p-1"
                     >
                       AI Analysis
                     </button>
@@ -283,8 +294,8 @@ export const StaffDashboard: React.FC<{ user: any }> = ({ user }) => {
 
       {/* AI Student Modal */}
       {selectedStudent && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="glass-card max-w-2xl w-full p-6 shadow-2xl border border-white/60">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="glass-card max-w-2xl w-full p-4 sm:p-6 shadow-2xl border border-white/60 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-start border-b border-slate-200 pb-3 mb-4">
               <div>
                 <span className="text-[10px] font-bold px-2 py-0.5 bg-[#8B0000]/10 text-[#8B0000] rounded">
