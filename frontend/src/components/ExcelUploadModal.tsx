@@ -89,33 +89,36 @@ export const ExcelUploadModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl border border-slate-200 max-h-[92vh] flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center pb-4 border-b border-slate-200">
+        <div className="flex justify-between items-start sm:items-center pb-3 sm:pb-4 border-b border-slate-200 gap-2">
           <div>
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
-              Excel Examination Mark Upload & Validation Engine
+            <h2 className="text-base sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+              <FileSpreadsheet className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 shrink-0" />
+              <span>Excel Examination Mark Upload &amp; Validation</span>
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
               Supports Coimbatore Corporation standardized quarterly/half-yearly marks sheet
             </p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl font-bold cursor-pointer">
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 text-2xl font-bold cursor-pointer w-8 h-8 flex items-center justify-center shrink-0"
+          >
             &times;
           </button>
         </div>
 
         {/* Content body */}
-        <div className="flex-1 overflow-y-auto py-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex-1 overflow-y-auto py-3.5 sm:py-4 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Select Examination</label>
               <select
                 value={examId}
                 onChange={(e) => setExamId(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-slate-50"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs sm:text-sm bg-slate-50"
               >
                 <option value={1}>Quarterly Examination (2026-2027)</option>
                 <option value={2}>Half-Yearly Examination (2026-2027)</option>
@@ -127,24 +130,24 @@ export const ExcelUploadModal: React.FC<{
               <button
                 type="button"
                 onClick={handleDownloadTemplate}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium transition cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg text-xs sm:text-sm text-slate-700 font-medium transition cursor-pointer"
               >
                 <Download className="w-4 h-4 text-slate-600" /> Download Blank Template (.xlsx)
               </button>
             </div>
           </div>
 
-          <div className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-6 text-center transition bg-slate-50">
-            <Upload className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-            <p className="text-sm font-medium text-slate-700">Choose completed Excel workbook to validate</p>
-            <p className="text-xs text-slate-500 mt-1">Accepts standard .xlsx workbook (Students Mark Details sheet)</p>
+          <div className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl p-4 sm:p-6 text-center transition bg-slate-50">
+            <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-slate-400 mx-auto mb-2" />
+            <p className="text-xs sm:text-sm font-medium text-slate-700">Choose completed Excel workbook to validate</p>
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-1">Accepts standard .xlsx workbook (Students Mark Details sheet)</p>
             <input
               type="file"
               accept=".xlsx, .xls"
               onChange={handleFileChange}
-              className="mt-4 text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
+              className="mt-3 sm:mt-4 text-xs text-slate-600 file:mr-3 file:py-2 file:px-3.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer max-w-full"
             />
-            {file && <p className="text-xs text-emerald-600 mt-2 font-medium">Selected: {file.name}</p>}
+            {file && <p className="text-xs text-emerald-600 mt-2 font-medium break-all">Selected: {file.name}</p>}
           </div>
 
           {errorMsg && (
@@ -156,18 +159,18 @@ export const ExcelUploadModal: React.FC<{
 
           {previewData && (
             <div className="space-y-3 pt-2">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 bg-slate-100 rounded-lg">
-                  <div className="text-xs text-slate-500">Total Rows Processed</div>
-                  <div className="text-lg font-bold text-slate-800">{previewData.total_records}</div>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <div className="p-2.5 sm:p-3 bg-slate-100 rounded-lg text-center">
+                  <div className="text-[10px] sm:text-xs text-slate-500">Total Rows</div>
+                  <div className="text-base sm:text-lg font-bold text-slate-800">{previewData.total_records}</div>
                 </div>
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                  <div className="text-xs text-emerald-700 font-medium">Valid Records</div>
-                  <div className="text-lg font-bold text-emerald-800">{previewData.valid_count}</div>
+                <div className="p-2.5 sm:p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-center">
+                  <div className="text-[10px] sm:text-xs text-emerald-700 font-medium">Valid</div>
+                  <div className="text-base sm:text-lg font-bold text-emerald-800">{previewData.valid_count}</div>
                 </div>
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg">
-                  <div className="text-xs text-rose-700 font-medium">Invalid / Errors</div>
-                  <div className="text-lg font-bold text-rose-800">{previewData.invalid_count}</div>
+                <div className="p-2.5 sm:p-3 bg-rose-50 border border-rose-200 rounded-lg text-center">
+                  <div className="text-[10px] sm:text-xs text-rose-700 font-medium">Errors</div>
+                  <div className="text-base sm:text-lg font-bold text-rose-800">{previewData.invalid_count}</div>
                 </div>
               </div>
 
@@ -189,8 +192,8 @@ export const ExcelUploadModal: React.FC<{
               {previewData.preview_data?.length > 0 && (
                 <div>
                   <h4 className="text-xs font-bold text-slate-700 mb-1">Preview Validated Rows (Normalized)</h4>
-                  <div className="overflow-x-auto border border-slate-200 rounded-lg">
-                    <table className="w-full text-left text-xs">
+                  <div className="table-scroll-container border border-slate-200 rounded-lg">
+                    <table className="w-full text-left text-xs min-w-[460px]">
                       <thead className="bg-slate-100 text-slate-600">
                         <tr>
                           <th className="p-2">EMIS</th>
@@ -220,19 +223,19 @@ export const ExcelUploadModal: React.FC<{
         </div>
 
         {/* Footer controls */}
-        <div className="flex justify-between items-center pt-4 border-t border-slate-200">
+        <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 pt-3 sm:pt-4 border-t border-slate-200 safe-pb">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 cursor-pointer"
+            className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 cursor-pointer text-center"
           >
             Cancel
           </button>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             {!previewData ? (
               <button
                 onClick={handlePreview}
                 disabled={loading || !file}
-                className="px-5 py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                className="px-5 py-2.5 sm:py-2 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
               >
                 {loading ? 'Validating...' : 'Parse & Validate Rows'} <ArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -240,9 +243,9 @@ export const ExcelUploadModal: React.FC<{
               <button
                 onClick={handleConfirmCommit}
                 disabled={loading || previewData.valid_count === 0}
-                className="px-5 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+                className="px-5 py-2.5 sm:py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1.5 w-full sm:w-auto"
               >
-                <CheckCircle2 className="w-3.5 h-3.5" /> Confirm & Save to Database ({previewData.valid_count} Records)
+                <CheckCircle2 className="w-3.5 h-3.5" /> Confirm &amp; Save to Database ({previewData.valid_count} Records)
               </button>
             )}
           </div>

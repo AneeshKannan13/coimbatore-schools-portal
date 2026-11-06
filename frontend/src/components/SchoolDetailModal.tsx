@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Building2, Users, GraduationCap, Award, Phone, MapPin,
-  BookOpen, Calendar, CheckCircle2, AlertTriangle, X, UserCheck
+  X, UserCheck
 } from 'lucide-react';
 import apiClient from '../api';
 import { StudentAnalyticsSection } from './StudentAnalyticsSection';
@@ -29,79 +28,82 @@ export const SchoolDetailModal: React.FC<{
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="glass-card max-w-6xl w-full p-4 sm:p-6 shadow-2xl border border-white/60 max-h-[94vh] flex flex-col">
+    <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-md flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="glass-card max-w-6xl w-full p-3.5 sm:p-6 shadow-2xl border border-white/60 h-[94vh] sm:h-auto sm:max-h-[94vh] rounded-t-2xl sm:rounded-2xl flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-start pb-3 sm:pb-4 border-b border-slate-200">
-          <div className="flex items-center gap-3">
+        <div className="flex justify-between items-start pb-3 sm:pb-4 border-b border-slate-200 gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <img
               src="/coimbatore_corp_logo.png"
               alt="Logo"
-              className="h-10 sm:h-12 w-auto object-contain hidden sm:block"
+              className="h-9 sm:h-12 w-auto object-contain hidden sm:block shrink-0"
             />
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 bg-[#8B0000]/10 text-[#8B0000] text-[10px] font-black rounded font-mono">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="px-2 py-0.5 bg-[#8B0000]/10 text-[#8B0000] text-[9px] sm:text-[10px] font-black rounded font-mono">
                   {data?.school?.code}
                 </span>
-                <span className="text-[11px] sm:text-xs font-bold text-slate-500">
+                <span className="text-[10px] sm:text-xs font-bold text-slate-500">
                   Zone: {data?.school?.zone} • {data?.school?.ward}
                 </span>
               </div>
-              <h2 className="text-base sm:text-xl font-black text-[#650000] mt-0.5">
+              <h2 className="text-sm sm:text-xl font-black text-[#650000] mt-0.5 truncate">
                 {data?.school?.name || 'School Detailed Analysis'}
               </h2>
-              <p className="text-[11px] sm:text-xs text-slate-600 font-medium">
-                Headmaster: <b className="text-slate-800">{data?.school?.headmaster_name}</b> | EMIS: {data?.school?.emis_number}
+              <p className="text-[10px] sm:text-xs text-slate-600 font-medium truncate">
+                HM: <b className="text-slate-800">{data?.school?.headmaster_name}</b> | EMIS: {data?.school?.emis_number}
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 font-bold text-2xl cursor-pointer w-8 h-8 flex items-center justify-center shrink-0"
+            className="text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl w-8 h-8 flex items-center justify-center shrink-0 cursor-pointer"
             aria-label="Close modal"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab switcher */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 border-b border-slate-200 py-2.5">
+        <div className="grid grid-cols-3 gap-1 sm:gap-1.5 border-b border-slate-200 py-2">
           <button
             onClick={() => setActiveTab('students')}
-            className={`px-3 py-2 rounded-xl text-xs font-black transition cursor-pointer text-center ${
+            className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
               activeTab === 'students'
                 ? 'primary-button shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 bg-slate-100'
             }`}
           >
-            Student Pass/Fail &amp; Mark Ranges
+            <span className="sm:hidden">Students</span>
+            <span className="hidden sm:inline">Student Pass/Fail &amp; Mark Ranges</span>
           </button>
           <button
             onClick={() => setActiveTab('staff')}
-            className={`px-3 py-2 rounded-xl text-xs font-black transition cursor-pointer text-center ${
+            className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
               activeTab === 'staff'
                 ? 'gold-button shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 bg-slate-100'
             }`}
           >
-            Staff Details, Leaves &amp; Ratio ({data?.staff?.length || 0})
+            <span className="sm:hidden">Staff ({data?.staff?.length || 0})</span>
+            <span className="hidden sm:inline">Staff Details, Leaves &amp; Ratio ({data?.staff?.length || 0})</span>
           </button>
           <button
             onClick={() => setActiveTab('standards')}
-            className={`px-3 py-2 rounded-xl text-xs font-black transition cursor-pointer text-center ${
+            className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
               activeTab === 'standards'
                 ? 'primary-button shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 bg-slate-100'
             }`}
           >
-            Standard &amp; Class Summary ({data?.standards?.length || 0})
+            <span className="sm:hidden">Classes ({data?.standards?.length || 0})</span>
+            <span className="hidden sm:inline">Standard &amp; Class Summary ({data?.standards?.length || 0})</span>
           </button>
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto py-3 pr-1">
+        <div className="flex-1 overflow-y-auto py-3 pr-0.5 sm:pr-1">
           {activeTab === 'students' ? (
             <StudentAnalyticsSection
               schoolId={schoolId}
@@ -110,10 +112,61 @@ export const SchoolDetailModal: React.FC<{
             />
           ) : activeTab === 'staff' ? (
             <div className="space-y-3">
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 font-semibold flex items-center justify-between">
-                <span>Click any <b>Staff Name</b> below to open their 360° Staff Performance Dashboard (with Handled Students, Pass/Fail Ratio &amp; Mark Ranges).</span>
+              <div className="p-2.5 sm:p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] sm:text-xs text-amber-900 font-semibold">
+                Tap any <b>Staff Name</b> below to open their 360° Staff Performance Dashboard (with Handled Students, Pass/Fail Ratio &amp; Mark Ranges).
               </div>
-              <div className="table-scroll-container rounded-xl border border-slate-200">
+
+              {/* Mobile Staff Cards (<768px) */}
+              <div className="md:hidden space-y-2.5">
+                {data?.staff?.map((s: any) => (
+                  <div
+                    key={s.id}
+                    onClick={() => setSelectedTeacherId(s.id)}
+                    className="p-3 bg-white rounded-xl border border-slate-200 border-l-4 border-l-[#8B0000] shadow-2xs cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-black text-[#8B0000] text-xs flex items-center gap-1">
+                          <UserCheck className="w-3.5 h-3.5 shrink-0" />
+                          <span>{s.teacher_name}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-600 font-bold mt-0.5">
+                          {s.designation} • <span className="text-[#8B0000]">{s.handling_subject}</span>
+                        </div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          📍 {s.location} • 📞 {s.contact_number}
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTeacherId(s.id);
+                        }}
+                        className="px-2.5 py-1 bg-[#8B0000] text-white rounded-lg text-[10px] font-bold shrink-0 cursor-pointer"
+                      >
+                        360° View →
+                      </button>
+                    </div>
+                    <div className="mt-2 pt-2 border-t border-slate-100 grid grid-cols-3 gap-1.5 text-center text-[10px]">
+                      <div className="bg-emerald-50 rounded-lg py-1">
+                        <div className="text-slate-500">Presents</div>
+                        <div className="font-black text-emerald-800">{s.present_days ?? 21}/{s.working_days ?? 22}d</div>
+                      </div>
+                      <div className="bg-amber-50 rounded-lg py-1">
+                        <div className="text-slate-500">Leaves</div>
+                        <div className="font-black text-amber-900">{s.total_leave}d</div>
+                      </div>
+                      <div className="bg-rose-50/70 rounded-lg py-1">
+                        <div className="text-slate-500">{s.handling_student_count || 12} Students</div>
+                        <div className="font-black text-emerald-700">{s.pass_ratio ?? 85}% Pass</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop Table (>=768px) */}
+              <div className="hidden md:block table-scroll-container rounded-xl border border-slate-200">
                 <table className="w-full text-left text-xs min-w-[780px]">
                   <thead className="bg-[#8B0000] text-white">
                     <tr>
@@ -162,9 +215,8 @@ export const SchoolDetailModal: React.FC<{
                         </td>
                         <td className="p-2.5 text-center">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              s.total_leave > 0 ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'
-                            }`}
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${s.total_leave > 0 ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'
+                              }`}
                           >
                             {s.total_leave} Days
                           </span>
@@ -196,7 +248,7 @@ export const SchoolDetailModal: React.FC<{
             </div>
           ) : (
             <div className="table-scroll-container rounded-xl border border-slate-200">
-              <table className="w-full text-left text-xs min-w-[580px]">
+              <table className="w-full text-left text-xs min-w-[520px]">
                 <thead className="bg-[#8B0000] text-white">
                   <tr>
                     <th className="p-2.5">Standard &amp; Section</th>
@@ -224,10 +276,10 @@ export const SchoolDetailModal: React.FC<{
           )}
         </div>
 
-        <div className="pt-3 border-t border-slate-200 text-right">
+        <div className="pt-2.5 sm:pt-3 border-t border-slate-200 flex justify-end safe-pb">
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-slate-800 text-white font-bold rounded-xl text-xs cursor-pointer hover:bg-slate-900"
+            className="w-full sm:w-auto px-5 py-2.5 sm:py-2 bg-slate-800 text-white font-bold rounded-xl text-xs cursor-pointer hover:bg-slate-900 text-center"
           >
             Close Drilldown
           </button>

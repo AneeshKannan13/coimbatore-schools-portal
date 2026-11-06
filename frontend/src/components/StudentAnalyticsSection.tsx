@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  GraduationCap, CheckCircle2, AlertTriangle, ChevronDown, ChevronUp,
-  Search, Filter, Eye, UserCheck, Sparkles, BookOpen, Award, X, Users, Upload, FileUp
+  AlertTriangle, ChevronDown, ChevronUp,
+  Search, UserCheck, Award, X, Upload, FileUp
 } from 'lucide-react';
 import apiClient from '../api';
 import { StaffAnalyticsModal } from './StaffAnalyticsModal';
@@ -124,128 +124,131 @@ export const StudentAnalyticsSection: React.FC<{
   const activeRangeObj = ranges.find((r: any) => r.key === expandedRangeKey);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5">
       {/* Top Summary Banner: Pass/Fail Classification & Single-Subject Low Mark Alert */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         <div
           onClick={() => setStatusFilter('ALL')}
-          className={`glass-card p-3.5 sm:p-4 border-l-4 border-l-[#8B0000] cursor-pointer transition ${
+          className={`glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000] cursor-pointer transition ${
             statusFilter === 'ALL' ? 'ring-2 ring-[#8B0000]' : ''
           }`}
         >
-          <div className="text-[10px] sm:text-xs font-bold uppercase text-slate-500">Total Students Evaluated</div>
-          <div className="text-xl sm:text-2xl font-black text-[#650000] mt-0.5">{summary.total_students || 0}</div>
-          <p className="text-[10px] text-slate-500 mt-0.5">Avg Score: <b>{summary.overall_avg_mark || 0}%</b></p>
+          <div className="text-[10px] sm:text-xs font-bold uppercase text-slate-500 truncate">Total Evaluated</div>
+          <div className="text-lg sm:text-2xl font-black text-[#650000] mt-0.5">{summary.total_students || 0}</div>
+          <p className="text-[10px] text-slate-500 mt-0.5 truncate">Avg Score: <b>{summary.overall_avg_mark || 0}%</b></p>
         </div>
 
         <div
           onClick={() => setStatusFilter(statusFilter === 'PASS' ? 'ALL' : 'PASS')}
-          className={`p-3.5 sm:p-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50/90 cursor-pointer transition ${
+          className={`p-3 sm:p-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50/90 cursor-pointer transition ${
             statusFilter === 'PASS' ? 'ring-2 ring-emerald-600 shadow-md' : ''
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-xs font-black uppercase text-emerald-800">Auto-Classified PASS</span>
-            <span className="px-2 py-0.5 bg-emerald-600 text-white rounded-full text-[10px] font-black">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[10px] sm:text-xs font-black uppercase text-emerald-800 truncate">Auto PASS</span>
+            <span className="px-1.5 sm:px-2 py-0.5 bg-emerald-600 text-white rounded-full text-[9px] sm:text-[10px] font-black shrink-0">
               {summary.pass_percentage || 0}%
             </span>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-emerald-800 mt-0.5">
-            {summary.pass_count || 0} <span className="text-xs font-bold">Students</span>
+          <div className="text-lg sm:text-2xl font-black text-emerald-800 mt-0.5">
+            {summary.pass_count || 0} <span className="text-[11px] sm:text-xs font-bold">Students</span>
           </div>
-          <p className="text-[10px] text-emerald-700 font-semibold mt-0.5">All Subjects ≥ 35 Marks (Click to filter)</p>
+          <p className="text-[9px] sm:text-[10px] text-emerald-700 font-semibold mt-0.5 truncate">All Subjects ≥ 35 (Tap to filter)</p>
         </div>
 
         <div
           onClick={() => setStatusFilter(statusFilter === 'FAIL' ? 'ALL' : 'FAIL')}
-          className={`p-3.5 sm:p-4 rounded-2xl border-2 border-rose-300 bg-rose-50/90 cursor-pointer transition ${
+          className={`p-3 sm:p-4 rounded-2xl border-2 border-rose-300 bg-rose-50/90 cursor-pointer transition ${
             statusFilter === 'FAIL' ? 'ring-2 ring-rose-600 shadow-md' : ''
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-xs font-black uppercase text-rose-800">Auto-Classified FAIL</span>
-            <span className="px-2 py-0.5 bg-rose-600 text-white rounded-full text-[10px] font-black">
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[10px] sm:text-xs font-black uppercase text-rose-800 truncate">Auto FAIL</span>
+            <span className="px-1.5 sm:px-2 py-0.5 bg-rose-600 text-white rounded-full text-[9px] sm:text-[10px] font-black shrink-0">
               {summary.fail_percentage || 0}%
             </span>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-rose-800 mt-0.5">
-            {summary.fail_count || 0} <span className="text-xs font-bold">Students</span>
+          <div className="text-lg sm:text-2xl font-black text-rose-800 mt-0.5">
+            {summary.fail_count || 0} <span className="text-[11px] sm:text-xs font-bold">Students</span>
           </div>
-          <p className="text-[10px] text-rose-700 font-semibold mt-0.5">Any Subject &lt; 35 Marks (Click to filter)</p>
+          <p className="text-[9px] sm:text-[10px] text-rose-700 font-semibold mt-0.5 truncate">Any Subject &lt; 35 (Tap to filter)</p>
         </div>
 
         <div
           onClick={() => setStatusFilter(statusFilter === 'LOW_SUBJECT' ? 'ALL' : 'LOW_SUBJECT')}
-          className={`p-3.5 sm:p-4 rounded-2xl border-2 border-amber-300 bg-amber-50/90 cursor-pointer transition ${
+          className={`p-3 sm:p-4 rounded-2xl border-2 border-amber-300 bg-amber-50/90 cursor-pointer transition ${
             statusFilter === 'LOW_SUBJECT' ? 'ring-2 ring-amber-600 shadow-md' : ''
           }`}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] sm:text-xs font-black uppercase text-amber-900">Low Mark in Any Subject</span>
-            <AlertTriangle className="w-4 h-4 text-amber-600" />
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-[10px] sm:text-xs font-black uppercase text-amber-900 truncate">Low Subject</span>
+            <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600 shrink-0" />
           </div>
-          <div className="text-xl sm:text-2xl font-black text-amber-900 mt-0.5">
-            {summary.low_subject_students_count || 0} <span className="text-xs font-bold">Students</span>
+          <div className="text-lg sm:text-2xl font-black text-amber-900 mt-0.5">
+            {summary.low_subject_students_count || 0} <span className="text-[11px] sm:text-xs font-bold">Students</span>
           </div>
-          <p className="text-[10px] text-amber-800 font-semibold mt-0.5">Subject Score &lt; 50 Flagged (Click to filter)</p>
+          <p className="text-[9px] sm:text-[10px] text-amber-800 font-semibold mt-0.5 truncate">Score &lt; 50 Flagged (Tap to filter)</p>
         </div>
       </div>
 
       {/* 5 Mark Range Categories with Clickable Dropdown Lists */}
-      <div className="glass-card p-4 sm:p-5 border border-slate-200">
+      <div className="glass-card p-3.5 sm:p-5 border border-slate-200">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
           <div>
-            <h3 className="text-sm sm:text-base font-black text-[#650000] flex items-center gap-2">
-              <Award className="w-5 h-5 text-[#8B0000]" />
-              Mark Range Category Breakdown (Click Any Range Card to Open Student List Dropdown)
+            <h3 className="text-xs sm:text-base font-black text-[#650000] flex items-center gap-1.5 sm:gap-2">
+              <Award className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B0000] shrink-0" />
+              <span>Mark Range Category Breakdown (Tap Any Range to Open Student Dropdown)</span>
             </h3>
-            <p className="text-[11px] sm:text-xs text-slate-500">
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
               Categorized into Below 35, 35 to 50, 50 to 75, 75 to 90, and Above 90 with single-subject low mark alerts
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 w-full md:w-auto">
             <button
               onClick={() => setShowMarksUploadModal(true)}
-              className="gold-button px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="gold-button px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm cursor-pointer w-full sm:w-auto"
             >
-              <Upload className="w-3.5 h-3.5 text-[#650000]" /> Upload Student Marks (.xlsx)
+              <Upload className="w-3.5 h-3.5 text-[#650000] shrink-0" /> Upload Student Marks (.xlsx)
             </button>
             <button
               onClick={() => setShowStaffUploadModal(true)}
-              className="px-3.5 py-2 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm cursor-pointer bg-slate-900 hover:bg-slate-800 text-[#FFD700] transition"
+              className="px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm cursor-pointer bg-slate-900 hover:bg-slate-800 text-[#FFD700] transition w-full sm:w-auto"
             >
-              <FileUp className="w-3.5 h-3.5 text-[#FFD700]" /> Upload Staff Workbook (.xlsx)
+              <FileUp className="w-3.5 h-3.5 text-[#FFD700] shrink-0" /> Upload Staff Workbook (.xlsx)
             </button>
           </div>
         </div>
 
         {/* 5 Range Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-          {ranges.map((r: any) => {
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
+          {ranges.map((r: any, idx: number) => {
             const theme = RANGE_THEMES[r.key] || RANGE_THEMES['50_75'];
             const isExpanded = expandedRangeKey === r.key;
+            const isLastOdd = idx === ranges.length - 1 && ranges.length % 2 === 1;
             return (
               <button
                 key={r.key}
                 onClick={() => setExpandedRangeKey(isExpanded ? null : r.key)}
-                className={`p-3.5 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col justify-between ${theme.cardBg} ${
+                className={`p-3 sm:p-3.5 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col justify-between ${
+                  isLastOdd ? 'col-span-2 sm:col-span-1' : ''
+                } ${theme.cardBg} ${
                   isExpanded ? `${theme.activeRing} shadow-lg` : theme.cardBorder
                 }`}
               >
-                <div className="flex items-center justify-between w-full">
-                  <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase ${theme.badge}`}>
+                <div className="flex items-center justify-between w-full gap-1">
+                  <span className={`px-2 py-0.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase ${theme.badge}`}>
                     {r.label}
                   </span>
                   <span className={`text-xs font-black ${theme.text}`}>{r.percentage}%</span>
                 </div>
 
-                <div className={`text-2xl sm:text-3xl font-black mt-2 ${theme.text}`}>
-                  {r.count} <span className="text-xs font-bold">Students</span>
+                <div className={`text-xl sm:text-3xl font-black mt-1.5 sm:mt-2 ${theme.text}`}>
+                  {r.count} <span className="text-[11px] sm:text-xs font-bold">Students</span>
                 </div>
 
                 <div className="mt-2 pt-1.5 border-t border-black/10 flex items-center justify-between text-[10px] font-bold text-slate-700">
-                  <span>{isExpanded ? 'Hide Dropdown' : 'View Student List'}</span>
-                  {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  <span>{isExpanded ? 'Hide Dropdown' : 'Student List'}</span>
+                  {isExpanded ? <ChevronUp className="w-4 h-4 shrink-0" /> : <ChevronDown className="w-4 h-4 shrink-0" />}
                 </div>
               </button>
             );
@@ -254,23 +257,91 @@ export const StudentAnalyticsSection: React.FC<{
 
         {/* Dropdown Panel for the Clicked Range Category */}
         {activeRangeObj && (
-          <div className="mt-4 rounded-2xl border-2 border-slate-300 overflow-hidden shadow-md animate-fadeIn">
-            <div className={`px-4 py-2.5 flex justify-between items-center ${RANGE_THEMES[activeRangeObj.key]?.headerBg || 'bg-[#8B0000] text-white'}`}>
-              <div className="flex items-center gap-2">
-                <span className="font-black text-xs sm:text-sm uppercase tracking-wider">
-                  {activeRangeObj.label} Range — Student Dropdown List ({activeRangeObj.count} Students)
+          <div className="mt-3 sm:mt-4 rounded-2xl border-2 border-slate-300 overflow-hidden shadow-md">
+            <div className={`px-3 sm:px-4 py-2.5 flex justify-between items-center gap-2 ${RANGE_THEMES[activeRangeObj.key]?.headerBg || 'bg-[#8B0000] text-white'}`}>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-black text-xs sm:text-sm uppercase tracking-wider truncate">
+                  {activeRangeObj.label} Range — ({activeRangeObj.count} Students)
                 </span>
                 <span className="text-[11px] opacity-90 hidden sm:inline">• {activeRangeObj.sublabel}</span>
               </div>
               <button
                 onClick={() => setExpandedRangeKey(null)}
-                className="text-xs font-bold bg-black/20 hover:bg-black/30 px-2.5 py-1 rounded-lg cursor-pointer"
+                className="text-[11px] sm:text-xs font-bold bg-black/20 hover:bg-black/30 px-2.5 py-1 rounded-lg cursor-pointer shrink-0"
               >
-                Close Dropdown ✕
+                Close ✕
               </button>
             </div>
 
-            <div className="table-scroll-container bg-white max-h-80 overflow-y-auto">
+            {/* Mobile Card List (<768px) */}
+            <div className="md:hidden bg-white max-h-96 overflow-y-auto divide-y divide-slate-200">
+              {activeRangeObj.students.map((st: any) => (
+                <div
+                  key={st.id}
+                  onClick={() => setSelectedStudent(st)}
+                  className={`p-3 cursor-pointer transition ${
+                    st.is_pass ? 'bg-emerald-50/30' : 'bg-rose-50/60'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-black text-slate-900 text-xs">{st.student_name}</div>
+                      <div className="text-[10px] text-slate-500 font-mono">
+                        EMIS: {st.emis_number} • {st.class_name}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="font-black text-xs text-[#650000]">{st.avg_mark}%</span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                          st.is_pass ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                        }`}
+                      >
+                        {st.result_status}
+                      </span>
+                    </div>
+                  </div>
+
+                  {st.low_mark_subjects?.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {st.low_mark_subjects.map((ls: any, i: number) => (
+                        <span
+                          key={i}
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ${
+                            ls.is_fail
+                              ? 'bg-rose-600 text-white'
+                              : 'bg-amber-200 text-amber-950'
+                          }`}
+                        >
+                          <AlertTriangle className="w-3 h-3 shrink-0" />
+                          {ls.subject_name}: {ls.mark}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="mt-2 flex justify-end">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedStudent(st);
+                      }}
+                      className="px-2.5 py-1 bg-[#8B0000] text-white font-bold rounded-lg text-[10px] cursor-pointer"
+                    >
+                      Student &amp; Staff Detail →
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {activeRangeObj.students.length === 0 && (
+                <div className="p-6 text-center text-slate-400 text-xs font-bold">
+                  No students in this range.
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Table (>=768px) */}
+            <div className="hidden md:block table-scroll-container bg-white max-h-80 overflow-y-auto">
               <table className="w-full text-left text-xs min-w-[700px]">
                 <thead className="bg-slate-100 text-slate-700 border-b border-slate-200 sticky top-0">
                   <tr>
@@ -358,56 +429,137 @@ export const StudentAnalyticsSection: React.FC<{
       </div>
 
       {/* Complete Student Directory with Filters, Color-Highlighted Pass/Fail & Subject Marks */}
-      <div className="glass-card p-4 sm:p-5 border border-slate-200">
+      <div className="glass-card p-3.5 sm:p-5 border border-slate-200">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-4">
           <div>
-            <h3 className="text-sm sm:text-base font-black text-[#650000]">
+            <h3 className="text-xs sm:text-base font-black text-[#650000]">
               {title || 'Student Master Register — Auto Pass/Fail & Subject-Wise Low Mark Tracker'}
             </h3>
-            <p className="text-[11px] sm:text-xs text-slate-500">
-              Click any student row to view all Handling Staff names, then click any Staff name for their 360° Staff Dashboard
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+              Tap any student to view all Handling Staff names, then tap any Staff name for their 360° Staff Dashboard
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            {/* Standard Filter */}
-            <select
-              value={selectedStandard}
-              onChange={(e) => setSelectedStandard(e.target.value)}
-              className="px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white"
-            >
-              <option value="All">All Standards</option>
-              <option value="10">10th Standard</option>
-              <option value="11">11th Standard</option>
-              <option value="12">12th Standard</option>
-            </select>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+            <div className="grid grid-cols-2 gap-2 sm:flex">
+              {/* Standard Filter */}
+              <select
+                value={selectedStandard}
+                onChange={(e) => setSelectedStandard(e.target.value)}
+                className="px-2.5 py-2 sm:py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white w-full sm:w-auto"
+              >
+                <option value="All">All Standards</option>
+                <option value="10">10th Standard</option>
+                <option value="11">11th Standard</option>
+                <option value="12">12th Standard</option>
+              </select>
 
-            {/* Section Filter */}
-            <select
-              value={selectedSection}
-              onChange={(e) => setSelectedSection(e.target.value)}
-              className="px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white"
-            >
-              <option value="All">All Sections</option>
-              <option value="A">Section A</option>
-              <option value="B">Section B</option>
-            </select>
+              {/* Section Filter */}
+              <select
+                value={selectedSection}
+                onChange={(e) => setSelectedSection(e.target.value)}
+                className="px-2.5 py-2 sm:py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white w-full sm:w-auto"
+              >
+                <option value="All">All Sections</option>
+                <option value="A">Section A</option>
+                <option value="B">Section B</option>
+              </select>
+            </div>
 
             {/* Search */}
-            <div className="relative flex-1 sm:w-56">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
+            <div className="relative w-full sm:w-56">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 sm:top-2" />
               <input
                 type="text"
                 placeholder="Search student or EMIS..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-xl bg-white"
+                className="w-full pl-8 pr-3 py-2 sm:py-1.5 text-xs border border-slate-300 rounded-xl bg-white"
               />
             </div>
           </div>
         </div>
 
-        <div className="table-scroll-container rounded-xl border border-slate-200">
+        {/* Mobile Student Cards (<768px) */}
+        <div className="md:hidden space-y-2.5">
+          {loading ? (
+            <div className="p-8 text-center text-slate-500 text-xs font-bold">
+              Loading student records and pass/fail classifications...
+            </div>
+          ) : (
+            filteredStudents.map((st: any) => {
+              const rTheme = RANGE_THEMES[st.range_key] || RANGE_THEMES['50_75'];
+              return (
+                <div
+                  key={st.id}
+                  onClick={() => setSelectedStudent(st)}
+                  className={`p-3 rounded-xl border border-slate-200 border-l-4 cursor-pointer transition ${
+                    st.is_pass
+                      ? 'border-l-emerald-500 bg-white'
+                      : 'border-l-rose-600 bg-rose-50/60'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="font-black text-slate-900 text-xs truncate">{st.student_name}</div>
+                      <div className="text-[10px] text-slate-500 font-mono">
+                        EMIS: {st.emis_number} • {st.class_name}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${rTheme.badge}`}>
+                        {st.range_label}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                          st.is_pass ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                        }`}
+                      >
+                        {st.result_status}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Subject Marks Pills */}
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {st.subject_marks?.map((m: any, idx: number) => (
+                      <span
+                        key={idx}
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                          !m.is_pass
+                            ? 'bg-rose-600 text-white font-black'
+                            : m.mark < 50
+                            ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                            : 'bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        {m.subject_name.slice(0, 3)}: {m.mark}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <div className="text-xs font-black text-[#650000]">
+                      Avg: {st.avg_mark}%
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedStudent(st);
+                      }}
+                      className="px-3 py-1 bg-[#8B0000] text-white font-bold rounded-lg text-[10px] cursor-pointer"
+                    >
+                      Staff &amp; Marks →
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table (>=768px) */}
+        <div className="hidden md:block table-scroll-container rounded-xl border border-slate-200">
           <table className="w-full text-left text-xs min-w-[820px]">
             <thead className="bg-[#8B0000] text-white">
               <tr>
@@ -526,45 +678,45 @@ export const StudentAnalyticsSection: React.FC<{
 
       {/* Student Detail & Handling Staff Modal */}
       {selectedStudent && (
-        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md flex items-center justify-center z-[60] p-2 sm:p-4">
-          <div className="glass-card max-w-4xl w-full p-4 sm:p-6 shadow-2xl border border-white/70 max-h-[92vh] flex flex-col overflow-hidden">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md flex items-end sm:items-center justify-center z-[60] p-0 sm:p-4">
+          <div className="glass-card max-w-4xl w-full p-3.5 sm:p-6 shadow-2xl border border-white/70 h-[92vh] sm:h-auto sm:max-h-[92vh] rounded-t-2xl sm:rounded-2xl flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="flex justify-between items-start pb-3 border-b border-slate-200 gap-3">
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-2 py-0.5 bg-slate-100 text-slate-700 font-mono text-[10px] font-bold rounded">
+            <div className="flex justify-between items-start pb-3 border-b border-slate-200 gap-2 sm:gap-3">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <span className="px-2 py-0.5 bg-slate-100 text-slate-700 font-mono text-[9px] sm:text-[10px] font-bold rounded">
                     EMIS: {selectedStudent.emis_number}
                   </span>
                   <span
-                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                    className={`px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase ${
                       selectedStudent.is_pass ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
                     }`}
                   >
-                    OVERALL RESULT: {selectedStudent.result_status}
+                    RESULT: {selectedStudent.result_status}
                   </span>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${RANGE_THEMES[selectedStudent.range_key]?.badge || 'bg-blue-600 text-white'}`}>
+                  <span className={`px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-bold ${RANGE_THEMES[selectedStudent.range_key]?.badge || 'bg-blue-600 text-white'}`}>
                     Range: {selectedStudent.range_label}
                   </span>
                 </div>
-                <h3 className="text-lg sm:text-2xl font-black text-[#650000] mt-1">
+                <h3 className="text-base sm:text-2xl font-black text-[#650000] mt-1 truncate">
                   {selectedStudent.student_name}
                 </h3>
-                <p className="text-xs text-slate-600 font-medium">
+                <p className="text-[11px] sm:text-xs text-slate-600 font-medium line-clamp-1">
                   {selectedStudent.class_name} ({selectedStudent.medium}) • {selectedStudent.school_name} • Attendance: <b>{selectedStudent.attendance_pct}%</b>
                 </p>
               </div>
               <button
                 onClick={() => setSelectedStudent(null)}
-                className="text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl w-8 h-8 flex items-center justify-center cursor-pointer"
+                className="text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl w-8 h-8 flex items-center justify-center cursor-pointer shrink-0"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto py-4 space-y-5 pr-1">
+            <div className="flex-1 overflow-y-auto py-3 sm:py-4 space-y-4 sm:space-y-5 pr-0.5 sm:pr-1">
               {/* Alert banner if student has low mark in any one subject */}
               {selectedStudent.low_mark_subjects?.length > 0 && (
-                <div className="p-3.5 rounded-2xl bg-rose-50 border-2 border-rose-300 flex items-start gap-3">
+                <div className="p-3 sm:p-3.5 rounded-2xl bg-rose-50 border-2 border-rose-300 flex items-start gap-2.5 sm:gap-3">
                   <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
                   <div className="text-xs">
                     <div className="font-black text-rose-900 uppercase">
@@ -573,7 +725,7 @@ export const StudentAnalyticsSection: React.FC<{
                     <p className="text-rose-800 mt-0.5">
                       This student scored low marks in:{' '}
                       {selectedStudent.low_mark_subjects.map((ls: any, idx: number) => (
-                        <span key={idx} className="font-black underline mr-2">
+                        <span key={idx} className="font-black underline mr-2 inline-block">
                           {ls.subject_name} ({ls.mark}/100 - Handled by {ls.teacher_name})
                         </span>
                       ))}
@@ -582,14 +734,66 @@ export const StudentAnalyticsSection: React.FC<{
                 </div>
               )}
 
-              {/* Subject-Wise Marks & Clickable Handling Staff Table */}
+              {/* Subject-Wise Marks & Clickable Handling Staff */}
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-xs sm:text-sm font-black text-[#650000] uppercase tracking-wider">
-                    Subject Marks &amp; Handling Staff (Click Any Staff Name to View Full Staff Dashboard)
+                    Subject Marks &amp; Handling Staff (Tap Any Staff Name for 360° Staff Dashboard)
                   </h4>
                 </div>
-                <div className="table-scroll-container rounded-xl border border-slate-200">
+
+                {/* Mobile Subject + Staff Cards (<640px) */}
+                <div className="sm:hidden space-y-2">
+                  {selectedStudent.subject_marks?.map((m: any, idx: number) => (
+                    <div
+                      key={idx}
+                      className={`p-3 rounded-xl border border-slate-200 ${
+                        !m.is_pass
+                          ? 'bg-rose-50/80 border-rose-300'
+                          : m.is_low
+                          ? 'bg-amber-50/60 border-amber-300'
+                          : 'bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-black text-slate-900 text-xs">{m.subject_name}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`font-black text-sm ${!m.is_pass ? 'text-rose-700' : m.is_low ? 'text-amber-800' : 'text-emerald-800'}`}>
+                            {m.mark}/{m.max_mark}
+                          </span>
+                          {!m.is_pass ? (
+                            <span className="px-2 py-0.5 bg-rose-600 text-white rounded-full text-[9px] font-black">
+                              FAIL
+                            </span>
+                          ) : m.is_low ? (
+                            <span className="px-2 py-0.5 bg-amber-500 text-white rounded-full text-[9px] font-black">
+                              Low Mark
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[9px] font-black">
+                              PASS ({m.grade})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-slate-200/70 flex items-center justify-between gap-2">
+                        <div className="text-[10px] text-slate-600 truncate">
+                          {m.teacher_designation}
+                        </div>
+                        <button
+                          onClick={() => handleTeacherClick(m.teacher_id)}
+                          className="px-2.5 py-1 bg-[#8B0000] text-white font-black rounded-lg text-[11px] flex items-center gap-1 cursor-pointer shrink-0"
+                        >
+                          <UserCheck className="w-3 h-3" />
+                          <span>{m.teacher_name} →</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Desktop Subject Marks Table (>=640px) */}
+                <div className="hidden sm:block table-scroll-container rounded-xl border border-slate-200">
                   <table className="w-full text-left text-xs min-w-[580px]">
                     <thead className="bg-[#8B0000] text-white">
                       <tr>
@@ -656,22 +860,22 @@ export const StudentAnalyticsSection: React.FC<{
               {/* All Handling Staff Quick Cards */}
               <div>
                 <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
-                  All Handling Staff Assigned to {selectedStudent.student_name} — Click Card for Staff 360° Analytics
+                  All Handling Staff Assigned to {selectedStudent.student_name} — Tap Card for Staff 360° Analytics
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-2.5">
                   {selectedStudent.handling_staff?.map((hs: any, i: number) => (
                     <button
                       key={i}
                       onClick={() => handleTeacherClick(hs.teacher_id)}
                       className="p-3 rounded-xl border border-slate-200 hover:border-[#8B0000] bg-white hover:bg-amber-50/40 text-left transition cursor-pointer shadow-2xs flex items-center justify-between"
                     >
-                      <div>
+                      <div className="min-w-0 pr-2">
                         <div className="text-[10px] font-black uppercase text-[#8B0000]">{hs.subject_name} Faculty</div>
-                        <div className="text-xs font-black text-slate-900 mt-0.5 underline">{hs.teacher_name}</div>
-                        <div className="text-[10px] text-slate-500">{hs.designation}</div>
+                        <div className="text-xs font-black text-slate-900 mt-0.5 underline truncate">{hs.teacher_name}</div>
+                        <div className="text-[10px] text-slate-500 truncate">{hs.designation}</div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-[10px] text-slate-400">Student Mark</div>
+                      <div className="text-right shrink-0">
+                        <div className="text-[10px] text-slate-400">Mark</div>
                         <div className={`text-sm font-black ${hs.is_pass ? 'text-emerald-700' : 'text-rose-600'}`}>
                           {hs.mark}
                         </div>
@@ -682,13 +886,13 @@ export const StudentAnalyticsSection: React.FC<{
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
-              <span className="text-[11px] text-slate-500">
-                Tip: Click any staff name above to open their full Staff Performance Dashboard
+            <div className="pt-2.5 sm:pt-3 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 safe-pb">
+              <span className="text-[10px] sm:text-[11px] text-slate-500 text-center sm:text-left">
+                Tip: Tap any staff name above to open their full Staff Performance Dashboard
               </span>
               <button
                 onClick={() => setSelectedStudent(null)}
-                className="px-5 py-2 bg-slate-800 text-white font-bold rounded-xl text-xs cursor-pointer"
+                className="px-5 py-2.5 sm:py-2 bg-slate-800 text-white font-bold rounded-xl text-xs cursor-pointer text-center"
               >
                 Close Student Detail
               </button>
@@ -722,4 +926,3 @@ export const StudentAnalyticsSection: React.FC<{
     </div>
   );
 };
-
