@@ -7,7 +7,8 @@ export const ExcelUploadModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
-}> = ({ isOpen, onClose, onSuccess }) => {
+  schoolId?: number;
+}> = ({ isOpen, onClose, onSuccess, schoolId }) => {
   const [file, setFile] = useState<File | null>(null);
   const [examId, setExamId] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
@@ -17,26 +18,18 @@ export const ExcelUploadModal: React.FC<{
   if (!isOpen) return null;
 
   const handleDownloadTemplate = () => {
-    // Generates the reference workbook structure
     const headers = [
       "SCHOOL NAME", "EMIS NO", "STUDENT NAME", "CLASS", "SECTION", "TM/EM", "GROUP CODE",
-      "TAMIL", "ENGLISH", "MATHS", "SCIENCE – THEORY", "SCIENCE – PRACTICAL", "SOCIAL SCIENCE",
-      "PHYSICS – THEORY", "PHYSICS – PRACTICAL", "CHEMISTRY – THEORY", "CHEMISTRY – PRACTICAL",
-      "COMP SCI – THEORY", "COMP SCI – PRACTICAL", "BIOLOGY – THEORY", "BIOLOGY – PRACTICAL",
-      "COMMERCE", "ACCOUNTS", "ECONOMICS", "BUS MATHS"
+      "TAMIL", "ENGLISH", "MATHS", "SCIENCE – THEORY", "SCIENCE – PRACTICAL", "SOCIAL SCIENCE"
     ];
-    const sampleRow = [
-      "Coimbatore Corporation Higher Secondary School, R.S. Puram",
-      "331201001001",
-      "Arun Kumar S",
-      "10",
-      "A",
-      "EM",
-      "General",
-      "85", "78", "92", "68", "25", "88",
-      "", "", "", "", "", "", "", "", "", "", "", ""
+    const sampleRows = [
+      ["Coimbatore Corporation HSS, R.S. Puram", "33120109001", "Aadhavan K (Above 90)", "10", "A", "EM", "General", "96", "94", "98", "70", "25", "95"],
+      ["Coimbatore Corporation HSS, R.S. Puram", "33120109002", "Bharathi S (75 to 90)", "10", "A", "EM", "General", "84", "82", "86", "60", "24", "85"],
+      ["Coimbatore Corporation HSS, R.S. Puram", "33120109003", "Chitra M (50 to 75 - Maths Fail)", "10", "A", "EM", "General", "72", "68", "27", "48", "20", "70"],
+      ["Coimbatore Corporation HSS, R.S. Puram", "33120109004", "Dinesh R (35 to 50)", "10", "B", "TM", "General", "45", "42", "38", "25", "16", "46"],
+      ["Coimbatore Corporation HSS, R.S. Puram", "33120109005", "Ezhil V (Below 35 Fail)", "10", "B", "TM", "General", "30", "26", "22", "15", "12", "31"]
     ];
-    const ws = XLSX.utils.aoa_to_sheet([headers, sampleRow]);
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Students Mark Details");
     XLSX.writeFile(wb, "Coimbatore_Corp_Marks_Upload_Template.xlsx");
@@ -45,6 +38,7 @@ export const ExcelUploadModal: React.FC<{
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
+      setPreviewData(null);
       setErrorMsg('');
     }
   };
@@ -60,6 +54,7 @@ export const ExcelUploadModal: React.FC<{
     formData.append('file', file);
     formData.append('exam_id', examId.toString());
     formData.append('academic_year', '2026-2027');
+    if (schoolId) formData.append('school_id', schoolId.toString());
 
     try {
       const res = await apiClient.post('/excel/preview-marks', formData, {
@@ -80,9 +75,10 @@ export const ExcelUploadModal: React.FC<{
       await apiClient.post('/excel/commit-marks', {
         valid_records: previewData.all_valid_records,
         exam_id: examId,
-        academic_year: '2026-2027'
+        academic_year: '2026-2027',
+        school_id: schoolId
       });
-      alert('Examination marks validated and successfully saved into database single source of truth!');
+      alert('Examination marks validated and saved into local database! Student Pass/Fail & Mark Ranges updated.');
       onSuccess();
       onClose();
     } catch (err: any) {

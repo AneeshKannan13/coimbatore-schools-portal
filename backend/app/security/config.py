@@ -2,13 +2,16 @@ from pydantic_settings import BaseSettings
 from typing import List
 import os
 
+_BACKEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+_DEFAULT_DB_PATH = os.path.join(_BACKEND_DIR, "coimbatore_schools.db").replace("\\", "/")
+
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Coimbatore Corporation School Performance & Analytics Portal"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     
-    # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./coimbatore_schools.db")
+    # Database (Single local SQLite DB in backend/coimbatore_schools.db)
+    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{_DEFAULT_DB_PATH}")
     
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", "coimbatore-corporation-super-secure-jwt-secret-key-2026-adj")

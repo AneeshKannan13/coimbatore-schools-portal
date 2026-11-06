@@ -1,34 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Users, Award, TrendingUp, AlertTriangle, 
-  Sparkles, Calendar, Plus, Upload, CheckCircle2, 
-  Search, BookOpen, Clock, BarChart3, Filter, FileUp
+import {
+  Users, Award, TrendingUp, AlertTriangle,
+  Sparkles, Calendar, Plus, Upload, CheckCircle2,
+  Search, BookOpen, Clock, BarChart3, Filter, FileUp, UserCheck
 } from 'lucide-react';
-import { 
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell, CartesianGrid, LineChart, Line 
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, CartesianGrid, LineChart, Line
 } from 'recharts';
 import apiClient from '../api';
 import { StaffAttendanceModal } from './StaffAttendanceModal';
 import { StaffProfileModal } from './StaffProfileModal';
 import { StaffExcelUploadModal } from './StaffExcelUploadModal';
+import { StudentAnalyticsSection } from './StudentAnalyticsSection';
+import { StaffAnalyticsModal } from './StaffAnalyticsModal';
 
 const LEAVE_COLORS = ['#8B0000', '#FFC928', '#B31312', '#F59E0B', '#64748B'];
 
 export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'staff'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'students' | 'staff'>('students');
   const [data, setData] = useState<any>(null);
   const [staffData, setStaffData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  
-  // Staff filters & entry
+
+  // Staff filters & modals
   const [selectedMonth, setSelectedMonth] = useState('SEPTEMBER');
   const [searchTerm, setSearchTerm] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showStaffExcelModal, setShowStaffExcelModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [selectedProfileStaff, setSelectedProfileStaff] = useState<any>(null);
-  
+  const [selectedAnalyticsTeacherId, setSelectedAnalyticsTeacherId] = useState<number | null>(null);
+
   // Single Staff manual attendance modal
   const [editingStaff, setEditingStaff] = useState<any>(null);
   const [cl, setCl] = useState(0);
@@ -84,15 +87,18 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
 
   const totalCalculatedLeave = Number(cl) + Number(rh) + Number(el) + Number(ml) + Number(others);
 
-  const filteredStaff = staffData?.staff?.filter((s: any) => 
+  const filteredStaff = staffData?.staff?.filter((s: any) =>
     s.teacher_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.subject.toLowerCase().includes(searchTerm.toLowerCase())
+    s.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (s.location || '').toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
+
+  const schoolId = data?.school?.id || user?.school_id || 1;
 
   return (
     <div className="space-y-6">
       {/* School Header Banner */}
-      <div className="glass-card p-4 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-l-4 border-l-[#8B0000]">
+      <div className="glass-card p-4 sm:p-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-l-4 border-l-[#8B0000]">
         <div className="flex items-center gap-3 sm:gap-4">
           <img
             src="/coimbatore_corp_logo.png"
@@ -110,37 +116,62 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
               {data?.school?.name || 'Coimbatore Corporation HSS, R.S. Puram'}
             </h2>
             <p className="text-[11px] sm:text-xs text-slate-600 font-medium">
-              {data?.school?.zone} Zone • {data?.school?.ward} • Comprehensive Institution Analytics
+              {data?.school?.zone} Zone • {data?.school?.ward} • Student Pass/Fail Ranges &amp; Staff 360° Analytics
             </p>
           </div>
         </div>
 
-        {/* Tab Navigation between School and Staff Performance */}
-        <div className="w-full md:w-auto grid grid-cols-2 gap-1.5 bg-slate-100 p-1.5 rounded-2xl">
+        {/* Action & Tab Navigation */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
           <button
-            onClick={() => setActiveTab('overview')}
-            className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer text-center ${
-              activeTab === 'overview'
-                ? 'primary-button shadow-md'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+            onClick={() => setShowStaffExcelModal(true)}
+            className="px-3.5 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm cursor-pointer bg-slate-900 hover:bg-slate-800 text-[#FFD700] transition"
           >
-            Overview
+            <FileUp className="w-4 h-4 text-[#FFD700]" /> Upload Staff Excel (.xlsx)
           </button>
-          <button
-            onClick={() => setActiveTab('staff')}
-            className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer text-center ${
-              activeTab === 'staff'
-                ? 'gold-button shadow-md'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Staff & Attendance
-          </button>
+
+          <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1.5 rounded-2xl">
+            <button
+              onClick={() => setActiveTab('students')}
+              className={`px-3 py-2 rounded-xl text-xs font-black transition cursor-pointer text-center ${
+                activeTab === 'students'
+                  ? 'primary-button shadow-md'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Student Ranges &amp; Pass/Fail
+            </button>
+            <button
+              onClick={() => setActiveTab('staff')}
+              className={`px-3 py-2 rounded-xl text-xs font-black transition cursor-pointer text-center ${
+                activeTab === 'staff'
+                  ? 'gold-button shadow-md'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Staff Details &amp; Leave
+            </button>
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-3 py-2 rounded-xl text-xs font-black transition cursor-pointer text-center ${
+                activeTab === 'overview'
+                  ? 'primary-button shadow-md'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              School Overview
+            </button>
+          </div>
         </div>
       </div>
 
-      {activeTab === 'overview' ? (
+      {activeTab === 'students' ? (
+        <StudentAnalyticsSection
+          schoolId={schoolId}
+          title={`${data?.school?.name || 'School'} — Student Pass/Fail & Mark Range Classification`}
+          onSelectTeacher={(tid) => setSelectedAnalyticsTeacherId(tid)}
+        />
+      ) : activeTab === 'overview' ? (
         <>
           {/* Main Institution KPIs */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
@@ -173,7 +204,7 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
           <div className="glass-card-dark p-4 sm:p-6 shadow-xl border border-[#FFD700]/30">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-5 h-5 text-[#FFD700] shrink-0" />
-              <h3 className="text-sm sm:text-base font-black text-white">AI Institutional Diagnostic & School Performance Index (SPI)</h3>
+              <h3 className="text-sm sm:text-base font-black text-white">AI Institutional Diagnostic &amp; School Performance Index (SPI)</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               <div className="md:col-span-2 space-y-2.5 sm:space-y-3">
@@ -203,13 +234,18 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
           <div className="glass-card p-4 sm:p-6">
             <div className="flex justify-between items-center mb-3">
               <h3 className="font-black text-[#650000] text-sm sm:text-base">Class-Wise Academic Breakdown</h3>
-              <span className="text-[10px] text-slate-400 sm:hidden">Swipe table →</span>
+              <button
+                onClick={() => setActiveTab('students')}
+                className="px-3 py-1.5 bg-[#8B0000] text-white rounded-xl text-xs font-bold cursor-pointer"
+              >
+                Open Student Pass/Fail &amp; Mark Ranges →
+              </button>
             </div>
             <div className="table-scroll-container rounded-xl border border-slate-200">
               <table className="w-full text-left text-xs min-w-[480px]">
                 <thead className="bg-[#8B0000] text-white">
                   <tr>
-                    <th className="p-3">Class & Section</th>
+                    <th className="p-3">Class &amp; Section</th>
                     <th className="p-3">Students</th>
                     <th className="p-3">Average Mark</th>
                     <th className="p-3">Pass Percentage</th>
@@ -242,27 +278,27 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
             <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000]">
               <div className="text-[10px] sm:text-[11px] font-bold uppercase text-slate-500 truncate">Total Staff</div>
-              <div className="text-xl sm:text-2xl font-black text-[#650000] mt-0.5">{staffData?.kpis?.total_staff || 28}</div>
+              <div className="text-xl sm:text-2xl font-black text-[#650000] mt-0.5">{staffData?.kpis?.total_staff || 7}</div>
               <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 truncate">Assigned to School</p>
             </div>
             <div className="glass-card p-3 sm:p-4 border-l-4 border-l-emerald-600">
               <div className="text-[10px] sm:text-[11px] font-bold uppercase text-slate-500 truncate">Present / Active</div>
-              <div className="text-xl sm:text-2xl font-black text-emerald-700 mt-0.5">{staffData?.kpis?.active_staff || 25}</div>
-              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 truncate">On Active Duty</p>
+              <div className="text-xl sm:text-2xl font-black text-emerald-700 mt-0.5">{staffData?.kpis?.active_staff || 5}</div>
+              <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 truncate">Full Attendance</p>
             </div>
             <div className="glass-card p-3 sm:p-4 border-l-4 border-l-rose-600">
               <div className="text-[10px] sm:text-[11px] font-bold uppercase text-slate-500 truncate">Staff on Leave</div>
-              <div className="text-xl sm:text-2xl font-black text-rose-700 mt-0.5">{staffData?.kpis?.staff_on_leave || 3}</div>
+              <div className="text-xl sm:text-2xl font-black text-rose-700 mt-0.5">{staffData?.kpis?.staff_on_leave || 2}</div>
               <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 truncate">{selectedMonth} Recorded</p>
             </div>
             <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#FFC928]">
               <div className="text-[10px] sm:text-[11px] font-bold uppercase text-slate-500 truncate">Total Leave Days</div>
-              <div className="text-xl sm:text-2xl font-black text-[#650000] mt-0.5">{staffData?.kpis?.total_leave_days || 17}</div>
+              <div className="text-xl sm:text-2xl font-black text-[#650000] mt-0.5">{staffData?.kpis?.total_leave_days || 5.5}</div>
               <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 truncate">Cumulative Sum</p>
             </div>
             <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000] col-span-2 sm:col-span-1">
               <div className="text-[10px] sm:text-[11px] font-bold uppercase text-slate-500 truncate">Attendance %</div>
-              <div className="text-xl sm:text-2xl font-black text-[#650000] mt-0.5">{staffData?.kpis?.average_staff_attendance || 94.6}%</div>
+              <div className="text-xl sm:text-2xl font-black text-[#650000] mt-0.5">{staffData?.kpis?.average_staff_attendance || 95.8}%</div>
               <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 truncate">Target 95%</p>
             </div>
           </div>
@@ -289,7 +325,7 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
                 <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
                 <input
                   type="text"
-                  placeholder="Search staff or subject..."
+                  placeholder="Search staff, subject, location..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-xl bg-white"
@@ -302,66 +338,20 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
                 onClick={() => { setSelectedProfileStaff(null); setShowProfileModal(true); }}
                 className="primary-button px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer flex-1 sm:flex-initial"
               >
-                <Plus className="w-3.5 h-3.5 text-[#FFD700]" /> Add Profile
+                <Plus className="w-3.5 h-3.5 text-[#FFD700]" /> Add Staff Profile
               </button>
               <button
                 onClick={() => setShowStaffExcelModal(true)}
                 className="px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer bg-slate-800 hover:bg-slate-900 text-white transition flex-1 sm:flex-initial"
               >
-                <FileUp className="w-3.5 h-3.5" /> Staff Details (.xlsx)
+                <FileUp className="w-3.5 h-3.5" /> Upload Staff Workbook (.xlsx)
               </button>
               <button
                 onClick={() => setShowUploadModal(true)}
                 className="gold-button px-3.5 sm:px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer w-full sm:w-auto"
               >
-                <Upload className="w-3.5 h-3.5" /> Attendance (.xlsx)
+                <Upload className="w-3.5 h-3.5" /> Upload Attendance (.xlsx)
               </button>
-            </div>
-          </div>
-
-          {/* Staff Attendance Charts */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-            <div className="md:col-span-2 glass-card p-4 sm:p-6">
-              <h3 className="font-black text-[#650000] text-xs uppercase tracking-wider mb-3 sm:mb-4">
-                Monthly Staff Attendance Trend (%)
-              </h3>
-              <div className="h-56 sm:h-60">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={staffData?.monthly_trend || []}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                    <XAxis dataKey="month" stroke="#64748B" fontSize={11} />
-                    <YAxis stroke="#64748B" fontSize={11} domain={[90, 100]} />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="attendance" stroke="#8B0000" strokeWidth={3} dot={{ r: 5, fill: '#FFD700' }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div className="glass-card p-4 sm:p-6 flex flex-col items-center">
-              <h3 className="font-black text-[#650000] text-xs uppercase tracking-wider mb-2 w-full text-left">
-                Leave Category Distribution
-              </h3>
-              <div className="h-44 sm:h-48 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={staffData?.leave_distribution || []} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={55}>
-                      {staffData?.leave_distribution?.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={LEAVE_COLORS[index % LEAVE_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex flex-wrap gap-2 text-[10px] font-bold text-slate-600 justify-center">
-                {staffData?.leave_distribution?.map((d: any, idx: number) => (
-                  <span key={d.name} className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: LEAVE_COLORS[idx % LEAVE_COLORS.length] }} />
-                    {d.name}: {d.value}d
-                  </span>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -370,47 +360,91 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
               <div>
                 <h3 className="font-black text-[#650000] text-sm sm:text-base">
-                  Staff Attendance & Performance Register ({selectedMonth})
+                  Staff Master Register — Click Any Staff Name for 360° Analytics Dashboard ({selectedMonth})
                 </h3>
                 <p className="text-[11px] sm:text-xs text-slate-500">
-                  Headmaster leave entry, student improvement link & performance metrics
+                  Shows Designation, Location, Contact, Presents, Leaves, Handled Students Count, and Pass/Fail Ratio
                 </p>
               </div>
-              <span className="text-[10px] text-slate-400 sm:hidden">⇄ Swipe table horizontally</span>
             </div>
 
             <div className="table-scroll-container rounded-xl border border-slate-200">
-              <table className="w-full text-left text-xs min-w-[700px]">
+              <table className="w-full text-left text-xs min-w-[860px]">
                 <thead className="bg-[#8B0000] text-white">
                   <tr>
-                    <th className="p-3">Staff Name</th>
-                    <th className="p-3">Subject</th>
-                    <th className="p-3">Classes</th>
-                    <th className="p-3 text-center">CL</th>
-                    <th className="p-3 text-center">RH</th>
-                    <th className="p-3 text-center">EL</th>
-                    <th className="p-3 text-center">ML</th>
-                    <th className="p-3 text-center font-bold">Total Leave</th>
-                    <th className="p-3">Attendance %</th>
-                    <th className="p-3">Student Pass %</th>
-                    <th className="p-3">Action</th>
+                    <th className="p-3">Staff Name (Click for Dashboard)</th>
+                    <th className="p-3">Designation &amp; Subject</th>
+                    <th className="p-3">Location &amp; Contact</th>
+                    <th className="p-3 text-center">No. of Presents</th>
+                    <th className="p-3 text-center">No. of Leaves</th>
+                    <th className="p-3 text-center">Handling Students</th>
+                    <th className="p-3 text-center">Pass / Fail Ratio</th>
+                    <th className="p-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 bg-white">
                   {filteredStaff.map((s: any) => (
                     <tr key={s.id} className="hover:bg-[#FFF3B0]/30 transition">
-                      <td className="p-3 font-bold text-slate-900">{s.teacher_name}</td>
-                      <td className="p-3 text-slate-700">{s.subject}</td>
-                      <td className="p-3 text-slate-500">{s.classes_handled}</td>
-                      <td className="p-3 text-center">{s.cl}</td>
-                      <td className="p-3 text-center">{s.rh}</td>
-                      <td className="p-3 text-center">{s.el}</td>
-                      <td className="p-3 text-center">{s.ml}</td>
-                      <td className="p-3 text-center font-bold text-[#8B0000]">{s.total_leave}</td>
-                      <td className="p-3 font-bold text-emerald-700">{s.attendance_percentage}%</td>
-                      <td className="p-3 font-semibold text-slate-800">{s.student_pass_pct}%</td>
                       <td className="p-3">
-                        <div className="flex gap-1.5">
+                        <button
+                          onClick={() => setSelectedAnalyticsTeacherId(s.id)}
+                          className="font-black text-[#8B0000] hover:underline flex items-center gap-1.5 cursor-pointer text-left"
+                        >
+                          <UserCheck className="w-4 h-4 shrink-0" />
+                          <span>{s.teacher_name}</span>
+                        </button>
+                        <div className="text-[10px] font-mono text-slate-400 mt-0.5">{s.employee_id}</div>
+                      </td>
+                      <td className="p-3">
+                        <div className="font-bold text-slate-800">{s.designation}</div>
+                        <div className="text-[11px] font-bold text-[#8B0000]">{s.subject} ({s.classes_handled})</div>
+                      </td>
+                      <td className="p-3">
+                        <div className="font-semibold text-slate-700">{s.location}</div>
+                        <div className="text-[10px] font-mono text-slate-500">📞 {s.contact_number}</div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-black text-xs">
+                          {s.present_days} / {s.working_days}d
+                        </span>
+                        <div className="text-[10px] font-bold text-emerald-700 mt-0.5">{s.attendance_percentage}%</div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <span className={`px-2 py-0.5 rounded font-black text-xs ${
+                          s.total_leave > 0 ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'
+                        }`}>
+                          {s.total_leave} Days
+                        </span>
+                        <div className="text-[10px] text-slate-400 mt-0.5">
+                          CL:{s.cl} EL:{s.el} ML:{s.ml}
+                        </div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <button
+                          onClick={() => setSelectedAnalyticsTeacherId(s.id)}
+                          className="font-black text-[#650000] hover:underline cursor-pointer"
+                        >
+                          {s.handling_student_count} Students
+                        </button>
+                      </td>
+                      <td className="p-3 text-center">
+                        <div className="flex items-center justify-center gap-1.5 font-bold">
+                          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px]">
+                            Pass: {s.student_pass_pct}%
+                          </span>
+                          <span className="px-2 py-0.5 bg-rose-100 text-rose-800 rounded text-[10px]">
+                            Fail: {s.student_fail_pct}%
+                          </span>
+                        </div>
+                      </td>
+                      <td className="p-3 text-right">
+                        <div className="flex justify-end gap-1.5">
+                          <button
+                            onClick={() => setSelectedAnalyticsTeacherId(s.id)}
+                            className="px-2.5 py-1 bg-[#8B0000] text-white font-bold rounded-lg text-[11px] transition cursor-pointer"
+                          >
+                            360° Dashboard
+                          </button>
                           <button
                             onClick={() => handleEditAttendance(s)}
                             className="px-2 py-1 bg-[#8B0000]/10 hover:bg-[#8B0000] hover:text-white text-[#8B0000] font-bold rounded-lg text-[11px] transition cursor-pointer"
@@ -421,7 +455,7 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
                             onClick={() => { setSelectedProfileStaff(s); setShowProfileModal(true); }}
                             className="px-2 py-1 bg-slate-100 hover:bg-slate-800 hover:text-white text-slate-700 font-bold rounded-lg text-[11px] transition cursor-pointer"
                           >
-                            Edit Info
+                            Edit
                           </button>
                         </div>
                       </td>
@@ -512,7 +546,6 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
                 </div>
               </div>
 
-              {/* Automatic Total Calculation */}
               <div className="p-3 bg-slate-100 rounded-xl flex justify-between items-center">
                 <span className="font-bold text-slate-700">Calculated Total Leave Days:</span>
                 <span className="text-base font-black text-[#8B0000]">{totalCalculatedLeave} Days</span>
@@ -541,7 +574,7 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
                 onClick={handleSaveAttendance}
                 className="primary-button px-5 py-2 rounded-xl text-xs font-black shadow-md cursor-pointer text-center"
               >
-                Save & Update Register
+                Save &amp; Update Register
               </button>
             </div>
           </div>
@@ -560,7 +593,7 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
         isOpen={showStaffExcelModal}
         onClose={() => setShowStaffExcelModal(false)}
         onSuccess={fetchDashboard}
-        schoolId={data?.school?.id || user.school_id}
+        schoolId={schoolId}
       />
 
       {/* Staff Personal Details Add/Edit Modal */}
@@ -570,9 +603,16 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
           onClose={() => { setShowProfileModal(false); setSelectedProfileStaff(null); }}
           onSuccess={fetchDashboard}
           staffData={selectedProfileStaff}
-          schoolId={data?.school?.id || user.school_id}
+          schoolId={schoolId}
         />
       )}
+
+      {/* Staff 360° Analytics Dashboard Modal */}
+      <StaffAnalyticsModal
+        isOpen={!!selectedAnalyticsTeacherId}
+        onClose={() => setSelectedAnalyticsTeacherId(null)}
+        teacherId={selectedAnalyticsTeacherId}
+      />
     </div>
   );
 };

@@ -20,22 +20,22 @@ export const StaffExcelUploadModal: React.FC<{
     const headers = [
       "TEACHER NAME", "EMPLOYEE ID", "DESIGNATION", "SUBJECT",
       "CONTACT NUMBER", "QUALIFICATION", "LOCATION", "NATIVE",
-      "BLOOD GROUP", "EXPERIENCE"
+      "BLOOD GROUP", "EXPERIENCE", "PRESENT DAYS", "LEAVES"
     ];
     const sampleRows = [
       [
-        "S. Ravi Kumar", "TCH-2026-001", "PG Assistant", "Mathematics",
+        "S. Ravi Kumar", "TCH-2026-001", "PG Assistant", "Maths",
         "9842100001", "M.Sc., B.Ed.", "R.S. Puram, Coimbatore", "Pollachi",
-        "O+ve", "8"
+        "O+ve", "8", "21", "1"
       ],
       [
         "M. Lakshmi Devi", "TCH-2026-002", "B.T. Assistant", "Tamil",
         "9842100002", "M.A., B.Ed.", "Peelamedu, Coimbatore", "Tiruppur",
-        "B+ve", "12"
+        "B+ve", "12", "22", "0"
       ],
     ];
     const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
-    ws['!cols'] = headers.map(() => ({ wch: 22 }));
+    ws['!cols'] = headers.map(() => ({ wch: 20 }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Staff Details");
     XLSX.writeFile(wb, "Staff_Details_Upload_Template.xlsx");
@@ -147,18 +147,20 @@ export const StaffExcelUploadModal: React.FC<{
           {/* Column Reference */}
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4">
             <div className="text-xs font-black uppercase text-slate-700 mb-2">Expected Excel Columns</div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-[10px]">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-[10px]">
               {[
                 { col: "TEACHER NAME*", desc: "Full staff name" },
                 { col: "EMPLOYEE ID", desc: "Staff code" },
-                { col: "DESIGNATION", desc: "PG/B.T. Assistant etc." },
+                { col: "DESIGNATION", desc: "PG/B.T. Assistant" },
                 { col: "SUBJECT", desc: "Handling subject" },
                 { col: "CONTACT NUMBER", desc: "Phone number" },
-                { col: "QUALIFICATION", desc: "Educational degree" },
+                { col: "QUALIFICATION", desc: "Degree" },
                 { col: "LOCATION", desc: "Posting location" },
-                { col: "NATIVE", desc: "Native hometown" },
+                { col: "NATIVE", desc: "Native town" },
                 { col: "BLOOD GROUP", desc: "e.g. O+ve" },
-                { col: "EXPERIENCE", desc: "Years of service" },
+                { col: "EXPERIENCE", desc: "Years service" },
+                { col: "PRESENT DAYS", desc: "No. of presents" },
+                { col: "LEAVES", desc: "No. of leaves" },
               ].map(item => (
                 <div key={item.col} className="bg-white border border-slate-200 rounded-lg p-1.5">
                   <div className="font-mono font-bold text-[#8B0000] text-[9px]">{item.col}</div>

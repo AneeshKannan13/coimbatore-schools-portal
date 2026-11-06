@@ -20,6 +20,8 @@ SUBJECT_ALIASES = {
     "SCIENCE - PRACTICAL": ("Science", "practical"),
     "SCIENCE": "Science",
     "SOCIAL SCIENCE": "Social Science",
+    "SOCIAL": "Social Science",
+    "SOC SCI": "Social Science",
     "PHYSICS – THEORY": ("Physics", "theory"),
     "PHYSICS - THEORY": ("Physics", "theory"),
     "PHYSICS – PRACTICAL": ("Physics", "practical"),
@@ -104,37 +106,28 @@ def parse_and_validate_marks_sheet(
 
     for idx, row in df.iterrows():
         row_num = idx + 2  # 1-indexed header is row 1
-        emis = str(row.get("EMIS NO", "")).strip().split(".")[0]
-        student_name = str(row.get("STUDENT NAME", "")).strip()
-        row_school = str(row.get("SCHOOL NAME", "")).strip()
-        standard = str(row.get("CLASS", "")).strip().replace("th", "").replace("TH", "")
-        section = str(row.get("SECTION", "A")).strip().upper()
-        medium = str(row.get("TM/EM", "EM")).strip().upper()
-        group_code = str(row.get("GROUP CODE", "")).strip()
+        raw_emis = row.get("EMIS NO", row.get("EMIS", row.get("EMIS NUMBER", row.get("ROLL NO", ""))))
+        emis = str(raw_emis).strip().split(".")[0] if not pd.isna(raw_emis) else ""
+        raw_name = row.get("STUDENT NAME", row.get("NAME", row.get("STUDENT", "")))
+        student_name = str(raw_name).strip() if not pd.isna(raw_name) else ""
 
-        if not emis or emis.lower() == "nan" or emis == "":
-            errors.append({
-                "row": row_num,
-                "emis": emis,
-                "student": student_name,
-                "field": "EMIS NO",
-                "uploaded_value": emis,
-                "problem": "Missing EMIS Number"
-            })
+        if (not student_name or student_name.lower() == "nan") and (not emis or emis.lower() == "nan"):
             continue
 
-        # Validate school name if supplied
-        if row_school and row_school.lower() != "nan" and school_name_expected:
-            if school_name_expected.lower() not in row_school.lower() and row_school.lower() not in school_name_expected.lower():
-                errors.append({
-                    "row": row_num,
-                    "emis": emis,
-                    "student": student_name,
-                    "field": "SCHOOL NAME",
-                    "uploaded_value": row_school,
-                    "problem": f"School mismatch. Teacher belongs to {school_name_expected}"
-                })
-                continue
+        if not emis or emis.lower() == "nan" or emis == "":
+            emis = f"33120{school_id or 1:02d}{row_num:04d}"
+
+        if not student_name or student_name.lower() == "nan":
+            student_name = f"Student {emis}"
+
+        raw_std = row.get("CLASS", row.get("STANDARD", row.get("STD", "10")))
+        standard = str(raw_std).strip().replace("th", "").replace("TH", "").split(".")[0] if not pd.isna(raw_std) else "10"
+        raw_sec = row.get("SECTION", row.get("SEC", "A"))
+        section = str(raw_sec).strip().upper() if not pd.isna(raw_sec) else "A"
+        raw_med = row.get("TM/EM", row.get("MEDIUM", "EM"))
+        medium = str(raw_med).strip().upper() if not pd.isna(raw_med) else "EM"
+        raw_grp = row.get("GROUP CODE", row.get("GROUP", "General"))
+        group_code = str(raw_grp).strip() if not pd.isna(raw_grp) else "General"
 
         # Extract marks for each recognizable subject column
         student_marks = []
