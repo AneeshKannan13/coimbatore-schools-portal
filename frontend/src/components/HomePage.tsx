@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Building2, Users, GraduationCap, Award, ChevronRight, LogIn, 
-  MapPin, Activity, Sparkles, Menu, X, Search 
+  MapPin, Activity, Sparkles, Menu, X, Search, Sun, Moon 
 } from 'lucide-react';
 import apiClient from '../api';
 
-export const HomePage: React.FC<{ onOpenLogin: () => void }> = ({ onOpenLogin }) => {
+export const HomePage: React.FC<{
+  onOpenLogin: () => void;
+  isDarkMode?: boolean;
+  onToggleTheme?: () => void;
+}> = ({ onOpenLogin, isDarkMode = false, onToggleTheme }) => {
   const [data, setData] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [directoryZone, setDirectoryZone] = useState('All');
@@ -95,8 +99,8 @@ export const HomePage: React.FC<{ onOpenLogin: () => void }> = ({ onOpenLogin })
             </div>
           </div>
 
-          {/* Right: Desktop Navigation + CM Image + Mobile Menu Button */}
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          {/* Right: Desktop Navigation + Theme Toggle + CM Image + Mobile Menu Button */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <nav className="hidden lg:flex items-center gap-5 text-sm font-semibold text-white/90">
               <a href="#hero" className="hover:text-[#FFD700] transition">Home</a>
               <a href="#stats" className="hover:text-[#FFD700] transition">Statistics</a>
@@ -109,6 +113,27 @@ export const HomePage: React.FC<{ onOpenLogin: () => void }> = ({ onOpenLogin })
                 PORTAL LOGIN
               </button>
             </nav>
+
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black bg-black/30 hover:bg-black/45 text-[#FFD700] border border-[#FFD700]/40 shadow-sm transition cursor-pointer shrink-0"
+                title={isDarkMode ? 'Switch to Bright Mode' : 'Switch to Dark Mode'}
+                aria-label="Toggle Dark or Bright Mode"
+              >
+                {isDarkMode ? (
+                  <>
+                    <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FFD700]" />
+                    <span className="hidden sm:inline">Bright</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FFD700]" />
+                    <span className="hidden sm:inline">Dark</span>
+                  </>
+                )}
+              </button>
+            )}
 
             {/* Quick Login button on tablet/mobile */}
             <button

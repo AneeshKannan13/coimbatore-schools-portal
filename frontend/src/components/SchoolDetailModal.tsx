@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  X, UserCheck
+  X, UserCheck, Sun, Moon
 } from 'lucide-react';
 import apiClient from '../api';
 import { StudentAnalyticsSection } from './StudentAnalyticsSection';
@@ -56,13 +56,29 @@ export const SchoolDetailModal: React.FC<{
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl w-8 h-8 flex items-center justify-center shrink-0 cursor-pointer"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <button
+              onClick={() => {
+                const root = document.documentElement;
+                const nextDark = !root.classList.contains('dark-mode');
+                root.classList.toggle('dark-mode', nextDark);
+                localStorage.setItem('theme', nextDark ? 'dark' : 'light');
+              }}
+              className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] sm:text-xs flex items-center gap-1 cursor-pointer transition"
+              title="Toggle Dark / Bright Mode"
+            >
+              <Sun className="w-3.5 h-3.5 text-amber-500" />
+              <Moon className="w-3.5 h-3.5 text-indigo-500" />
+              <span className="hidden sm:inline">Theme</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl w-8 h-8 flex items-center justify-center shrink-0 cursor-pointer"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Tab switcher */}

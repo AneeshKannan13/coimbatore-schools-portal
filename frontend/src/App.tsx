@@ -5,11 +5,14 @@ import { StaffDashboard } from './components/StaffDashboard';
 import { HeadmasterDashboard } from './components/HeadmasterDashboard';
 import { CommissionerDashboard } from './components/CommissionerDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
-import { LogOut } from 'lucide-react';
+import { LogOut, Sun, Moon } from 'lucide-react';
 
 export function App() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem('theme') === 'dark';
+  });
 
   useEffect(() => {
     const saved = localStorage.getItem('user');
@@ -22,6 +25,19 @@ export function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark-mode');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark-mode');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  const toggleTheme = () => setIsDarkMode((prev) => !prev);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -32,7 +48,11 @@ export function App() {
   if (!currentUser) {
     return (
       <>
-        <HomePage onOpenLogin={() => setShowLoginModal(true)} />
+        <HomePage
+          onOpenLogin={() => setShowLoginModal(true)}
+          isDarkMode={isDarkMode}
+          onToggleTheme={toggleTheme}
+        />
         <LoginModal
           isOpen={showLoginModal}
           onClose={() => setShowLoginModal(false)}
@@ -86,8 +106,28 @@ export function App() {
             </div>
           </div>
 
-          {/* Right: CM Image + Logout */}
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          {/* Right: Theme Switcher + CM Image + Logout */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Dark / Bright Mode Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black bg-black/30 hover:bg-black/45 text-[#FFD700] border border-[#FFD700]/40 shadow-sm transition cursor-pointer shrink-0"
+              title={isDarkMode ? 'Switch to Bright Mode' : 'Switch to Dark Mode'}
+              aria-label="Toggle Dark or Bright Mode"
+            >
+              {isDarkMode ? (
+                <>
+                  <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FFD700]" />
+                  <span>Bright</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FFD700]" />
+                  <span>Dark</span>
+                </>
+              )}
+            </button>
+
             <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-white/20">
               <div className="text-right hidden md:block">
                 <p className="text-[10px] font-bold text-[#FFD700] uppercase tracking-wider leading-none">
@@ -125,7 +165,7 @@ export function App() {
       </main>
 
       <footer className="bg-gradient-to-r from-[#650000] via-[#8B0000] to-[#650000] border-t-2 border-[#FFD700] py-3.5 px-4 text-center text-[11px] sm:text-xs text-white/80 font-medium safe-pb">
-        © 2026 Coimbatore City Municipal Corporation • Government Schools Performance & AI Analytics Portal
+        © 2026 Coimbatore City Municipal Corporation • Government Schools Performance &amp; AI Analytics Portal
       </footer>
     </div>
   );
