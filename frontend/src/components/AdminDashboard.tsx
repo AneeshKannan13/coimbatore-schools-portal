@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   RefreshCw, FileUp, UserPlus, UserCheck
 } from 'lucide-react';
-import apiClient from '../api';
+import apiClient, { CORP_LOGO_URL } from '../api';
 import { StaffExcelUploadModal } from './StaffExcelUploadModal';
 import { StaffProfileModal } from './StaffProfileModal';
 import { StudentAnalyticsSection } from './StudentAnalyticsSection';
@@ -40,11 +40,11 @@ export const AdminDashboard: React.FC<{ user: any }> = ({ user }) => {
     <div className="space-y-4 sm:space-y-6">
       {/* Admin Command Header */}
       <div className="glass-card p-3.5 sm:p-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3.5 sm:gap-4 border-l-4 border-l-[#8B0000]">
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
           <img
-            src="/coimbatore_corp_logo.png"
-            alt="Logo"
-            className="h-10 sm:h-14 w-auto object-contain hidden sm:block shrink-0"
+            src={CORP_LOGO_URL}
+            alt="CCMC"
+            className="w-10 h-10 sm:w-14 sm:h-14 object-contain shrink-0"
           />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">

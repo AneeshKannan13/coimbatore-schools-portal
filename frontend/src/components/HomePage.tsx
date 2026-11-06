@@ -3,7 +3,7 @@ import {
   Building2, Users, GraduationCap, Award, ChevronRight, LogIn, 
   MapPin, Activity, Sparkles, Menu, X, Search, Sun, Moon 
 } from 'lucide-react';
-import apiClient from '../api';
+import apiClient, { CORP_LOGO_URL, CM_PHOTO_URL } from '../api';
 
 export const HomePage: React.FC<{
   onOpenLogin: () => void;
@@ -80,27 +80,27 @@ export const HomePage: React.FC<{
 
       {/* Main Navigation Header */}
       <header className="sticky top-0 z-40 bg-gradient-to-r from-[#650000] via-[#8B0000] to-[#B31312] text-white shadow-lg border-b-2 border-[#FFD700]">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex justify-between items-center gap-2">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 py-2 sm:py-2.5 flex justify-between items-center gap-2">
           
           {/* Left: Coimbatore Corporation Logo & Title */}
-          <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-1 overflow-hidden">
             <img
-              src="/coimbatore_corp_logo.png"
-              alt="Coimbatore Corporation Official Logo"
-              className="h-9 sm:h-12 md:h-14 w-auto object-contain drop-shadow-md shrink-0"
+              src={CORP_LOGO_URL}
+              alt="CCMC"
+              className="w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 object-contain drop-shadow-md shrink-0 rounded-full bg-white/10 p-0.5"
             />
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1 overflow-hidden">
               <h1 className="text-xs sm:text-base md:text-xl font-black text-white tracking-tight leading-tight truncate">
                 Coimbatore Corporation Schools
               </h1>
               <p className="text-[9px] sm:text-[11px] md:text-xs font-bold text-[#FFD700] uppercase tracking-wider truncate">
-                Education Performance & AI Analytics Portal
+                Education Performance &amp; AI Analytics Portal
               </p>
             </div>
           </div>
 
           {/* Right: Desktop Navigation + Theme Toggle + CM Image + Mobile Menu Button */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <nav className="hidden lg:flex items-center gap-5 text-sm font-semibold text-white/90">
               <a href="#hero" className="hover:text-[#FFD700] transition">Home</a>
               <a href="#stats" className="hover:text-[#FFD700] transition">Statistics</a>
@@ -117,7 +117,7 @@ export const HomePage: React.FC<{
             {onToggleTheme && (
               <button
                 onClick={onToggleTheme}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black bg-black/30 hover:bg-black/45 text-[#FFD700] border border-[#FFD700]/40 shadow-sm transition cursor-pointer shrink-0"
+                className="flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black bg-black/30 hover:bg-black/45 text-[#FFD700] border border-[#FFD700]/40 shadow-sm transition cursor-pointer shrink-0"
                 title={isDarkMode ? 'Switch to Bright Mode' : 'Switch to Dark Mode'}
                 aria-label="Toggle Dark or Bright Mode"
               >
@@ -138,7 +138,7 @@ export const HomePage: React.FC<{
             {/* Quick Login button on tablet/mobile */}
             <button
               onClick={onOpenLogin}
-              className="lg:hidden gold-button px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1 cursor-pointer"
+              className="lg:hidden gold-button px-2.5 sm:px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider shadow-sm flex items-center gap-1 cursor-pointer shrink-0"
             >
               <LogIn className="w-3.5 h-3.5 text-[#650000]" />
               <span>Login</span>
@@ -155,9 +155,9 @@ export const HomePage: React.FC<{
                 </p>
               </div>
               <img
-                src="/hon_cm_tn.jpg"
-                alt="Honourable Chief Minister of Tamil Nadu"
-                className="w-10 sm:w-[48px] md:w-[60px] h-12 sm:h-[58px] md:h-[72px] object-cover object-top rounded-lg sm:rounded-xl border border-[#FFD700] shadow-md"
+                src={CM_PHOTO_URL}
+                alt="CM TN"
+                className="w-10 sm:w-[48px] md:w-[60px] h-12 sm:h-[58px] md:h-[72px] object-cover object-top rounded-lg sm:rounded-xl border border-[#FFD700] shadow-md shrink-0"
               />
             </div>
 
@@ -396,7 +396,7 @@ export const HomePage: React.FC<{
         <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 text-xs">
           <div>
             <div className="flex items-center gap-2.5 text-white font-bold text-sm sm:text-base mb-2">
-              <img src="/coimbatore_corp_logo.png" alt="Logo" className="h-9 w-auto" />
+              <img src={CORP_LOGO_URL} alt="CCMC" className="w-9 h-9 object-contain shrink-0 rounded-full bg-white/10 p-0.5" />
               <span>Coimbatore City Municipal Corporation</span>
             </div>
             <p className="leading-relaxed text-white/80 text-[11px] sm:text-xs">

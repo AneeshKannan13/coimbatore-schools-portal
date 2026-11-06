@@ -7,7 +7,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, CartesianGrid 
 } from 'recharts';
-import apiClient from '../api';
+import apiClient, { CORP_LOGO_URL } from '../api';
 import { ExcelUploadModal } from './ExcelUploadModal';
 
 const CHART_COLORS = ['#8B0000', '#B31312', '#FFC928', '#D97706', '#64748B'];
@@ -58,11 +58,11 @@ export const StaffDashboard: React.FC<{ user: any }> = ({ user }) => {
     <div className="space-y-6">
       {/* Top Banner with Teacher Information */}
       <div className="glass-card p-4 sm:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-l-4 border-l-[#8B0000]">
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
           <img
-            src="/coimbatore_corp_logo.png"
-            alt="Logo"
-            className="h-10 sm:h-14 w-auto object-contain hidden sm:block"
+            src={CORP_LOGO_URL}
+            alt="CCMC"
+            className="w-10 h-10 sm:w-14 sm:h-14 object-contain shrink-0"
           />
           <div>
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">

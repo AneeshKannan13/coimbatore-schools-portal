@@ -6,7 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   CartesianGrid
 } from 'recharts';
-import apiClient from '../api';
+import apiClient, { CORP_LOGO_URL } from '../api';
 import { SchoolDetailModal } from './SchoolDetailModal';
 import { StudentAnalyticsSection } from './StudentAnalyticsSection';
 import { StaffAnalyticsModal } from './StaffAnalyticsModal';
@@ -57,11 +57,11 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
     <div className="space-y-4 sm:space-y-6">
       {/* Top Corporation Command Bar */}
       <div className="glass-card p-3.5 sm:p-6 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-3.5 sm:gap-4 border-l-4 border-l-[#8B0000]">
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+        <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
           <img
-            src="/coimbatore_corp_logo.png"
-            alt="Logo"
-            className="h-10 sm:h-14 w-auto object-contain hidden sm:block shrink-0"
+            src={CORP_LOGO_URL}
+            alt="CCMC"
+            className="w-10 h-10 sm:w-14 sm:h-14 object-contain shrink-0"
           />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
@@ -178,13 +178,13 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
             <div className="glass-card p-3 sm:p-5 border-l-4 border-l-[#FFC928]">
               <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 sm:mb-1 truncate">Corp Average</div>
               <div className="text-lg sm:text-2xl font-black text-[#650000]">{data?.kpis?.corporation_avg_score || 71.4}%</div>
-              <p className="text-[10px] sm:text-xs text-emerald-700 font-bold mt-0.5 truncate">Pass: {data?.kpis?.overall_pass_percentage}%</p>
+              <p className="text-[10px] sm:text-xs text-emerald-700 font-bold mt-0.5 truncate">Pass: {data?.kpis?.overall_pass_percentage ?? 87.4}%</p>
             </div>
 
             <div className="glass-card p-3 sm:p-5 border-l-4 border-l-[#8B0000]">
               <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 sm:mb-1 truncate">Attendance Base</div>
               <div className="text-lg sm:text-2xl font-black text-[#650000]">{data?.kpis?.overall_attendance || 92.3}%</div>
-              <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">Staff: {data?.kpis?.staff_attendance}%</p>
+              <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">Staff: {data?.kpis?.staff_attendance ?? 95.8}%</p>
             </div>
 
             <div

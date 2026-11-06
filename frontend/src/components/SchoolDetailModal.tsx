@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   X, UserCheck, Sun, Moon
 } from 'lucide-react';
-import apiClient from '../api';
+import apiClient, { CORP_LOGO_URL } from '../api';
 import { StudentAnalyticsSection } from './StudentAnalyticsSection';
 import { StaffAnalyticsModal } from './StaffAnalyticsModal';
 
@@ -34,9 +34,9 @@ export const SchoolDetailModal: React.FC<{
         <div className="flex justify-between items-start pb-3 sm:pb-4 border-b border-slate-200 gap-2">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <img
-              src="/coimbatore_corp_logo.png"
-              alt="Logo"
-              className="h-9 sm:h-12 w-auto object-contain hidden sm:block shrink-0"
+              src={CORP_LOGO_URL}
+              alt="CCMC"
+              className="w-9 h-9 sm:w-12 sm:h-12 object-contain shrink-0"
             />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">

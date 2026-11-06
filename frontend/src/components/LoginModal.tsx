@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, User, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
-import apiClient from '../api';
+import apiClient, { CORP_LOGO_URL } from '../api';
 
 export const LoginModal: React.FC<{
   isOpen: boolean;
@@ -74,9 +74,9 @@ export const LoginModal: React.FC<{
         <div className="text-center mb-5 sm:mb-6 pt-1">
           <div className="flex justify-center mb-2.5">
             <img
-              src="/coimbatore_corp_logo.png"
-              alt="Coimbatore City Municipal Corporation"
-              className="h-12 sm:h-16 w-auto object-contain drop-shadow-md"
+              src={CORP_LOGO_URL}
+              alt="CCMC"
+              className="w-14 h-14 sm:w-16 sm:h-16 object-contain drop-shadow-md"
             />
           </div>
           <h2 className="text-base sm:text-xl font-black text-[#650000] tracking-tight">

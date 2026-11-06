@@ -6,6 +6,7 @@ import { HeadmasterDashboard } from './components/HeadmasterDashboard';
 import { CommissionerDashboard } from './components/CommissionerDashboard';
 import { AdminDashboard } from './components/AdminDashboard';
 import { LogOut, Sun, Moon } from 'lucide-react';
+import { CORP_LOGO_URL, CM_PHOTO_URL } from './api';
 
 export function App() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -64,7 +65,7 @@ export function App() {
 
   // Authenticated Portal Header & Dashboard based on DB Role
   return (
-    <div className="min-h-screen bg-[#F8F8F8] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F8F8F8] flex flex-col font-sans overflow-x-hidden">
       {/* Official Gov Header */}
       <div className="bg-[#650000] text-white px-3 sm:px-6 py-1 text-[10px] sm:text-xs flex justify-between items-center border-b border-[#FFD700]/30 shadow-xs">
         <div className="flex items-center gap-1.5 sm:gap-3 truncate">
@@ -83,46 +84,46 @@ export function App() {
 
       {/* Main Authenticated Header (Red gradient with Coimbatore Corporation Logo Left & CM image Top-Right) */}
       <header className="sticky top-0 z-40 bg-gradient-to-r from-[#650000] via-[#8B0000] to-[#B31312] text-white shadow-lg border-b-2 border-[#FFD700]">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5 flex justify-between items-center gap-2">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 py-2 sm:py-2.5 flex justify-between items-center gap-2">
           
           {/* Left: Coimbatore Corporation Logo & Title */}
-          <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-1 overflow-hidden">
             <img
-              src="/coimbatore_corp_logo.png"
-              alt="Coimbatore Corporation Official Logo"
-              className="h-9 sm:h-12 md:h-14 w-auto object-contain drop-shadow-md shrink-0"
+              src={CORP_LOGO_URL}
+              alt="CCMC"
+              className="w-9 h-9 sm:w-12 sm:h-12 md:w-14 md:h-14 object-contain drop-shadow-md shrink-0 rounded-full bg-white/10 p-0.5"
             />
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1 overflow-hidden">
               <h1 className="text-xs sm:text-base md:text-xl font-black text-white tracking-tight leading-tight truncate">
                 Coimbatore Corporation Schools
               </h1>
-              <div className="flex flex-wrap items-center gap-1.5 text-[10px] sm:text-xs text-white/90 mt-0.5">
-                <span className="font-extrabold text-[#FFD700] uppercase tracking-wider px-1.5 py-0.2 bg-black/20 rounded">
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-white/90 mt-0.5 overflow-hidden">
+                <span className="font-extrabold text-[#FFD700] uppercase tracking-wider px-1.5 py-0.5 bg-black/25 rounded text-[9px] sm:text-[10px] shrink-0">
                   {currentUser.role}
                 </span>
                 <span className="hidden sm:inline">•</span>
-                <span className="truncate max-w-[120px] sm:max-w-none"><b>{currentUser.username}</b></span>
+                <span className="truncate hidden xs:inline sm:inline"><b>{currentUser.username}</b></span>
               </div>
             </div>
           </div>
 
           {/* Right: Theme Switcher + CM Image + Logout */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Dark / Bright Mode Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-black bg-black/30 hover:bg-black/45 text-[#FFD700] border border-[#FFD700]/40 shadow-sm transition cursor-pointer shrink-0"
+              className="flex items-center gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black bg-black/30 hover:bg-black/45 text-[#FFD700] border border-[#FFD700]/40 shadow-sm transition cursor-pointer shrink-0"
               title={isDarkMode ? 'Switch to Bright Mode' : 'Switch to Dark Mode'}
               aria-label="Toggle Dark or Bright Mode"
             >
               {isDarkMode ? (
                 <>
-                  <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FFD700]" />
+                  <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FFD700] shrink-0" />
                   <span>Bright</span>
                 </>
               ) : (
                 <>
-                  <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FFD700]" />
+                  <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FFD700] shrink-0" />
                   <span>Dark</span>
                 </>
               )}
@@ -138,9 +139,9 @@ export function App() {
                 </p>
               </div>
               <img
-                src="/hon_cm_tn.jpg"
-                alt="Honourable Chief Minister of Tamil Nadu"
-                className="w-10 sm:w-[48px] md:w-[58px] h-12 sm:h-[58px] md:h-[68px] object-cover object-top rounded-lg sm:rounded-xl border border-[#FFD700] shadow-md"
+                src={CM_PHOTO_URL}
+                alt="CM TN"
+                className="w-10 sm:w-[48px] md:w-[58px] h-12 sm:h-[58px] md:h-[68px] object-cover object-top rounded-lg sm:rounded-xl border border-[#FFD700] shadow-md shrink-0"
               />
             </div>
 
@@ -157,7 +158,7 @@ export function App() {
       </header>
 
       {/* Main Body Content automatically routed by verified DB role */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 flex-1 w-full">
+      <main className="max-w-7xl mx-auto px-2.5 sm:px-6 py-3.5 sm:py-6 flex-1 w-full">
         {currentUser.role === 'STAFF' && <StaffDashboard user={currentUser} />}
         {currentUser.role === 'HEADMASTER' && <HeadmasterDashboard user={currentUser} />}
         {currentUser.role === 'COMMISSIONER' && <CommissionerDashboard user={currentUser} />}
