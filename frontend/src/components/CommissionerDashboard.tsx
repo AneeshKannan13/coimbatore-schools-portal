@@ -58,25 +58,20 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
     attendance: z.attendance
   })) || [];
 
-  // 1. Overall Pass Average Bar Graph Data (Quarterly, Half-Yearly, Annual)
+  // 1. Quarterly Examination Pass % & Average Score Bar Graph Data (ONLY Quarterly Exam, broken down by Class 9, 10, 11, 12)
   const examPassGraphData = data?.exam_pass_comparison || [
-    { exam: 'Quarterly', pass_percentage: 84.2, avg_mark: 69.5 },
-    { exam: 'Half-Yearly', pass_percentage: 87.8, avg_mark: 72.8 },
-    { exam: 'Annual', pass_percentage: 91.6, avg_mark: 76.4 },
+    { exam: 'Class 9 (Quarterly)', pass_percentage: 58.4, avg_mark: 46.2 },
+    { exam: 'Class 10 (Quarterly)', pass_percentage: 61.5, avg_mark: 47.8 },
+    { exam: 'Class 11 (Quarterly)', pass_percentage: 60.2, avg_mark: 46.9 },
+    { exam: 'Class 12 (Quarterly)', pass_percentage: 63.8, avg_mark: 49.4 },
   ];
 
-  // 2. Student Overall Attendance Bar Graph Data (June to March)
+  // 2. Student Overall Attendance Bar Graph Data — ONLY the 4 uploaded months from the Excel columns: JUNE (18d), JULY (23d), AUG (20d), SEP (18d)
   const monthlyAttendanceGraphData = data?.monthly_student_attendance || [
-    { month: 'Jun', full_month: 'June', attendance: 91.2 },
-    { month: 'Jul', full_month: 'July', attendance: 92.5 },
-    { month: 'Aug', full_month: 'August', attendance: 90.8 },
-    { month: 'Sep', full_month: 'September', attendance: 93.4 },
-    { month: 'Oct', full_month: 'October', attendance: 89.6 },
-    { month: 'Nov', full_month: 'November', attendance: 91.9 },
-    { month: 'Dec', full_month: 'December', attendance: 94.1 },
-    { month: 'Jan', full_month: 'January', attendance: 92.8 },
-    { month: 'Feb', full_month: 'February', attendance: 95.0 },
-    { month: 'Mar', full_month: 'March', attendance: 96.2 },
+    { month: 'JUNE (18d)', full_month: 'June (18 Working Days)', attendance: 89.4 },
+    { month: 'JULY (23d)', full_month: 'July (23 Working Days)', attendance: 91.2 },
+    { month: 'AUG (20d)', full_month: 'August (20 Working Days)', attendance: 88.7 },
+    { month: 'SEP (18d)', full_month: 'September (18 Working Days)', attendance: 90.8 },
   ];
 
   // 3. Subject-Wise Failures in Numbers
@@ -245,19 +240,19 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
             </div>
 
             <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#FFC928]">
-              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Exam Pass Progression</div>
-              <div className="text-xs sm:text-sm font-black text-emerald-700 mt-1">
-                Q: {examPassGraphData[0]?.pass_percentage}% → HY: {examPassGraphData[1]?.pass_percentage}% → Ann: {examPassGraphData[2]?.pass_percentage}%
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Quarterly Exam Pass %</div>
+              <div className="text-lg sm:text-2xl font-black text-emerald-700 mt-0.5">
+                {data?.kpis?.overall_pass_percentage ?? 60.8}% <span className="text-xs font-bold text-slate-600">(Avg: {data?.kpis?.corporation_avg_score ?? 47.2}%)</span>
               </div>
-              <p className="text-[10px] text-slate-500 mt-0.5 truncate">See Bar Graph below ↓</p>
+              <p className="text-[10px] text-slate-500 mt-0.5 truncate">Quarterly Examination (2026–27) ↓</p>
             </div>
 
             <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000]">
-              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Jun–Mar Attendance</div>
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Jun–Sep Attendance (79d)</div>
               <div className="text-xs sm:text-sm font-black text-[#650000] mt-1">
-                Jun: {monthlyAttendanceGraphData[0]?.attendance}% → Mar: {monthlyAttendanceGraphData[monthlyAttendanceGraphData.length - 1]?.attendance}%
+                Jun: {monthlyAttendanceGraphData[0]?.attendance}% • Jul: {monthlyAttendanceGraphData[1]?.attendance}% • Aug: {monthlyAttendanceGraphData[2]?.attendance}% • Sep: {monthlyAttendanceGraphData[3]?.attendance}%
               </div>
-              <p className="text-[10px] text-slate-500 mt-0.5 truncate">10-Month Bar Graph below ↓</p>
+              <p className="text-[10px] text-slate-500 mt-0.5 truncate">4 Uploaded Months (79 Working Days) ↓</p>
             </div>
 
             <div
@@ -270,18 +265,18 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
             </div>
           </div>
 
-          {/* Requirement 2 & 3: Side-by-Side Bar Graphs for (A) Quarterly/Half-Yearly/Annual Pass Average & (B) June to March Student Attendance */}
+          {/* Side-by-Side Bar Graphs for (A) Quarterly Examination Pass & Average & (B) June to September Uploaded Student Attendance */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            {/* Bar Graph 1: Overall Pass Average for Quarterly, Half-Yearly, Annual */}
+            {/* Bar Graph 1: Quarterly Examination Pass % & Average Mark */}
             <div className="glass-card p-4 sm:p-5 border border-slate-200">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
                   <h3 className="text-xs sm:text-sm font-black text-[#650000] uppercase tracking-wider flex items-center gap-1.5">
                     <BarChart3 className="w-4 h-4 text-[#8B0000] shrink-0" />
-                    <span>Overall Pass % &amp; Average Score — Quarterly, Half-Yearly &amp; Annual</span>
+                    <span>Quarterly Examination — Overall Pass % &amp; Average Score</span>
                   </h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    Visual comparison of examination pass percentage and average score variation ({selectedStandard === 'All' ? 'All Classes 9–12' : `Class ${selectedStandard}`})
+                    Quarterly Examination (2026–27) class-wise pass percentage and average mark ({selectedStandard === 'All' ? 'Classes 9, 10, 11 & 12' : `Class ${selectedStandard}`})
                   </p>
                 </div>
               </div>
@@ -290,13 +285,13 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={examPassGraphData} margin={{ top: 18, right: 12, left: -10, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                    <XAxis dataKey="exam" stroke="#475569" fontSize={11} fontWeight={700} />
+                    <XAxis dataKey="exam" stroke="#475569" fontSize={10} fontWeight={700} />
                     <YAxis domain={[0, 100]} stroke="#475569" fontSize={10} unit="%" />
                     <Tooltip formatter={(val: any) => [`${val}%`, '']} />
-                    <Bar dataKey="pass_percentage" name="Overall Pass %" fill="#10b981" radius={[8, 8, 0, 0]}>
+                    <Bar dataKey="pass_percentage" name="Quarterly Pass %" fill="#10b981" radius={[8, 8, 0, 0]}>
                       <LabelList dataKey="pass_percentage" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: '10px', fontWeight: 800, fill: '#047857' }} />
                     </Bar>
-                    <Bar dataKey="avg_mark" name="Overall Average Mark %" fill="#8B0000" radius={[8, 8, 0, 0]}>
+                    <Bar dataKey="avg_mark" name="Quarterly Average Mark %" fill="#8B0000" radius={[8, 8, 0, 0]}>
                       <LabelList dataKey="avg_mark" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: '10px', fontWeight: 800, fill: '#8B0000' }} />
                     </Bar>
                   </BarChart>
@@ -306,58 +301,58 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
               <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold">
                 <div className="flex items-center gap-3">
                   <span className="flex items-center gap-1 text-emerald-700">
-                    <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500 inline-block" /> Overall Pass %
+                    <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500 inline-block" /> Quarterly Pass %
                   </span>
                   <span className="flex items-center gap-1 text-[#8B0000]">
-                    <span className="w-2.5 h-2.5 rounded-xs bg-[#8B0000] inline-block" /> Overall Average Mark %
+                    <span className="w-2.5 h-2.5 rounded-xs bg-[#8B0000] inline-block" /> Quarterly Average Mark %
                   </span>
                 </div>
-                <span className="text-emerald-700">
-                  Net Gain: +{(examPassGraphData[2]?.pass_percentage - examPassGraphData[0]?.pass_percentage).toFixed(1)}% (Quarterly → Annual)
+                <span className="text-slate-600">
+                  Exam: Quarterly Examination (2026–27)
                 </span>
               </div>
             </div>
 
-            {/* Bar Graph 2: Student Overall Attendance from June to March */}
+            {/* Bar Graph 2: Student Attendance from Uploaded Excel Columns: JUNE (18d), JULY (23d), AUG (20d), SEP (18d) */}
             <div className="glass-card p-4 sm:p-5 border border-slate-200">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
                   <h3 className="text-xs sm:text-sm font-black text-[#650000] uppercase tracking-wider flex items-center gap-1.5">
                     <Calendar className="w-4 h-4 text-[#8B0000] shrink-0" />
-                    <span>Student Overall Attendance Variation — June to March</span>
+                    <span>Student Monthly Attendance — June to September (79 Working Days)</span>
                   </h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">
-                    Month-by-month student attendance bar graph from June to March ({selectedStandard === 'All' ? 'All Classes 9–12' : `Class ${selectedStandard}`})
+                    Based on uploaded attendance columns: JUNE (18d), JULY (23d), AUG (20d), SEP (18d)
                   </p>
                 </div>
               </div>
 
               <div className="h-56 sm:h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyAttendanceGraphData} margin={{ top: 18, right: 8, left: -12, bottom: 4 }}>
+                  <BarChart data={monthlyAttendanceGraphData} margin={{ top: 18, right: 12, left: -10, bottom: 4 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                    <XAxis dataKey="month" stroke="#475569" fontSize={10} fontWeight={700} />
-                    <YAxis domain={[75, 100]} stroke="#475569" fontSize={10} unit="%" />
+                    <XAxis dataKey="month" stroke="#475569" fontSize={11} fontWeight={700} />
+                    <YAxis domain={[70, 100]} stroke="#475569" fontSize={10} unit="%" />
                     <Tooltip
                       formatter={(val: any) => [`${val}%`, 'Student Attendance']}
                       labelFormatter={(label: any, payload: any) => payload?.[0]?.payload?.full_month || label}
                     />
-                    <Bar dataKey="attendance" name="Student Attendance %" radius={[6, 6, 0, 0]}>
+                    <Bar dataKey="attendance" name="Student Attendance %" radius={[8, 8, 0, 0]}>
                       {monthlyAttendanceGraphData.map((entry: any, idx: number) => (
                         <Cell
                           key={idx}
-                          fill={entry.attendance >= 93 ? '#059669' : entry.attendance >= 91 ? '#d97706' : '#8B0000'}
+                          fill={entry.attendance >= 91 ? '#059669' : entry.attendance >= 89.5 ? '#d97706' : '#8B0000'}
                         />
                       ))}
-                      <LabelList dataKey="attendance" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: '9px', fontWeight: 800, fill: '#334155' }} />
+                      <LabelList dataKey="attendance" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: '10px', fontWeight: 800, fill: '#334155' }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
 
               <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold">
-                <span className="text-slate-600">Academic Year: June – March (10 Months)</span>
-                <span className="text-emerald-700">Peak Month: March ({monthlyAttendanceGraphData[monthlyAttendanceGraphData.length - 1]?.attendance}%)</span>
+                <span className="text-slate-600">Uploaded Months: June (18) + July (23) + Aug (20) + Sep (18) = 79 Working Days</span>
+                <span className="text-emerald-700">Overall Avg: 90.4%</span>
               </div>
             </div>
           </div>

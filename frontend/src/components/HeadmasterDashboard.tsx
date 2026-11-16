@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   Sparkles, Calendar, Plus, Upload,
-  Search, FileUp, UserCheck
+  Search, FileUp, UserCheck, Building2, BarChart3
 } from 'lucide-react';
-import apiClient, { CORP_LOGO_URL } from '../api';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  CartesianGrid, Cell, LabelList
+} from 'recharts';
+import apiClient, { CORP_LOGO_URL, REAL_SCHOOLS } from '../api';
 import { StaffAttendanceModal } from './StaffAttendanceModal';
 import { StaffProfileModal } from './StaffProfileModal';
 import { StaffExcelUploadModal } from './StaffExcelUploadModal';
@@ -12,6 +16,7 @@ import { StaffAnalyticsModal } from './StaffAnalyticsModal';
 
 export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'students' | 'staff'>('students');
+  const [selectedSchoolId, setSelectedSchoolId] = useState<number>(user?.school_id || 2);
   const [data, setData] = useState<any>(null);
   const [staffData, setStaffData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -36,11 +41,11 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
 
   const fetchDashboard = () => {
     setLoading(true);
-    apiClient.get('/headmaster/dashboard')
+    apiClient.get(`/headmaster/dashboard?school_id=${selectedSchoolId}`)
       .then(res => setData(res.data))
       .catch(console.error);
 
-    apiClient.get(`/headmaster/staff?month=${selectedMonth}`)
+    apiClient.get(`/headmaster/staff?month=${selectedMonth}&school_id=${selectedSchoolId}`)
       .then(res => setStaffData(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -48,7 +53,7 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
 
   useEffect(() => {
     fetchDashboard();
-  }, [selectedMonth]);
+  }, [selectedMonth, selectedSchoolId]);
 
   const handleEditAttendance = (staff: any) => {
     setEditingStaff(staff);
@@ -86,78 +91,105 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
     (s.location || '').toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const schoolId = data?.school?.id || user?.school_id || 1;
+  const activeSchoolObj = REAL_SCHOOLS.find((s) => s.id === selectedSchoolId) || data?.school || REAL_SCHOOLS[0];
+  const schoolId = selectedSchoolId;
+  const monthlyAttendanceGraphData = activeSchoolObj?.monthly_attendance || data?.monthly_student_attendance || [
+    { month: 'JUNE (18d)', full_month: 'June (18 Working Days)', attendance: 89.4 },
+    { month: 'JULY (23d)', full_month: 'July (23 Working Days)', attendance: 91.2 },
+    { month: 'AUG (20d)', full_month: 'August (20 Working Days)', attendance: 88.7 },
+    { month: 'SEP (18d)', full_month: 'September (18 Working Days)', attendance: 90.8 },
+  ];
 
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* School Header Banner */}
-      <div className="glass-card p-3.5 sm:p-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3.5 sm:gap-4 border-l-4 border-l-[#8B0000]">
-        <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
-          <img
-            src={CORP_LOGO_URL}
-            alt="CCMC"
-            className="w-10 h-10 sm:w-14 sm:h-14 object-contain shrink-0"
-          />
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <span className="px-2.5 py-0.5 bg-[#8B0000]/10 text-[#8B0000] rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider">
-                Headmaster Command Center
-              </span>
-              <span className="text-[11px] sm:text-xs text-slate-500 font-bold">EMIS: {data?.school?.code}</span>
+      <div className="glass-card p-3.5 sm:p-6 flex flex-col gap-3.5 border-l-4 border-l-[#8B0000]">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3.5 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+            <img
+              src={CORP_LOGO_URL}
+              alt="CCMC"
+              className="w-10 h-10 sm:w-14 sm:h-14 object-contain shrink-0"
+            />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="px-2.5 py-0.5 bg-[#8B0000]/10 text-[#8B0000] rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider">
+                  Headmaster Command Center
+                </span>
+                <span className="text-[11px] sm:text-xs text-slate-500 font-bold">UDISE: {activeSchoolObj?.code}</span>
+              </div>
+              <h2 className="text-base sm:text-2xl font-black text-[#650000] mt-1 leading-snug">
+                {activeSchoolObj?.name || 'Corporation Higher Secondary School, Ramanathapuram'}
+              </h2>
+              <p className="text-[11px] sm:text-xs text-slate-600 font-medium">
+                {activeSchoolObj?.zone} Zone • {activeSchoolObj?.ward} • Quarterly Marks &amp; Jun–Sep Attendance (79 Working Days)
+              </p>
             </div>
-            <h2 className="text-base sm:text-2xl font-black text-[#650000] mt-1 leading-snug">
-              {data?.school?.name || 'Corporation High School, Anupparpalayam'}
-            </h2>
-            <p className="text-[11px] sm:text-xs text-slate-600 font-medium">
-              {data?.school?.zone} Zone • {data?.school?.ward} • Student Pass/Fail Ranges &amp; Staff 360° Analytics
-            </p>
+          </div>
+
+          {/* Action & Tab Navigation */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
+            <button
+              onClick={() => setShowStaffExcelModal(true)}
+              className="px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm cursor-pointer bg-slate-900 hover:bg-slate-800 text-[#FFD700] transition"
+            >
+              <FileUp className="w-4 h-4 text-[#FFD700]" /> Upload Staff Excel (.xlsx)
+            </button>
+
+            <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 sm:p-1.5 rounded-2xl">
+              <button
+                onClick={() => setActiveTab('students')}
+                className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
+                  activeTab === 'students'
+                    ? 'primary-button shadow-md'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span className="sm:hidden">Students</span>
+                <span className="hidden sm:inline">Student Ranges &amp; Pass/Fail</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('staff')}
+                className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
+                  activeTab === 'staff'
+                    ? 'gold-button shadow-md'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span className="sm:hidden">Staff &amp; Leave</span>
+                <span className="hidden sm:inline">Staff Details &amp; Leave</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
+                  activeTab === 'overview'
+                    ? 'primary-button shadow-md'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span className="sm:hidden">Overview</span>
+                <span className="hidden sm:inline">School Overview</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Action & Tab Navigation */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
-          <button
-            onClick={() => setShowStaffExcelModal(true)}
-            className="px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm cursor-pointer bg-slate-900 hover:bg-slate-800 text-[#FFD700] transition"
+        {/* School Switcher so HM can inspect all 4 uploaded schools */}
+        <div className="pt-2.5 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <span className="text-xs font-black text-[#650000] flex items-center gap-1.5">
+            <Building2 className="w-4 h-4 text-[#8B0000]" /> Active School Institution:
+          </span>
+          <select
+            value={selectedSchoolId}
+            onChange={(e) => setSelectedSchoolId(Number(e.target.value))}
+            className="w-full sm:w-auto px-3 py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white text-slate-800 sm:min-w-[360px]"
           >
-            <FileUp className="w-4 h-4 text-[#FFD700]" /> Upload Staff Excel (.xlsx)
-          </button>
-
-          <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 sm:p-1.5 rounded-2xl">
-            <button
-              onClick={() => setActiveTab('students')}
-              className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
-                activeTab === 'students'
-                  ? 'primary-button shadow-md'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <span className="sm:hidden">Students</span>
-              <span className="hidden sm:inline">Student Ranges &amp; Pass/Fail</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('staff')}
-              className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
-                activeTab === 'staff'
-                  ? 'gold-button shadow-md'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <span className="sm:hidden">Staff &amp; Leave</span>
-              <span className="hidden sm:inline">Staff Details &amp; Leave</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
-                activeTab === 'overview'
-                  ? 'primary-button shadow-md'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <span className="sm:hidden">Overview</span>
-              <span className="hidden sm:inline">School Overview</span>
-            </button>
-          </div>
+            {REAL_SCHOOLS.map((s: any) => (
+              <option key={s.id} value={s.id}>
+                {s.code} — {s.name} ({s.students} Students, {s.teacher_count} Staff)
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -193,6 +225,37 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
               <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 sm:mb-1 truncate">Student Attendance</div>
               <div className="text-lg sm:text-2xl font-black text-[#650000]">{data?.kpis?.avg_attendance || 92.1}%</div>
               <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">Staff: {data?.kpis?.teacher_attendance_rate}%</p>
+            </div>
+          </div>
+
+          {/* 4-Month Uploaded Student Attendance Bar Graph (JUNE, JULY, AUG, SEP) */}
+          <div className="glass-card p-4 sm:p-5 border border-slate-200">
+            <div className="flex items-center gap-2 mb-3">
+              <BarChart3 className="w-4 h-4 text-[#8B0000]" />
+              <div>
+                <h3 className="text-xs sm:text-sm font-black text-[#650000] uppercase tracking-wider">
+                  Student Monthly Attendance — June to September (79 Working Days)
+                </h3>
+                <p className="text-[11px] text-slate-500">
+                  Uploaded Attendance Columns: JUNE (18d), JULY (23d), AUG (20d), SEP (18d)
+                </p>
+              </div>
+            </div>
+            <div className="h-52 sm:h-60">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyAttendanceGraphData} margin={{ top: 18, right: 12, left: -10, bottom: 4 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                  <XAxis dataKey="month" stroke="#475569" fontSize={11} fontWeight={700} />
+                  <YAxis domain={[70, 100]} stroke="#475569" fontSize={10} unit="%" />
+                  <Tooltip formatter={(val: any) => [`${val}%`, 'Student Attendance']} />
+                  <Bar dataKey="attendance" name="Student Attendance %" radius={[8, 8, 0, 0]}>
+                    {monthlyAttendanceGraphData.map((entry: any, idx: number) => (
+                      <Cell key={idx} fill={entry.attendance >= 91 ? '#059669' : '#8B0000'} />
+                    ))}
+                    <LabelList dataKey="attendance" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: '10px', fontWeight: 800, fill: '#334155' }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
@@ -311,7 +374,7 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
                   onChange={(e) => setSelectedMonth(e.target.value)}
                   className="px-3 py-2 sm:py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white text-slate-800 flex-1 sm:flex-initial"
                 >
-                  {['JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER', 'JANUARY', 'FEBRUARY', 'MARCH'].map(m => (
+                  {['JUNE', 'JULY', 'AUGUST', 'SEPTEMBER'].map(m => (
                     <option key={m} value={m}>{m}</option>
                   ))}
                 </select>

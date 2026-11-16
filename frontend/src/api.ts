@@ -73,9 +73,9 @@ function buildRealStudentsAnalytics(
     ? (REAL_STUDENTS_BY_SCHOOL[String(schoolId)] || [])
     : ALL_REAL_STUDENTS;
 
-  const filteredPool = sourcePool.filter((st) => {
+  // Discover all available sections for this school + standard BEFORE applying the section filter
+  const stdFilteredPool = sourcePool.filter((st) => {
     if (standardFilter && standardFilter !== 'All' && String(st.std) !== String(standardFilter)) return false;
-    if (sectionFilter && sectionFilter !== 'All' && !String(st.sec).toUpperCase().startsWith(String(sectionFilter).toUpperCase())) return false;
     if (zoneFilter && zoneFilter !== 'All') {
       const sc = REAL_SCHOOLS.find((s) => s.id === st.school_id);
       if (sc && sc.zone !== zoneFilter) return false;
@@ -83,12 +83,26 @@ function buildRealStudentsAnalytics(
     return true;
   });
 
+  const availableSections = Array.from(
+    new Set(stdFilteredPool.map((st) => String(st.sec).trim().toUpperCase()).filter(Boolean))
+  ).sort();
+
+  // Exact section match so "A" only matches "A", and "A1" only matches "A1"
+  const filteredPool = stdFilteredPool.filter((st) => {
+    if (sectionFilter && sectionFilter !== 'All') {
+      if (String(st.sec).trim().toUpperCase() !== String(sectionFilter).trim().toUpperCase()) {
+        return false;
+      }
+    }
+    return true;
+  });
+
   const rangeBuckets: Record<string, any> = {
-    below_35: { key: 'below_35', label: 'Below 35', sublabel: 'Critical / Fail Range (< 35)', count: 0, percentage: 0, students: [] },
-    '35_50': { key: '35_50', label: '35 to 50', sublabel: 'Borderline Pass (35 - 50)', count: 0, percentage: 0, students: [] },
-    '50_75': { key: '50_75', label: '50 to 75', sublabel: 'Moderate / Second Class (50 - 75)', count: 0, percentage: 0, students: [] },
-    '75_90': { key: '75_90', label: '75 to 90', sublabel: 'First Class / Distinction (75 - 90)', count: 0, percentage: 0, students: [] },
-    above_90: { key: 'above_90', label: 'Above 90', sublabel: 'Outstanding / Toppers (> 90)', count: 0, percentage: 0, students: [] },
+    below_35: { key: 'below_35', label: 'Below 35', sublabel: 'Failed in ≥1 Subject (< 35)', count: 0, percentage: 0, students: [] },
+    '35_50': { key: '35_50', label: '35 to 50', sublabel: 'All Pass • Avg 35 - 50', count: 0, percentage: 0, students: [] },
+    '50_75': { key: '50_75', label: '50 to 75', sublabel: 'All Pass • Avg 50 - 75', count: 0, percentage: 0, students: [] },
+    '75_90': { key: '75_90', label: '75 to 90', sublabel: 'All Pass • Avg 75 - 90', count: 0, percentage: 0, students: [] },
+    above_90: { key: 'above_90', label: 'Above 90', sublabel: 'All Pass • Avg > 90', count: 0, percentage: 0, students: [] },
   };
 
   let passCount = 0;
@@ -106,16 +120,29 @@ function buildRealStudentsAnalytics(
     if (isPass) passCount++;
     else failCount++;
 
-    const rInfo = classifyRange(avg);
+    // Requirement 3: Any student who failed even 1 subject (< 35) MUST be placed in 'below_35'
+    // so that the Below 35 bucket count matches the Auto FAIL count 100%!
+    let rInfo = classifyRange(avg);
+    if (!isPass) {
+      rInfo = { key: 'below_35', label: 'Below 35' };
+    } else if (rInfo.key === 'below_35') {
+      rInfo = { key: '35_50', label: '35 to 50' };
+    }
+
     const subjectMarks: any[] = [];
     const lowMarkSubjects: any[] = [];
     const handlingStaff: any[] = [];
+    let passedSubjCount = 0;
+    let failedSubjCount = 0;
 
     for (const [subName, rawMark] of entries) {
       const mark = Number(rawMark);
       const tch = resolveTeacherForSubject(sc.id, st.std, st.sec, subName);
       const subPass = mark >= 35;
       const isLow = mark < 50;
+
+      if (subPass) passedSubjCount++;
+      else failedSubjCount++;
 
       if (!subjFailMap[subName]) {
         subjFailMap[subName] = { subject: subName, failed_count: 0, low_mark_count: 0, total_students: 0, color: '#e11d48' };
@@ -177,6 +204,9 @@ function buildRealStudentsAnalytics(
       attendance_pct: st.att,
       is_pass: isPass,
       result_status: isPass ? 'PASS' : 'FAIL',
+      passed_subject_count: passedSubjCount,
+      failed_subject_count: failedSubjCount,
+      total_subject_count: entries.length,
       range_key: rInfo.key,
       range_label: rInfo.label,
       subject_marks: subjectMarks,
@@ -210,6 +240,7 @@ function buildRealStudentsAnalytics(
       low_subject_students_count: lowSubCount,
       overall_avg_mark: Number((studentRecords.reduce((a, b) => a + b.avg_mark, 0) / totalStudents).toFixed(1)),
     },
+    available_sections: availableSections,
     subject_failures: subjectFailures,
     ranges: [
       rangeBuckets.below_35,
@@ -260,6 +291,9 @@ function buildRealStaffDashboard(teacherId: number) {
       overall_avg: st.avg_mark,
       is_pass: isPass,
       result_status: isPass ? 'PASS' : 'FAIL',
+      passed_subject_count: st.passed_subject_count,
+      failed_subject_count: st.failed_subject_count,
+      total_subject_count: st.total_subject_count,
       range_key: rInfo.key,
       range_label: rInfo.label,
       low_subjects: st.low_mark_subjects,
@@ -359,6 +393,28 @@ apiClient.interceptors.response.use(
         const qPass = analytics.summary.pass_percentage || 60.8;
         const qAvg = analytics.summary.overall_avg_mark || 47.2;
 
+        // Requirement 2: ONLY Quarterly Examination Pass & Average Marks (broken down by Class 9, 10, 11, 12)
+        const stdList = stdParam && stdParam !== 'All' ? [stdParam] : ['9', '10', '11', '12'];
+        const quarterlyByClass = stdList.map((sv) => {
+          const stAn = buildRealStudentsAnalytics(0, sv, secParam, zoneParam);
+          return {
+            exam: `Class ${sv} (Quarterly)`,
+            pass_percentage: stAn.summary.pass_percentage,
+            avg_mark: stAn.summary.overall_avg_mark,
+            passed_count: stAn.summary.pass_count,
+            failed_count: stAn.summary.fail_count,
+            total_students: stAn.summary.total_students,
+          };
+        });
+
+        // Requirement 2: ONLY the 4 uploaded attendance months from the Excel columns: JUNE (18d), JULY (23d), AUG (20d), SEP (18d)
+        const monthlyAttendanceUploaded = [
+          { month: 'JUNE (18d)', full_month: 'June (18 Working Days)', working_days: 18, attendance: 89.4 },
+          { month: 'JULY (23d)', full_month: 'July (23 Working Days)', working_days: 23, attendance: 91.2 },
+          { month: 'AUG (20d)', full_month: 'August (20 Working Days)', working_days: 20, attendance: 88.7 },
+          { month: 'SEP (18d)', full_month: 'September (18 Working Days)', working_days: 18, attendance: 90.8 },
+        ];
+
         return Promise.resolve({
           data: {
             kpis: {
@@ -368,25 +424,10 @@ apiClient.interceptors.response.use(
               corporation_avg_score: qAvg,
               overall_pass_percentage: qPass,
               overall_attendance: 90.4,
-              staff_attendance: 91.2,
+              staff_attendance: 89.8,
             },
-            exam_pass_comparison: [
-              { exam: 'Quarterly', pass_percentage: qPass, avg_mark: qAvg },
-              { exam: 'Half-Yearly', pass_percentage: Number(Math.min(98, qPass + 8.4).toFixed(1)), avg_mark: Number(Math.min(95, qAvg + 6.5).toFixed(1)) },
-              { exam: 'Annual', pass_percentage: Number(Math.min(99, qPass + 16.2).toFixed(1)), avg_mark: Number(Math.min(96, qAvg + 12.8).toFixed(1)) },
-            ],
-            monthly_student_attendance: [
-              { month: 'Jun', full_month: 'June', attendance: 89.4 },
-              { month: 'Jul', full_month: 'July', attendance: 91.2 },
-              { month: 'Aug', full_month: 'August', attendance: 88.7 },
-              { month: 'Sep', full_month: 'September', attendance: 90.8 },
-              { month: 'Oct', full_month: 'October', attendance: 89.9 },
-              { month: 'Nov', full_month: 'November', attendance: 91.5 },
-              { month: 'Dec', full_month: 'December', attendance: 92.4 },
-              { month: 'Jan', full_month: 'January', attendance: 93.1 },
-              { month: 'Feb', full_month: 'February', attendance: 94.6 },
-              { month: 'Mar', full_month: 'March', attendance: 95.8 },
-            ],
+            exam_pass_comparison: quarterlyByClass,
+            monthly_student_attendance: monthlyAttendanceUploaded,
             subject_failures: analytics.subject_failures,
             zone_summary: REAL_SCHOOLS.map((s) => ({
               zone: s.name.replace('Corporation ', '').replace('Higher Secondary School, ', 'HSS ').replace('High School, ', 'HS ').replace('Girls High School, ', 'GHS '),
@@ -394,10 +435,10 @@ apiClient.interceptors.response.use(
               attendance: s.attendance,
             })),
             ai_insights: [
-              `Evaluated ${analytics.summary.total_students} students across 4 Corporation schools (CHS Anupparpalayam, CHSS Ramanathapuram, CHSS Rathinapuri, CGHS Selvapuram).`,
-              `CHSS Ramanathapuram leads with ${REAL_SCHOOLS[1]?.pass_rate}% Quarterly Pass Rate across 342 students.`,
-              `Subject-wise failure analysis highlights Maths and English for targeted remedial coaching before Half-Yearly & Annual exams.`,
-              `63 teaching staff tracked across 79 working days (June–September) with full leave & subject-handling attribution.`,
+              `Quarterly Exam evaluated across ${analytics.summary.total_students} students in 4 Corporation schools (CHS Anupparpalayam, CHSS Ramanathapuram, CHSS Rathinapuri, CGHS Selvapuram).`,
+              `Quarterly Pass Percentage: ${qPass}% (${analytics.summary.pass_count} Passed, ${analytics.summary.fail_count} Failed in ≥1 subject).`,
+              `4-Month Student Attendance (79 Working Days: June 18d, July 23d, Aug 20d, Sep 18d) averages 90.4%.`,
+              `63 teaching staff tracked across 79 working days with complete leave & subject-handling attribution.`,
             ],
             schools: REAL_SCHOOLS,
           },
@@ -457,7 +498,7 @@ apiClient.interceptors.response.use(
                 fail_ratio: d.student_metrics.fail_ratio,
               };
             }),
-            standards: Object.entries(classMap).map(([k, v], idx) => ({
+            standards: Object.entries(classMap).map(([, v], idx) => ({
               class_id: idx + 1,
               standard: v.std,
               section: v.sec,
@@ -507,11 +548,17 @@ apiClient.interceptors.response.use(
               avg_attendance: sc.attendance,
               teacher_attendance_rate: 81.3,
             },
+            monthly_student_attendance: sc.monthly_attendance || [
+              { month: 'JUNE (18d)', full_month: 'June (18 Working Days)', working_days: 18, attendance: 89.4 },
+              { month: 'JULY (23d)', full_month: 'July (23 Working Days)', working_days: 23, attendance: 91.2 },
+              { month: 'AUG (20d)', full_month: 'August (20 Working Days)', working_days: 20, attendance: 88.7 },
+              { month: 'SEP (18d)', full_month: 'September (18 Working Days)', working_days: 18, attendance: 90.8 },
+            ],
             ai_insights: {
               school_performance_index: 84.5,
               key_insights: [
-                `Evaluated ${sc.students} students in ${sc.name} across Classes 9 & 10.`,
-                `Quarterly Pass Percentage stands at ${sc.pass_rate}% with ${sc.attendance}% average student attendance.`,
+                `Quarterly Exam evaluated across ${sc.students} students in ${sc.name}.`,
+                `Quarterly Pass Percentage stands at ${sc.pass_rate}% with ${sc.attendance}% average student attendance (June–September, 79 Working Days).`,
                 `All ${sc.teacher_count} handling staff linked with student mark-range analytics.`,
               ],
             },
