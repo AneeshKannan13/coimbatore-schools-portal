@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   AlertTriangle, ChevronDown, ChevronUp,
-  Search, UserCheck, Award, X, Upload, FileUp
+  Search, UserCheck, Award, X, Upload, FileUp, BookOpen
 } from 'lucide-react';
 import apiClient from '../api';
 import { StaffAnalyticsModal } from './StaffAnalyticsModal';
@@ -61,15 +61,33 @@ const RANGE_THEMES: Record<string, {
 export const StudentAnalyticsSection: React.FC<{
   schoolId: number;
   zone?: string;
+  initialStandard?: string;
+  allowUploads?: boolean;
   title?: string;
   onSelectTeacher?: (teacherId: number) => void;
-}> = ({ schoolId, zone = 'All', title, onSelectTeacher }) => {
+}> = ({ schoolId, zone = 'All', initialStandard = 'All', allowUploads = true, title, onSelectTeacher }) => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedStandard, setSelectedStandard] = useState<string>('All');
+  const [selectedStandard, setSelectedStandard] = useState<string>(initialStandard);
   const [selectedSection, setSelectedSection] = useState<string>('All');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PASS' | 'FAIL' | 'LOW_SUBJECT'>('ALL');
+  const [failedSubjectFilter, setFailedSubjectFilter] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Check if current logged-in user is Commissioner (Commissioner view never shows upload buttons)
+  const canShowUploads = (() => {
+    if (!allowUploads) return false;
+    try {
+      const saved = localStorage.getItem('user');
+      if (saved) {
+        const u = JSON.parse(saved);
+        if (u?.role === 'COMMISSIONER') return false;
+      }
+    } catch {
+      // ignore
+    }
+    return true;
+  })();
 
   // Dropdown state for the 5 mark range categories
   const [expandedRangeKey, setExpandedRangeKey] = useState<string | null>('below_35');
@@ -79,6 +97,10 @@ export const StudentAnalyticsSection: React.FC<{
   const [activeTeacherId, setActiveTeacherId] = useState<number | null>(null);
   const [showMarksUploadModal, setShowMarksUploadModal] = useState(false);
   const [showStaffUploadModal, setShowStaffUploadModal] = useState(false);
+
+  useEffect(() => {
+    setSelectedStandard(initialStandard);
+  }, [initialStandard]);
 
   const fetchStudentsAnalytics = () => {
     setLoading(true);
@@ -110,11 +132,40 @@ export const StudentAnalyticsSection: React.FC<{
   const ranges: any[] = data?.ranges || [];
   const students: any[] = data?.students || [];
 
+  // Subject-wise failures in numbers (computed from backend or fallback from students list)
+  const subjectFailures: any[] = data?.subject_failures || (() => {
+    const counts: Record<string, { subject: string; failed_count: number; low_mark_count: number; total_students: number }> = {
+      Tamil: { subject: 'Tamil', failed_count: 0, low_mark_count: 0, total_students: students.length },
+      English: { subject: 'English', failed_count: 0, low_mark_count: 0, total_students: students.length },
+      Maths: { subject: 'Maths', failed_count: 0, low_mark_count: 0, total_students: students.length },
+      Science: { subject: 'Science', failed_count: 0, low_mark_count: 0, total_students: students.length },
+      'Social Science': { subject: 'Social Science', failed_count: 0, low_mark_count: 0, total_students: students.length },
+    };
+    students.forEach((st: any) => {
+      st.subject_marks?.forEach((sm: any) => {
+        const sn = sm.subject_name;
+        if (!counts[sn]) counts[sn] = { subject: sn, failed_count: 0, low_mark_count: 0, total_students: students.length };
+        if (!sm.is_pass) counts[sn].failed_count += 1;
+        if (sm.is_low) counts[sn].low_mark_count += 1;
+      });
+    });
+    return Object.values(counts).map((c) => ({
+      ...c,
+      fail_percentage: students.length > 0 ? Number(((c.failed_count / students.length) * 100).toFixed(1)) : 0,
+    }));
+  })();
+
   const filteredStudents = students.filter((st: any) => {
     const matchesSearch =
       st.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       st.emis_number.toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
+    if (failedSubjectFilter) {
+      const hasFailedThisSubj = st.subject_marks?.some(
+        (m: any) => m.subject_name === failedSubjectFilter && !m.is_pass
+      );
+      if (!hasFailedThisSubj) return false;
+    }
     if (statusFilter === 'PASS') return st.is_pass;
     if (statusFilter === 'FAIL') return !st.is_pass;
     if (statusFilter === 'LOW_SUBJECT') return (st.low_mark_subjects?.length || 0) > 0;
@@ -125,12 +176,57 @@ export const StudentAnalyticsSection: React.FC<{
 
   return (
     <div className="space-y-4 sm:space-y-5">
+      {/* Class 9, 10, 11, 12 Quick Filter Bar */}
+      <div className="glass-card p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border border-slate-200">
+        <div className="table-scroll-container flex items-center gap-1.5 pb-0.5 sm:pb-0">
+          <span className="text-[11px] font-black text-[#650000] uppercase tracking-wider shrink-0 pr-1">
+            Select Class:
+          </span>
+          {[
+            { val: 'All', label: 'All Classes (9–12)' },
+            { val: '9', label: 'Class 9' },
+            { val: '10', label: 'Class 10' },
+            { val: '11', label: 'Class 11' },
+            { val: '12', label: 'Class 12' },
+          ].map((c) => (
+            <button
+              key={c.val}
+              onClick={() => setSelectedStandard(c.val)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-black transition whitespace-nowrap cursor-pointer shrink-0 ${
+                selectedStandard === c.val
+                  ? 'primary-button shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <span className="text-[11px] font-bold text-slate-500 uppercase shrink-0">Section:</span>
+          {['All', 'A', 'B'].map((sec) => (
+            <button
+              key={sec}
+              onClick={() => setSelectedSection(sec)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                selectedSection === sec
+                  ? 'bg-[#FFC928] text-[#650000] font-black shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {sec === 'All' ? 'All Sec' : `Sec ${sec}`}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Top Summary Banner: Pass/Fail Classification & Single-Subject Low Mark Alert */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         <div
-          onClick={() => setStatusFilter('ALL')}
+          onClick={() => { setStatusFilter('ALL'); setFailedSubjectFilter(null); }}
           className={`glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000] cursor-pointer transition ${
-            statusFilter === 'ALL' ? 'ring-2 ring-[#8B0000]' : ''
+            statusFilter === 'ALL' && !failedSubjectFilter ? 'ring-2 ring-[#8B0000]' : ''
           }`}
         >
           <div className="text-[10px] sm:text-xs font-bold uppercase text-slate-500 truncate">Total Evaluated</div>
@@ -139,7 +235,7 @@ export const StudentAnalyticsSection: React.FC<{
         </div>
 
         <div
-          onClick={() => setStatusFilter(statusFilter === 'PASS' ? 'ALL' : 'PASS')}
+          onClick={() => { setStatusFilter(statusFilter === 'PASS' ? 'ALL' : 'PASS'); setFailedSubjectFilter(null); }}
           className={`p-3 sm:p-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50/90 cursor-pointer transition ${
             statusFilter === 'PASS' ? 'ring-2 ring-emerald-600 shadow-md' : ''
           }`}
@@ -157,7 +253,7 @@ export const StudentAnalyticsSection: React.FC<{
         </div>
 
         <div
-          onClick={() => setStatusFilter(statusFilter === 'FAIL' ? 'ALL' : 'FAIL')}
+          onClick={() => { setStatusFilter(statusFilter === 'FAIL' ? 'ALL' : 'FAIL'); setFailedSubjectFilter(null); }}
           className={`p-3 sm:p-4 rounded-2xl border-2 border-rose-300 bg-rose-50/90 cursor-pointer transition ${
             statusFilter === 'FAIL' ? 'ring-2 ring-rose-600 shadow-md' : ''
           }`}
@@ -175,7 +271,7 @@ export const StudentAnalyticsSection: React.FC<{
         </div>
 
         <div
-          onClick={() => setStatusFilter(statusFilter === 'LOW_SUBJECT' ? 'ALL' : 'LOW_SUBJECT')}
+          onClick={() => { setStatusFilter(statusFilter === 'LOW_SUBJECT' ? 'ALL' : 'LOW_SUBJECT'); setFailedSubjectFilter(null); }}
           className={`p-3 sm:p-4 rounded-2xl border-2 border-amber-300 bg-amber-50/90 cursor-pointer transition ${
             statusFilter === 'LOW_SUBJECT' ? 'ring-2 ring-amber-600 shadow-md' : ''
           }`}
@@ -191,6 +287,77 @@ export const StudentAnalyticsSection: React.FC<{
         </div>
       </div>
 
+      {/* Subject-Wise Failure in Numbers Card */}
+      <div className="glass-card p-3.5 sm:p-5 border border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+          <div>
+            <h3 className="text-xs sm:text-base font-black text-[#650000] flex items-center gap-1.5">
+              <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-rose-600 shrink-0" />
+              <span>Subject-Wise Failure in Numbers (Marks &lt; 35 — Tap any subject to filter failed students)</span>
+            </h3>
+            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+              Exact number of students who failed (&lt; 35 marks) or scored low (&lt; 50 marks) in each subject
+            </p>
+          </div>
+          {failedSubjectFilter && (
+            <button
+              onClick={() => setFailedSubjectFilter(null)}
+              className="px-3 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold cursor-pointer self-start sm:self-auto"
+            >
+              Clear Subject Filter ({failedSubjectFilter}) ✕
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
+          {subjectFailures.map((sf: any, idx: number) => {
+            const isSelected = failedSubjectFilter === sf.subject;
+            const hasFailures = sf.failed_count > 0;
+            const isLastOdd = idx === subjectFailures.length - 1 && subjectFailures.length % 2 === 1;
+            return (
+              <button
+                key={sf.subject}
+                onClick={() => setFailedSubjectFilter(isSelected ? null : sf.subject)}
+                className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col justify-between ${
+                  isLastOdd ? 'col-span-2 sm:col-span-1' : ''
+                } ${
+                  isSelected
+                    ? 'ring-2 ring-rose-600 border-rose-600 bg-rose-50 shadow-md'
+                    : hasFailures
+                    ? 'bg-rose-50/70 hover:bg-rose-100/70 border-rose-300'
+                    : 'bg-emerald-50/60 hover:bg-emerald-100/60 border-emerald-300'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full gap-1">
+                  <span className="font-black text-xs text-slate-900 truncate">{sf.subject}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                      hasFailures ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'
+                    }`}
+                  >
+                    {sf.fail_percentage}% Fail
+                  </span>
+                </div>
+
+                <div className="mt-2 flex items-baseline gap-1.5">
+                  <span className={`text-2xl sm:text-3xl font-black ${hasFailures ? 'text-rose-700' : 'text-emerald-700'}`}>
+                    {sf.failed_count}
+                  </span>
+                  <span className="text-xs font-bold text-slate-700">
+                    Failed Students
+                  </span>
+                </div>
+
+                <div className="mt-1.5 pt-1.5 border-t border-black/10 flex items-center justify-between text-[10px] font-semibold text-slate-600">
+                  <span>Low (&lt;50): <b>{sf.low_mark_count}</b></span>
+                  <span>Total: {sf.total_students}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* 5 Mark Range Categories with Clickable Dropdown Lists */}
       <div className="glass-card p-3.5 sm:p-5 border border-slate-200">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
@@ -203,20 +370,22 @@ export const StudentAnalyticsSection: React.FC<{
               Categorized into Below 35, 35 to 50, 50 to 75, 75 to 90, and Above 90 with single-subject low mark alerts
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 w-full md:w-auto">
-            <button
-              onClick={() => setShowMarksUploadModal(true)}
-              className="gold-button px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm cursor-pointer w-full sm:w-auto"
-            >
-              <Upload className="w-3.5 h-3.5 text-[#650000] shrink-0" /> Upload Student Marks (.xlsx)
-            </button>
-            <button
-              onClick={() => setShowStaffUploadModal(true)}
-              className="px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm cursor-pointer bg-slate-900 hover:bg-slate-800 text-[#FFD700] transition w-full sm:w-auto"
-            >
-              <FileUp className="w-3.5 h-3.5 text-[#FFD700] shrink-0" /> Upload Staff Workbook (.xlsx)
-            </button>
-          </div>
+          {canShowUploads && (
+            <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 w-full md:w-auto">
+              <button
+                onClick={() => setShowMarksUploadModal(true)}
+                className="gold-button px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm cursor-pointer w-full sm:w-auto"
+              >
+                <Upload className="w-3.5 h-3.5 text-[#650000] shrink-0" /> Upload Student Marks (.xlsx)
+              </button>
+              <button
+                onClick={() => setShowStaffUploadModal(true)}
+                className="px-3.5 py-2.5 sm:py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-sm cursor-pointer bg-slate-900 hover:bg-slate-800 text-[#FFD700] transition w-full sm:w-auto"
+              >
+                <FileUp className="w-3.5 h-3.5 text-[#FFD700] shrink-0" /> Upload Staff Workbook (.xlsx)
+              </button>
+            </div>
+          )}
         </div>
 
         {/* 5 Range Cards */}
@@ -442,13 +611,14 @@ export const StudentAnalyticsSection: React.FC<{
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
             <div className="grid grid-cols-2 gap-2 sm:flex">
-              {/* Standard Filter */}
+              {/* Standard Filter (9, 10, 11, 12) */}
               <select
                 value={selectedStandard}
                 onChange={(e) => setSelectedStandard(e.target.value)}
                 className="px-2.5 py-2 sm:py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white w-full sm:w-auto"
               >
-                <option value="All">All Standards</option>
+                <option value="All">All Standards (9–12)</option>
+                <option value="9">9th Standard</option>
                 <option value="10">10th Standard</option>
                 <option value="11">11th Standard</option>
                 <option value="12">12th Standard</option>
@@ -908,21 +1078,25 @@ export const StudentAnalyticsSection: React.FC<{
         teacherId={activeTeacherId}
       />
 
-      {/* Upload Student Marks Excel Modal */}
-      <ExcelUploadModal
-        isOpen={showMarksUploadModal}
-        onClose={() => setShowMarksUploadModal(false)}
-        onSuccess={fetchStudentsAnalytics}
-        schoolId={schoolId > 0 ? schoolId : 1}
-      />
+      {canShowUploads && (
+        <>
+          {/* Upload Student Marks Excel Modal */}
+          <ExcelUploadModal
+            isOpen={showMarksUploadModal}
+            onClose={() => setShowMarksUploadModal(false)}
+            onSuccess={fetchStudentsAnalytics}
+            schoolId={schoolId > 0 ? schoolId : 1}
+          />
 
-      {/* Upload Staff Workbook Excel Modal */}
-      <StaffExcelUploadModal
-        isOpen={showStaffUploadModal}
-        onClose={() => setShowStaffUploadModal(false)}
-        onSuccess={fetchStudentsAnalytics}
-        schoolId={schoolId > 0 ? schoolId : 1}
-      />
+          {/* Upload Staff Workbook Excel Modal */}
+          <StaffExcelUploadModal
+            isOpen={showStaffUploadModal}
+            onClose={() => setShowStaffUploadModal(false)}
+            onSuccess={fetchStudentsAnalytics}
+            schoolId={schoolId > 0 ? schoolId : 1}
+          />
+        </>
+      )}
     </div>
   );
 };

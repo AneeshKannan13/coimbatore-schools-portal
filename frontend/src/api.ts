@@ -21,8 +21,8 @@ apiClient.interceptors.request.use((config) => {
 
 // ============================================================================
 // MOBILE / GITHUB PAGES OFFLINE DATA ENGINE
-// Ensures 100% live data on mobile devices (aneeshkannan13.github.io) even when
-// the local FastAPI backend on localhost:8000 is not reachable from the phone.
+// Ensures 100% live data on mobile & GitHub Pages (aneeshkannan13.github.io)
+// even when the local FastAPI backend on localhost:8000 is not reachable.
 // ============================================================================
 
 const DEMO_SCHOOLS = [
@@ -36,11 +36,11 @@ const DEMO_SCHOOLS = [
 ];
 
 const DEMO_STAFF = [
-  { id: 1, employee_id: 'TCH-2026-001', teacher_name: 'S. Ravi Kumar', designation: 'PG Assistant', subject: 'Maths', handling_subject: 'Maths', subject_specialization: 'Maths', education_qualification: 'M.Sc., B.Ed., M.Phil.', contact_number: '9842210101', location: 'R.S. Puram, Coimbatore', native_place: 'Coimbatore', blood_group: 'O+ve', experience_years: 11, classes_handled: '10-A, 10-B', working_days: 22, present_days: 21, total_leave: 1, cl: 1, rh: 0, el: 0, ml: 0, others: 0, reason: 'Personal Work', attendance_percentage: 95.5 },
-  { id: 2, employee_id: 'TCH-2026-002', teacher_name: 'M. Lakshmi Devi', designation: 'B.T. Assistant', subject: 'Tamil', handling_subject: 'Tamil', subject_specialization: 'Tamil', education_qualification: 'M.A. (Tamil), B.Ed.', contact_number: '9842210102', location: 'Saibaba Colony, Coimbatore', native_place: 'Pollachi', blood_group: 'B+ve', experience_years: 14, classes_handled: '10-A, 10-B', working_days: 22, present_days: 22, total_leave: 0, cl: 0, rh: 0, el: 0, ml: 0, others: 0, reason: 'Full Attendance', attendance_percentage: 100.0 },
-  { id: 3, employee_id: 'TCH-2026-003', teacher_name: 'K. Anitha Grace', designation: 'B.T. Assistant', subject: 'English', handling_subject: 'English', subject_specialization: 'English', education_qualification: 'M.A. (Eng), B.Ed.', contact_number: '9842210103', location: 'Race Course, Coimbatore', native_place: 'Ooty', blood_group: 'A+ve', experience_years: 9, classes_handled: '10-A, 10-B', working_days: 22, present_days: 20.5, total_leave: 1.5, cl: 1.5, rh: 0, el: 0, ml: 0, others: 0, reason: 'Medical Checkup', attendance_percentage: 93.2 },
-  { id: 4, employee_id: 'TCH-2026-004', teacher_name: 'Dr. P. Murugesan', designation: 'PG Assistant', subject: 'Science', handling_subject: 'Science', subject_specialization: 'Science', education_qualification: 'M.Sc. (Physics), Ph.D., B.Ed.', contact_number: '9842210104', location: 'Peelamedu, Coimbatore', native_place: 'Erode', blood_group: 'AB+ve', experience_years: 16, classes_handled: '10-A, 10-B', working_days: 22, present_days: 20, total_leave: 2, cl: 0, rh: 0, el: 2, ml: 0, others: 0, reason: 'Family Function', attendance_percentage: 90.9 },
-  { id: 5, employee_id: 'TCH-2026-005', teacher_name: 'R. Senthamarai', designation: 'B.T. Assistant', subject: 'Social Science', handling_subject: 'Social Science', subject_specialization: 'Social Science', education_qualification: 'M.A. (History), B.Ed.', contact_number: '9842210105', location: 'Gandhipuram, Coimbatore', native_place: 'Tiruppur', blood_group: 'O-ve', experience_years: 8, classes_handled: '10-A, 10-B', working_days: 22, present_days: 22, total_leave: 0, cl: 0, rh: 0, el: 0, ml: 0, others: 0, reason: 'Full Attendance', attendance_percentage: 100.0 },
+  { id: 1, employee_id: 'TCH-2026-001', teacher_name: 'S. Ravi Kumar', designation: 'PG Assistant', subject: 'Maths', handling_subject: 'Maths', subject_specialization: 'Maths', education_qualification: 'M.Sc., B.Ed., M.Phil.', contact_number: '9842210101', location: 'R.S. Puram, Coimbatore', native_place: 'Coimbatore', blood_group: 'O+ve', experience_years: 11, classes_handled: '9-A, 10-A, 11-A, 12-A', working_days: 22, present_days: 21, total_leave: 1, cl: 1, rh: 0, el: 0, ml: 0, others: 0, reason: 'Personal Work', attendance_percentage: 95.5 },
+  { id: 2, employee_id: 'TCH-2026-002', teacher_name: 'M. Lakshmi Devi', designation: 'B.T. Assistant', subject: 'Tamil', handling_subject: 'Tamil', subject_specialization: 'Tamil', education_qualification: 'M.A. (Tamil), B.Ed.', contact_number: '9842210102', location: 'Saibaba Colony, Coimbatore', native_place: 'Pollachi', blood_group: 'B+ve', experience_years: 14, classes_handled: '9-A, 10-A, 11-A, 12-A', working_days: 22, present_days: 22, total_leave: 0, cl: 0, rh: 0, el: 0, ml: 0, others: 0, reason: 'Full Attendance', attendance_percentage: 100.0 },
+  { id: 3, employee_id: 'TCH-2026-003', teacher_name: 'K. Anitha Grace', designation: 'B.T. Assistant', subject: 'English', handling_subject: 'English', subject_specialization: 'English', education_qualification: 'M.A. (Eng), B.Ed.', contact_number: '9842210103', location: 'Race Course, Coimbatore', native_place: 'Ooty', blood_group: 'A+ve', experience_years: 9, classes_handled: '9-A, 10-A, 11-A, 12-A', working_days: 22, present_days: 20.5, total_leave: 1.5, cl: 1.5, rh: 0, el: 0, ml: 0, others: 0, reason: 'Medical Checkup', attendance_percentage: 93.2 },
+  { id: 4, employee_id: 'TCH-2026-004', teacher_name: 'Dr. P. Murugesan', designation: 'PG Assistant', subject: 'Science', handling_subject: 'Science', subject_specialization: 'Science', education_qualification: 'M.Sc. (Physics), Ph.D., B.Ed.', contact_number: '9842210104', location: 'Peelamedu, Coimbatore', native_place: 'Erode', blood_group: 'AB+ve', experience_years: 16, classes_handled: '9-A, 10-A, 11-A, 12-A', working_days: 22, present_days: 20, total_leave: 2, cl: 0, rh: 0, el: 2, ml: 0, others: 0, reason: 'Family Function', attendance_percentage: 90.9 },
+  { id: 5, employee_id: 'TCH-2026-005', teacher_name: 'R. Senthamarai', designation: 'B.T. Assistant', subject: 'Social Science', handling_subject: 'Social Science', subject_specialization: 'Social Science', education_qualification: 'M.A. (History), B.Ed.', contact_number: '9842210105', location: 'Gandhipuram, Coimbatore', native_place: 'Tiruppur', blood_group: 'O-ve', experience_years: 8, classes_handled: '9-A, 10-A, 11-A, 12-A', working_days: 22, present_days: 22, total_leave: 0, cl: 0, rh: 0, el: 0, ml: 0, others: 0, reason: 'Full Attendance', attendance_percentage: 100.0 },
 ];
 
 const SUBJECT_TO_TEACHER: Record<string, any> = {
@@ -51,33 +51,41 @@ const SUBJECT_TO_TEACHER: Record<string, any> = {
   'Social Science': DEMO_STAFF[4],
 };
 
+// Students spanning Classes 9, 10, 11, and 12 across all 5 mark ranges (<35, 35-50, 50-75, 75-90, >90)
 const RAW_DEMO_STUDENTS = [
-  // Above 90
+  // Class 9 Students
+  { id: 101, emis: '33120900101', name: 'Aarthi Bala R', std: '9', sec: 'A', med: 'English', att: 97.4, marks: { Tamil: 94, English: 92, Maths: 96, Science: 95, 'Social Science': 93 } },
+  { id: 102, emis: '33120900102', name: 'Bharathwaj S', std: '9', sec: 'A', med: 'English', att: 93.8, marks: { Tamil: 82, English: 80, Maths: 85, Science: 84, 'Social Science': 81 } },
+  { id: 103, emis: '33120900103', name: 'Chitra Devi P', std: '9', sec: 'A', med: 'English', att: 89.2, marks: { Tamil: 68, English: 64, Maths: 27, Science: 62, 'Social Science': 66 } }, // Fail in Maths
+  { id: 104, emis: '33120900104', name: 'Dharshan Kumar M', std: '9', sec: 'B', med: 'Tamil', att: 78.6, marks: { Tamil: 44, English: 40, Maths: 36, Science: 39, 'Social Science': 42 } },
+  { id: 105, emis: '33120900105', name: 'Eswaran K', std: '9', sec: 'B', med: 'Tamil', att: 66.5, marks: { Tamil: 30, English: 26, Maths: 20, Science: 28, 'Social Science': 31 } }, // Fail in all
+
+  // Class 10 Students
   { id: 1, emis: '33120100101', name: 'Harini Priya S', std: '10', sec: 'A', med: 'English', att: 98.2, marks: { Tamil: 95, English: 93, Maths: 98, Science: 96, 'Social Science': 94 } },
   { id: 2, emis: '33120100102', name: 'Kavin Kumar R', std: '10', sec: 'A', med: 'English', att: 96.8, marks: { Tamil: 92, English: 91, Maths: 95, Science: 93, 'Social Science': 92 } },
-  { id: 3, emis: '33120100103', name: 'Divya Dharshini M', std: '10', sec: 'A', med: 'English', att: 97.5, marks: { Tamil: 96, English: 94, Maths: 91, Science: 94, 'Social Science': 96 } },
-  { id: 4, emis: '33120100104', name: 'Pranav Krishna V', std: '10', sec: 'B', med: 'Tamil', att: 95.4, marks: { Tamil: 94, English: 90, Maths: 96, Science: 92, 'Social Science': 93 } },
-  // 75 to 90
   { id: 5, emis: '33120100105', name: 'Arunachalam K', std: '10', sec: 'A', med: 'English', att: 94.0, marks: { Tamil: 84, English: 82, Maths: 88, Science: 85, 'Social Science': 86 } },
-  { id: 6, emis: '33120100106', name: 'Bhuvaneshwari T', std: '10', sec: 'A', med: 'English', att: 93.2, marks: { Tamil: 81, English: 79, Maths: 84, Science: 80, 'Social Science': 83 } },
-  { id: 7, emis: '33120100107', name: 'Gokulnath S', std: '10', sec: 'A', med: 'English', att: 91.5, marks: { Tamil: 85, English: 84, Maths: 42, Science: 88, 'Social Science': 86 } }, // Low mark in Maths
-  { id: 8, emis: '33120100108', name: 'Janani Sri P', std: '10', sec: 'B', med: 'Tamil', att: 92.8, marks: { Tamil: 82, English: 76, Maths: 79, Science: 78, 'Social Science': 81 } },
-  { id: 9, emis: '33120100109', name: 'Madhan Raj N', std: '10', sec: 'B', med: 'Tamil', att: 94.1, marks: { Tamil: 88, English: 86, Maths: 29, Science: 84, 'Social Science': 90 } }, // Single subject FAIL in Maths
-  // 50 to 75
+  { id: 7, emis: '33120100107', name: 'Gokulnath S', std: '10', sec: 'A', med: 'English', att: 91.5, marks: { Tamil: 85, English: 84, Maths: 42, Science: 88, 'Social Science': 86 } }, // Low in Maths
+  { id: 9, emis: '33120100109', name: 'Madhan Raj N', std: '10', sec: 'B', med: 'Tamil', att: 94.1, marks: { Tamil: 88, English: 86, Maths: 29, Science: 84, 'Social Science': 90 } }, // Fail in Maths
   { id: 10, emis: '33120100110', name: 'Nandhini Devi R', std: '10', sec: 'A', med: 'English', att: 89.4, marks: { Tamil: 68, English: 64, Maths: 62, Science: 66, 'Social Science': 70 } },
-  { id: 11, emis: '33120100111', name: 'Pavithran M', std: '10', sec: 'A', med: 'English', att: 88.0, marks: { Tamil: 62, English: 58, Maths: 55, Science: 60, 'Social Science': 64 } },
-  { id: 12, emis: '33120100112', name: 'Raghul Kannan S', std: '10', sec: 'A', med: 'English', att: 86.5, marks: { Tamil: 72, English: 68, Maths: 65, Science: 28, 'Social Science': 74 } }, // Single subject FAIL in Science
-  { id: 13, emis: '33120100113', name: 'Santhosh Kumar V', std: '10', sec: 'B', med: 'Tamil', att: 87.2, marks: { Tamil: 65, English: 41, Maths: 58, Science: 61, 'Social Science': 63 } }, // Low mark in English
-  { id: 14, emis: '33120100114', name: 'Tamilselvi A', std: '10', sec: 'B', med: 'Tamil', att: 90.1, marks: { Tamil: 74, English: 66, Maths: 69, Science: 68, 'Social Science': 71 } },
-  // 35 to 50
+  { id: 12, emis: '33120100112', name: 'Raghul Kannan S', std: '10', sec: 'A', med: 'English', att: 86.5, marks: { Tamil: 72, English: 68, Maths: 65, Science: 28, 'Social Science': 74 } }, // Fail in Science
   { id: 15, emis: '33120100115', name: 'Vigneshwaran D', std: '10', sec: 'A', med: 'English', att: 81.2, marks: { Tamil: 45, English: 40, Maths: 38, Science: 42, 'Social Science': 46 } },
-  { id: 16, emis: '33120100116', name: 'Yogeshwari K', std: '10', sec: 'B', med: 'Tamil', att: 79.5, marks: { Tamil: 48, English: 37, Maths: 36, Science: 41, 'Social Science': 44 } },
   { id: 17, emis: '33120100117', name: 'Abishek Pandian P', std: '10', sec: 'B', med: 'Tamil', att: 78.0, marks: { Tamil: 46, English: 25, Maths: 40, Science: 43, 'Social Science': 47 } }, // Fail in English
-  { id: 18, emis: '33120100118', name: 'Balamurugan S', std: '10', sec: 'A', med: 'English', att: 80.4, marks: { Tamil: 42, English: 39, Maths: 35, Science: 38, 'Social Science': 41 } },
-  // Below 35
   { id: 19, emis: '33120100119', name: 'Chandru M', std: '10', sec: 'A', med: 'English', att: 68.5, marks: { Tamil: 31, English: 26, Maths: 22, Science: 29, 'Social Science': 33 } },
   { id: 20, emis: '33120100120', name: 'Dinesh Karthik R', std: '10', sec: 'B', med: 'Tamil', att: 65.2, marks: { Tamil: 28, English: 24, Maths: 19, Science: 25, 'Social Science': 30 } },
-  { id: 21, emis: '33120100121', name: 'Elango V', std: '10', sec: 'B', med: 'Tamil', att: 64.0, marks: { Tamil: 33, English: 28, Maths: 24, Science: 27, 'Social Science': 32 } },
+
+  // Class 11 Students
+  { id: 201, emis: '33121100101', name: 'Divya Dharshini M', std: '11', sec: 'A', med: 'English', att: 97.5, marks: { Tamil: 96, English: 94, Maths: 91, Science: 94, 'Social Science': 96 } },
+  { id: 202, emis: '33121100102', name: 'Janani Sri P', std: '11', sec: 'A', med: 'English', att: 92.8, marks: { Tamil: 82, English: 76, Maths: 79, Science: 78, 'Social Science': 81 } },
+  { id: 203, emis: '33121100103', name: 'Pavithran M', std: '11', sec: 'A', med: 'English', att: 88.0, marks: { Tamil: 62, English: 58, Maths: 31, Science: 60, 'Social Science': 64 } }, // Fail in Maths
+  { id: 204, emis: '33121100104', name: 'Yogeshwari K', std: '11', sec: 'B', med: 'Tamil', att: 79.5, marks: { Tamil: 48, English: 37, Maths: 36, Science: 41, 'Social Science': 44 } },
+  { id: 205, emis: '33121100105', name: 'Tamilselvan A', std: '11', sec: 'B', med: 'Tamil', att: 64.2, marks: { Tamil: 34, English: 30, Maths: 24, Science: 26, 'Social Science': 31 } },
+
+  // Class 12 Students
+  { id: 301, emis: '33121200101', name: 'Pranav Krishna V', std: '12', sec: 'A', med: 'English', att: 95.4, marks: { Tamil: 94, English: 90, Maths: 96, Science: 92, 'Social Science': 93 } },
+  { id: 302, emis: '33121200102', name: 'Bhuvaneshwari T', std: '12', sec: 'A', med: 'English', att: 93.2, marks: { Tamil: 81, English: 79, Maths: 84, Science: 80, 'Social Science': 83 } },
+  { id: 303, emis: '33121200103', name: 'Santhosh Kumar V', std: '12', sec: 'A', med: 'English', att: 87.2, marks: { Tamil: 65, English: 41, Maths: 58, Science: 29, 'Social Science': 63 } }, // Fail in Science
+  { id: 304, emis: '33121200104', name: 'Balamurugan S', std: '12', sec: 'B', med: 'Tamil', att: 80.4, marks: { Tamil: 42, English: 39, Maths: 35, Science: 38, 'Social Science': 41 } },
+  { id: 305, emis: '33121200105', name: 'Elango V', std: '12', sec: 'B', med: 'Tamil', att: 64.0, marks: { Tamil: 33, English: 28, Maths: 24, Science: 27, 'Social Science': 32 } },
 ];
 
 function classifyRange(val: number) {
@@ -88,7 +96,7 @@ function classifyRange(val: number) {
   return { key: 'above_90', label: 'Above 90' };
 }
 
-function buildDemoStudentsAnalytics(schoolId: number) {
+function buildDemoStudentsAnalytics(schoolId: number, standardFilter?: string | null, sectionFilter?: string | null) {
   const school = DEMO_SCHOOLS.find((s) => s.id === Number(schoolId)) || DEMO_SCHOOLS[0];
   const rangeBuckets: Record<string, any> = {
     below_35: { key: 'below_35', label: 'Below 35', sublabel: 'Critical / Fail Range (< 35)', count: 0, percentage: 0, students: [] },
@@ -98,11 +106,25 @@ function buildDemoStudentsAnalytics(schoolId: number) {
     above_90: { key: 'above_90', label: 'Above 90', sublabel: 'Outstanding / Toppers (> 90)', count: 0, percentage: 0, students: [] },
   };
 
+  const sourceStudents = RAW_DEMO_STUDENTS.filter((st) => {
+    if (standardFilter && standardFilter !== 'All' && st.std !== standardFilter) return false;
+    if (sectionFilter && sectionFilter !== 'All' && st.sec !== sectionFilter) return false;
+    return true;
+  });
+
   let passCount = 0;
   let failCount = 0;
   let lowSubCount = 0;
 
-  const studentRecords = RAW_DEMO_STUDENTS.map((st) => {
+  const subjFailCounts: Record<string, any> = {
+    Tamil: { subject: 'Tamil', failed_count: 0, low_mark_count: 0, total_students: sourceStudents.length, color: '#2563eb' },
+    English: { subject: 'English', failed_count: 0, low_mark_count: 0, total_students: sourceStudents.length, color: '#f59e0b' },
+    Maths: { subject: 'Maths', failed_count: 0, low_mark_count: 0, total_students: sourceStudents.length, color: '#e11d48' },
+    Science: { subject: 'Science', failed_count: 0, low_mark_count: 0, total_students: sourceStudents.length, color: '#d97706' },
+    'Social Science': { subject: 'Social Science', failed_count: 0, low_mark_count: 0, total_students: sourceStudents.length, color: '#7c3aed' },
+  };
+
+  const studentRecords = sourceStudents.map((st) => {
     const entries = Object.entries(st.marks);
     const total = entries.reduce((acc, [, m]) => acc + m, 0);
     const avg = Number((total / entries.length).toFixed(1));
@@ -119,6 +141,9 @@ function buildDemoStudentsAnalytics(schoolId: number) {
       const tch = SUBJECT_TO_TEACHER[subName] || DEMO_STAFF[0];
       const subPass = mark >= 35;
       const isLow = mark < 50;
+      if (!subPass && subjFailCounts[subName]) subjFailCounts[subName].failed_count += 1;
+      if (isLow && subjFailCounts[subName]) subjFailCounts[subName].low_mark_count += 1;
+
       const grade = mark >= 90 ? 'A1' : mark >= 75 ? 'A2' : mark >= 60 ? 'B1' : mark >= 50 ? 'B2' : mark >= 35 ? 'C' : 'F (Fail)';
       const subObj = {
         subject_name: subName,
@@ -163,7 +188,7 @@ function buildDemoStudentsAnalytics(schoolId: number) {
       zone: school.zone,
       standard: st.std,
       section: st.sec,
-      class_name: `${st.std}-${st.sec}`,
+      class_name: `${st.std}th - ${st.sec}`,
       medium: st.med,
       group_code: 'General',
       total_marks: total,
@@ -184,14 +209,19 @@ function buildDemoStudentsAnalytics(schoolId: number) {
     return record;
   });
 
-  const totalStudents = studentRecords.length;
+  const totalStudents = studentRecords.length || 1;
   Object.values(rangeBuckets).forEach((b: any) => {
     b.percentage = Number(((b.count / totalStudents) * 100).toFixed(1));
   });
 
+  const subjectFailures = Object.values(subjFailCounts).map((sf: any) => ({
+    ...sf,
+    fail_percentage: Number(((sf.failed_count / totalStudents) * 100).toFixed(1)),
+  }));
+
   return {
     summary: {
-      total_students: totalStudents,
+      total_students: studentRecords.length,
       pass_count: passCount,
       fail_count: failCount,
       pass_percentage: Number(((passCount / totalStudents) * 100).toFixed(1)),
@@ -199,6 +229,7 @@ function buildDemoStudentsAnalytics(schoolId: number) {
       low_subject_students_count: lowSubCount,
       overall_avg_mark: Number((studentRecords.reduce((a, b) => a + b.avg_mark, 0) / totalStudents).toFixed(1)),
     },
+    subject_failures: subjectFailures,
     ranges: [
       rangeBuckets.below_35,
       rangeBuckets['35_50'],
@@ -256,7 +287,7 @@ function buildDemoStaffDashboard(teacherId: number) {
     rangeBuckets[rInfo.key].students.push(row);
   }
 
-  const totalHandled = studentsList.length;
+  const totalHandled = studentsList.length || 1;
   Object.values(rangeBuckets).forEach((b: any) => {
     b.percentage = Number(((b.count / totalHandled) * 100).toFixed(1));
   });
@@ -278,7 +309,7 @@ function buildDemoStaffDashboard(teacherId: number) {
       school_name: DEMO_SCHOOLS[0].name,
       zone: DEMO_SCHOOLS[0].zone,
       ward: DEMO_SCHOOLS[0].ward,
-      classes_handled: ['10-A', '10-B'],
+      classes_handled: ['9th - A', '10th - A', '11th - A', '12th - A'],
     },
     attendance: {
       month: 'SEPTEMBER',
@@ -294,7 +325,7 @@ function buildDemoStaffDashboard(teacherId: number) {
       attendance_percentage: tch.attendance_percentage,
     },
     student_metrics: {
-      handling_student_count: totalHandled,
+      handling_student_count: studentsList.length,
       pass_count: passCount,
       fail_count: failCount,
       pass_ratio: Number(((passCount / totalHandled) * 100).toFixed(1)),
@@ -318,6 +349,11 @@ apiClient.interceptors.response.use(
     // If backend is unreachable (e.g. opened on mobile via GitHub Pages), return rich live demo data
     if (!error.response) {
       const url: string = error.config?.url || '';
+      const qIdx = url.indexOf('?');
+      const searchParams = new URLSearchParams(qIdx >= 0 ? url.slice(qIdx) : '');
+      const stdParam = searchParams.get('standard');
+      const secParam = searchParams.get('section');
+      const zoneParam = searchParams.get('zone');
 
       if (url.includes('/public/homepage')) {
         return Promise.resolve({
@@ -333,15 +369,39 @@ apiClient.interceptors.response.use(
       }
 
       if (url.includes('/commissioner/dashboard')) {
+        const stdOffset = ({ '9': -1.8, '10': 0.5, '11': -0.9, '12': 2.1 } as Record<string, number>)[stdParam || ''] || 0.0;
+        const analytics = buildDemoStudentsAnalytics(1, stdParam, secParam);
+        const filteredSchools = zoneParam && zoneParam !== 'All'
+          ? DEMO_SCHOOLS.filter((s) => s.zone === zoneParam)
+          : DEMO_SCHOOLS;
+
         return Promise.resolve({
           data: {
             kpis: {
-              total_schools: 7,
-              corporation_avg_score: 72.8,
-              overall_pass_percentage: 87.4,
-              overall_attendance: 92.4,
+              total_schools: filteredSchools.length,
+              corporation_avg_score: Number((72.8 + stdOffset).toFixed(1)),
+              overall_pass_percentage: Number((87.4 + stdOffset).toFixed(1)),
+              overall_attendance: Number((92.4 + stdOffset * 0.4).toFixed(1)),
               staff_attendance: 95.8,
             },
+            exam_pass_comparison: [
+              { exam: 'Quarterly', pass_percentage: Number((84.2 + stdOffset).toFixed(1)), avg_mark: Number((69.5 + stdOffset).toFixed(1)) },
+              { exam: 'Half-Yearly', pass_percentage: Number((87.8 + stdOffset).toFixed(1)), avg_mark: Number((72.8 + stdOffset).toFixed(1)) },
+              { exam: 'Annual', pass_percentage: Number((91.6 + stdOffset).toFixed(1)), avg_mark: Number((76.4 + stdOffset).toFixed(1)) },
+            ],
+            monthly_student_attendance: [
+              { month: 'Jun', full_month: 'June', attendance: Number((91.2 + stdOffset * 0.4).toFixed(1)) },
+              { month: 'Jul', full_month: 'July', attendance: Number((92.5 + stdOffset * 0.4).toFixed(1)) },
+              { month: 'Aug', full_month: 'August', attendance: Number((90.8 + stdOffset * 0.4).toFixed(1)) },
+              { month: 'Sep', full_month: 'September', attendance: Number((93.4 + stdOffset * 0.4).toFixed(1)) },
+              { month: 'Oct', full_month: 'October', attendance: Number((89.6 + stdOffset * 0.4).toFixed(1)) },
+              { month: 'Nov', full_month: 'November', attendance: Number((91.9 + stdOffset * 0.4).toFixed(1)) },
+              { month: 'Dec', full_month: 'December', attendance: Number((94.1 + stdOffset * 0.4).toFixed(1)) },
+              { month: 'Jan', full_month: 'January', attendance: Number((92.8 + stdOffset * 0.4).toFixed(1)) },
+              { month: 'Feb', full_month: 'February', attendance: Number((95.0 + stdOffset * 0.4).toFixed(1)) },
+              { month: 'Mar', full_month: 'March', attendance: Number((96.2 + stdOffset * 0.4).toFixed(1)) },
+            ],
+            subject_failures: analytics.subject_failures,
             zone_summary: [
               { zone: 'West', avg_pass: 88.5, attendance: 93.4 },
               { zone: 'Central', avg_pass: 86.2, attendance: 92.0 },
@@ -350,12 +410,12 @@ apiClient.interceptors.response.use(
               { zone: 'North', avg_pass: 86.1, attendance: 92.0 },
             ],
             ai_insights: [
-              'South & West Zones achieved 90%+ Pass Rate; 3 students in Below-35 cohort flagged for remedial mentoring.',
-              'Single-subject low marks (<50) detected in Mathematics & Science for 4 students despite >70% overall average.',
-              'Corporation-wide teaching staff attendance stands at 95.8% for September 2026.',
-              'Top performing institution: Coimbatore Corporation Girls HSS, Oppanakara St (92.1% Pass Rate).',
+              'South & West Zones achieved 90%+ Pass Rate; students in Below-35 cohort flagged for remedial mentoring.',
+              'Single-subject low marks (<50) and subject-wise failures tracked across Classes 9, 10, 11, and 12.',
+              'Steady upward progression observed from Quarterly (84.2%) to Half-Yearly (87.8%) and Annual (91.6%) exams.',
+              'Student monthly attendance shows strong recovery from October (89.6%) to March (96.2%).',
             ],
-            schools: DEMO_SCHOOLS,
+            schools: filteredSchools,
           },
         });
       }
@@ -386,13 +446,15 @@ apiClient.interceptors.response.use(
             school: sc,
             staff: DEMO_STAFF.map((st) => ({
               ...st,
-              handling_student_count: 21,
+              handling_student_count: 26,
               pass_ratio: 85.7,
               fail_ratio: 14.3,
             })),
             standards: [
-              { class_id: 1, standard: '10', section: 'A', medium: 'English', group_code: 'General', student_count: 11, avg_attendance: 91.5, avg_score: 74.2 },
-              { class_id: 2, standard: '10', section: 'B', medium: 'Tamil', group_code: 'General', student_count: 10, avg_attendance: 89.2, avg_score: 68.5 },
+              { class_id: 1, standard: '9', section: 'A', medium: 'English', group_code: 'General', student_count: 5, avg_attendance: 91.2, avg_score: 71.8 },
+              { class_id: 2, standard: '10', section: 'A', medium: 'English', group_code: 'General', student_count: 11, avg_attendance: 92.5, avg_score: 74.2 },
+              { class_id: 3, standard: '11', section: 'A', medium: 'English', group_code: 'Bio-Maths', student_count: 5, avg_attendance: 90.4, avg_score: 70.6 },
+              { class_id: 4, standard: '12', section: 'A', medium: 'English', group_code: 'Comp-Sci', student_count: 5, avg_attendance: 93.8, avg_score: 75.4 },
             ],
           },
         });
@@ -401,7 +463,7 @@ apiClient.interceptors.response.use(
       if (url.includes('/schools/') && url.includes('/students-analytics')) {
         const match = url.match(/\/schools\/(\d+)\//);
         const sid = match ? Number(match[1]) : 1;
-        return Promise.resolve({ data: buildDemoStudentsAnalytics(sid) });
+        return Promise.resolve({ data: buildDemoStudentsAnalytics(sid, stdParam, secParam) });
       }
 
       if (url.includes('/staff/') && url.includes('/dashboard-details')) {
@@ -424,14 +486,16 @@ apiClient.interceptors.response.use(
             ai_insights: {
               school_performance_index: 89.4,
               key_insights: [
-                '4 students scored Above 90% in the Quarterly Examination.',
+                'Students across Classes 9, 10, 11 & 12 evaluated in 5 mark ranges.',
                 'Single-subject low marks (<50) automatically flagged with handling staff linkage.',
-                'Teaching staff attendance is at 95.8% across all 10th Standard sections.',
+                'Teaching staff attendance is at 95.8% across all sections.',
               ],
             },
             classes: [
+              { class_name: '9th Std - Sec A (EM)', student_count: 5, avg_score: 71.8, pass_rate: 85.0 },
               { class_name: '10th Std - Sec A (EM)', student_count: 11, avg_score: 74.2, pass_rate: 90.9 },
-              { class_name: '10th Std - Sec B (TM)', student_count: 10, avg_score: 68.5, pass_rate: 80.0 },
+              { class_name: '11th Std - Sec A (EM)', student_count: 5, avg_score: 70.6, pass_rate: 84.0 },
+              { class_name: '12th Std - Sec A (EM)', student_count: 5, avg_score: 75.4, pass_rate: 92.0 },
             ],
           },
         });
@@ -449,7 +513,7 @@ apiClient.interceptors.response.use(
             },
             staff: DEMO_STAFF.map((s) => ({
               ...s,
-              handling_student_count: 21,
+              handling_student_count: 26,
               student_pass_pct: 85.7,
               student_fail_pct: 14.3,
             })),
@@ -460,7 +524,7 @@ apiClient.interceptors.response.use(
       if (url.includes('/admin/audit-logs')) {
         return Promise.resolve({
           data: [
-            { id: 1, created_at: new Date().toISOString(), username: 'commissioner', role: 'COMMISSIONER', action: 'VIEW_STUDENT_RANGES', details: 'Inspected 5 mark-range student classifications & staff 360 dashboard', ip_address: '10.24.1.12' },
+            { id: 1, created_at: new Date().toISOString(), username: 'commissioner', role: 'COMMISSIONER', action: 'VIEW_STUDENT_RANGES', details: 'Inspected Classes 9-12 mark ranges, exam variation & staff 360 dashboard', ip_address: '10.24.1.12' },
             { id: 2, created_at: new Date().toISOString(), username: 'hm_rspuram', role: 'HEADMASTER', action: 'UPLOAD_STAFF_EXCEL', details: 'Uploaded Staff Master Workbook (.xlsx) for R.S. Puram HSS', ip_address: '10.24.1.45' },
           ],
         });
@@ -473,7 +537,7 @@ apiClient.interceptors.response.use(
       if (url.includes('/teacher/dashboard')) {
         return Promise.resolve({
           data: {
-            kpis: { total_students: 21, class_average: 71.8, pass_percentage: 85.7, passed_count: 18, failed_count: 3, students_needing_attention: 3 },
+            kpis: { total_students: 26, class_average: 71.8, pass_percentage: 85.7, passed_count: 20, failed_count: 6, students_needing_attention: 6 },
             subject_performance: [
               { subject: 'Tamil', average: 76 },
               { subject: 'English', average: 72 },

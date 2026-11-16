@@ -210,13 +210,27 @@ def seed_rich_school_data(db: Session):
          "marks": {"Tamil": 32, "English": 25, "Maths": 19, "Science": 27, "Social Science": 33}},
         {"name": "Tamilselvan A", "gender": "Male", "std": "11", "sec": "A", "att": 64.2,
          "marks": {"Tamil": 34, "English": 30, "Maths": 24, "Science": 26, "Social Science": 31}},
-        {"name": "abitha Begum S", "gender": "Female", "std": "12", "sec": "A", "att": 70.0,
+        {"name": "Abitha Begum S", "gender": "Female", "std": "12", "sec": "A", "att": 70.0,
          "marks": {"Tamil": 38, "English": 29, "Maths": 21, "Science": 25, "Social Science": 32}},
+
+        # 9th Standard student profiles across all 5 mark ranges
+        {"name": "Aarthi Bala R", "gender": "Female", "std": "9", "sec": "A", "att": 97.4,
+         "marks": {"Tamil": 94, "English": 92, "Maths": 96, "Science": 95, "Social Science": 93}},
+        {"name": "Bharathwaj S", "gender": "Male", "std": "9", "sec": "A", "att": 93.8,
+         "marks": {"Tamil": 82, "English": 80, "Maths": 85, "Science": 84, "Social Science": 81}},
+        {"name": "Chitra Devi P", "gender": "Female", "std": "9", "sec": "A", "att": 89.2,
+         "marks": {"Tamil": 68, "English": 64, "Maths": 27, "Science": 62, "Social Science": 66}},
+        {"name": "Dharshan Kumar M", "gender": "Male", "std": "9", "sec": "B", "att": 78.6,
+         "marks": {"Tamil": 44, "English": 40, "Maths": 36, "Science": 39, "Social Science": 42}},
+        {"name": "Eswaran K", "gender": "Male", "std": "9", "sec": "B", "att": 66.5,
+         "marks": {"Tamil": 30, "English": 26, "Maths": 20, "Science": 28, "Social Science": 31}},
     ]
 
     for s_idx, school in enumerate(schools):
-        # Ensure classes exist for this school
+        # Ensure classes 9, 10, 11, 12 exist for this school
         class_defs = [
+            ("9", "A", "English Medium", "General"),
+            ("9", "B", "Tamil Medium", "General"),
             ("10", "A", "English Medium", "General"),
             ("10", "B", "Tamil Medium", "General"),
             ("11", "A", "English Medium", "Bio-Maths"),

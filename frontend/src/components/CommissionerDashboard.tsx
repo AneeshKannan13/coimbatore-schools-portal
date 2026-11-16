@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Building2, Sparkles, ChevronRight, UserCheck
+  Building2, Sparkles, ChevronRight, UserCheck, BarChart3, Calendar, BookOpen
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  CartesianGrid
+  CartesianGrid, Cell, LabelList
 } from 'recharts';
 import apiClient, { CORP_LOGO_URL } from '../api';
 import { SchoolDetailModal } from './SchoolDetailModal';
@@ -17,13 +17,18 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
   const [staffData, setStaffData] = useState<any>(null);
   const [schoolStaffList, setSchoolStaffList] = useState<any[]>([]);
   const [selectedZone, setSelectedZone] = useState<string>('All');
+  const [selectedStandard, setSelectedStandard] = useState<string>('All');
   const [filterSchoolId, setFilterSchoolId] = useState<number>(1);
   const [selectedSchoolId, setSelectedSchoolId] = useState<number | null>(null);
   const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const query = selectedZone !== 'All' ? `?zone=${selectedZone}` : '';
+    const params = new URLSearchParams();
+    if (selectedZone !== 'All') params.append('zone', selectedZone);
+    if (selectedStandard !== 'All') params.append('standard', selectedStandard);
+    const query = params.toString() ? `?${params.toString()}` : '';
+
     apiClient.get(`/commissioner/dashboard${query}`)
       .then(res => {
         setData(res.data);
@@ -37,7 +42,7 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
       .then(res => setStaffData(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [selectedZone]);
+  }, [selectedZone, selectedStandard]);
 
   useEffect(() => {
     if (filterSchoolId > 0) {
@@ -53,38 +58,68 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
     attendance: z.attendance
   })) || [];
 
+  // 1. Overall Pass Average Bar Graph Data (Quarterly, Half-Yearly, Annual)
+  const examPassGraphData = data?.exam_pass_comparison || [
+    { exam: 'Quarterly', pass_percentage: 84.2, avg_mark: 69.5 },
+    { exam: 'Half-Yearly', pass_percentage: 87.8, avg_mark: 72.8 },
+    { exam: 'Annual', pass_percentage: 91.6, avg_mark: 76.4 },
+  ];
+
+  // 2. Student Overall Attendance Bar Graph Data (June to March)
+  const monthlyAttendanceGraphData = data?.monthly_student_attendance || [
+    { month: 'Jun', full_month: 'June', attendance: 91.2 },
+    { month: 'Jul', full_month: 'July', attendance: 92.5 },
+    { month: 'Aug', full_month: 'August', attendance: 90.8 },
+    { month: 'Sep', full_month: 'September', attendance: 93.4 },
+    { month: 'Oct', full_month: 'October', attendance: 89.6 },
+    { month: 'Nov', full_month: 'November', attendance: 91.9 },
+    { month: 'Dec', full_month: 'December', attendance: 94.1 },
+    { month: 'Jan', full_month: 'January', attendance: 92.8 },
+    { month: 'Feb', full_month: 'February', attendance: 95.0 },
+    { month: 'Mar', full_month: 'March', attendance: 96.2 },
+  ];
+
+  // 3. Subject-Wise Failures in Numbers
+  const subjectFailures: any[] = data?.subject_failures || [
+    { subject: 'Maths', failed_count: 8, low_mark_count: 10, total_students: 26, fail_percentage: 30.8, color: '#e11d48' },
+    { subject: 'Science', failed_count: 7, low_mark_count: 8, total_students: 26, fail_percentage: 26.9, color: '#d97706' },
+    { subject: 'English', failed_count: 6, low_mark_count: 8, total_students: 26, fail_percentage: 23.1, color: '#f59e0b' },
+    { subject: 'Tamil', failed_count: 5, low_mark_count: 6, total_students: 26, fail_percentage: 19.2, color: '#2563eb' },
+    { subject: 'Social Science', failed_count: 5, low_mark_count: 6, total_students: 26, fail_percentage: 19.2, color: '#7c3aed' },
+  ];
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Top Corporation Command Bar */}
-      <div className="glass-card p-3.5 sm:p-6 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-3.5 sm:gap-4 border-l-4 border-l-[#8B0000]">
-        <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
-          <img
-            src={CORP_LOGO_URL}
-            alt="CCMC"
-            className="w-10 h-10 sm:w-14 sm:h-14 object-contain shrink-0"
-          />
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              <span className="px-2.5 py-0.5 bg-[#8B0000]/10 text-[#8B0000] rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider">
-                Commissioner Central Command
-              </span>
-              <span className="text-[11px] sm:text-xs text-slate-500 font-bold">Executive Monitoring</span>
+      <div className="glass-card p-3.5 sm:p-6 flex flex-col gap-3.5 sm:gap-4 border-l-4 border-l-[#8B0000]">
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-3.5 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+            <img
+              src={CORP_LOGO_URL}
+              alt="CCMC"
+              className="w-10 h-10 sm:w-14 sm:h-14 object-contain shrink-0"
+            />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="px-2.5 py-0.5 bg-[#8B0000]/10 text-[#8B0000] rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider">
+                  Commissioner Central Command
+                </span>
+                <span className="text-[11px] sm:text-xs text-slate-500 font-bold">Executive Monitoring</span>
+              </div>
+              <h2 className="text-base sm:text-2xl font-black text-[#650000] mt-1 leading-snug">
+                Coimbatore City Municipal Corporation
+              </h2>
+              <p className="text-[11px] sm:text-xs text-slate-600 font-medium">
+                Education Directorate • Classes 9, 10, 11 &amp; 12 • Exam &amp; Attendance Variation Analytics
+              </p>
             </div>
-            <h2 className="text-base sm:text-2xl font-black text-[#650000] mt-1 leading-snug">
-              Coimbatore City Municipal Corporation
-            </h2>
-            <p className="text-[11px] sm:text-xs text-slate-600 font-medium">
-              Education Directorate • Student Pass/Fail Range Classification &amp; Staff 360° Analytics
-            </p>
           </div>
-        </div>
 
-        {/* Tab & Zone Filter Switcher */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full xl:w-auto">
-          <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 sm:p-1.5 rounded-2xl w-full sm:w-auto">
+          {/* Tab Switcher */}
+          <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 sm:p-1.5 rounded-2xl w-full xl:w-auto">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
+              className={`px-2 sm:px-3.5 py-2 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
                 activeTab === 'overview'
                   ? 'primary-button shadow-md'
                   : 'text-slate-600 hover:text-slate-900'
@@ -95,7 +130,7 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
             </button>
             <button
               onClick={() => setActiveTab('students')}
-              className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
+              className={`px-2 sm:px-3.5 py-2 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
                 activeTab === 'students'
                   ? 'gold-button shadow-md'
                   : 'text-slate-600 hover:text-slate-900'
@@ -106,7 +141,7 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
             </button>
             <button
               onClick={() => setActiveTab('staff')}
-              className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
+              className={`px-2 sm:px-3.5 py-2 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
                 activeTab === 'staff'
                   ? 'primary-button shadow-md'
                   : 'text-slate-600 hover:text-slate-900'
@@ -116,9 +151,39 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
               <span className="hidden sm:inline">Staff Performance</span>
             </button>
           </div>
+        </div>
 
-          <div className="table-scroll-container flex items-center gap-1 bg-slate-100 p-1 rounded-2xl w-full sm:w-auto">
-            <span className="text-[11px] font-bold text-slate-500 pl-2 shrink-0">Zone:</span>
+        {/* Classes (9, 10, 11, 12) + Zone Filter Bar */}
+        <div className="pt-2.5 border-t border-slate-200/80 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5">
+          {/* Requirement 1: Classes 9, 10, 11, 12 Filter */}
+          <div className="table-scroll-container flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl">
+            <span className="text-[11px] font-black text-[#650000] pl-2.5 pr-1 shrink-0 uppercase">
+              Class:
+            </span>
+            {[
+              { val: 'All', label: 'All (9–12)' },
+              { val: '9', label: 'Class 9' },
+              { val: '10', label: 'Class 10' },
+              { val: '11', label: 'Class 11' },
+              { val: '12', label: 'Class 12' },
+            ].map((cls) => (
+              <button
+                key={cls.val}
+                onClick={() => setSelectedStandard(cls.val)}
+                className={`px-3 py-1 rounded-xl text-xs font-black transition whitespace-nowrap cursor-pointer shrink-0 ${
+                  selectedStandard === cls.val
+                    ? 'bg-[#8B0000] text-[#FFD700] shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {cls.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Zone Filter */}
+          <div className="table-scroll-container flex items-center gap-1 bg-slate-100 p-1 rounded-2xl">
+            <span className="text-[11px] font-bold text-slate-500 pl-2.5 pr-1 shrink-0 uppercase">Zone:</span>
             {['All', 'North', 'South', 'East', 'West', 'Central'].map((z) => (
               <button
                 key={z}
@@ -162,38 +227,195 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
         <StudentAnalyticsSection
           schoolId={filterSchoolId}
           zone={selectedZone}
+          initialStandard={selectedStandard}
+          allowUploads={false}
           title="Corporation Commissioner — Student Pass/Fail Classification & 5-Range Breakdown"
           onSelectTeacher={(tid) => setSelectedTeacherId(tid)}
         />
       ) : activeTab === 'overview' ? (
         <>
-          {/* Commissioner Overview KPIs */}
+          {/* Quick Summary Strip */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-            <div className="glass-card p-3 sm:p-5 border-l-4 border-l-[#8B0000]">
-              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 sm:mb-1 truncate">Corp Schools</div>
+            <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000]">
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Corp Schools</div>
               <div className="text-lg sm:text-2xl font-black text-[#650000]">{data?.kpis?.total_schools || 7}</div>
-              <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">100% On EMIS</p>
+              <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">
+                {selectedStandard === 'All' ? 'Classes 9, 10, 11 & 12' : `Class ${selectedStandard} Selected`}
+              </p>
             </div>
 
-            <div className="glass-card p-3 sm:p-5 border-l-4 border-l-[#FFC928]">
-              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 sm:mb-1 truncate">Corp Average</div>
-              <div className="text-lg sm:text-2xl font-black text-[#650000]">{data?.kpis?.corporation_avg_score || 71.4}%</div>
-              <p className="text-[10px] sm:text-xs text-emerald-700 font-bold mt-0.5 truncate">Pass: {data?.kpis?.overall_pass_percentage ?? 87.4}%</p>
+            <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#FFC928]">
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Exam Pass Progression</div>
+              <div className="text-xs sm:text-sm font-black text-emerald-700 mt-1">
+                Q: {examPassGraphData[0]?.pass_percentage}% → HY: {examPassGraphData[1]?.pass_percentage}% → Ann: {examPassGraphData[2]?.pass_percentage}%
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5 truncate">See Bar Graph below ↓</p>
             </div>
 
-            <div className="glass-card p-3 sm:p-5 border-l-4 border-l-[#8B0000]">
-              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 sm:mb-1 truncate">Attendance Base</div>
-              <div className="text-lg sm:text-2xl font-black text-[#650000]">{data?.kpis?.overall_attendance || 92.3}%</div>
-              <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">Staff: {data?.kpis?.staff_attendance ?? 95.8}%</p>
+            <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000]">
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Jun–Mar Attendance</div>
+              <div className="text-xs sm:text-sm font-black text-[#650000] mt-1">
+                Jun: {monthlyAttendanceGraphData[0]?.attendance}% → Mar: {monthlyAttendanceGraphData[monthlyAttendanceGraphData.length - 1]?.attendance}%
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5 truncate">10-Month Bar Graph below ↓</p>
             </div>
 
             <div
               onClick={() => setActiveTab('students')}
-              className="glass-card p-3 sm:p-5 border-l-4 border-l-[#FFC928] cursor-pointer hover:shadow-md transition"
+              className="glass-card p-3 sm:p-4 border-l-4 border-l-[#FFC928] cursor-pointer hover:shadow-md transition"
             >
-              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 sm:mb-1 truncate">Student Range View</div>
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Student Range View</div>
               <div className="text-lg sm:text-2xl font-black text-rose-700">5 Mark Ranges</div>
               <p className="text-[10px] sm:text-xs text-[#8B0000] font-bold mt-0.5 underline truncate">Tap for &lt;35 to &gt;90 Lists →</p>
+            </div>
+          </div>
+
+          {/* Requirement 2 & 3: Side-by-Side Bar Graphs for (A) Quarterly/Half-Yearly/Annual Pass Average & (B) June to March Student Attendance */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            {/* Bar Graph 1: Overall Pass Average for Quarterly, Half-Yearly, Annual */}
+            <div className="glass-card p-4 sm:p-5 border border-slate-200">
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div>
+                  <h3 className="text-xs sm:text-sm font-black text-[#650000] uppercase tracking-wider flex items-center gap-1.5">
+                    <BarChart3 className="w-4 h-4 text-[#8B0000] shrink-0" />
+                    <span>Overall Pass % &amp; Average Score — Quarterly, Half-Yearly &amp; Annual</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Visual comparison of examination pass percentage and average score variation ({selectedStandard === 'All' ? 'All Classes 9–12' : `Class ${selectedStandard}`})
+                  </p>
+                </div>
+              </div>
+
+              <div className="h-56 sm:h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={examPassGraphData} margin={{ top: 18, right: 12, left: -10, bottom: 4 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="exam" stroke="#475569" fontSize={11} fontWeight={700} />
+                    <YAxis domain={[0, 100]} stroke="#475569" fontSize={10} unit="%" />
+                    <Tooltip formatter={(val: any) => [`${val}%`, '']} />
+                    <Bar dataKey="pass_percentage" name="Overall Pass %" fill="#10b981" radius={[8, 8, 0, 0]}>
+                      <LabelList dataKey="pass_percentage" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: '10px', fontWeight: 800, fill: '#047857' }} />
+                    </Bar>
+                    <Bar dataKey="avg_mark" name="Overall Average Mark %" fill="#8B0000" radius={[8, 8, 0, 0]}>
+                      <LabelList dataKey="avg_mark" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: '10px', fontWeight: 800, fill: '#8B0000' }} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold">
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1 text-emerald-700">
+                    <span className="w-2.5 h-2.5 rounded-xs bg-emerald-500 inline-block" /> Overall Pass %
+                  </span>
+                  <span className="flex items-center gap-1 text-[#8B0000]">
+                    <span className="w-2.5 h-2.5 rounded-xs bg-[#8B0000] inline-block" /> Overall Average Mark %
+                  </span>
+                </div>
+                <span className="text-emerald-700">
+                  Net Gain: +{(examPassGraphData[2]?.pass_percentage - examPassGraphData[0]?.pass_percentage).toFixed(1)}% (Quarterly → Annual)
+                </span>
+              </div>
+            </div>
+
+            {/* Bar Graph 2: Student Overall Attendance from June to March */}
+            <div className="glass-card p-4 sm:p-5 border border-slate-200">
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div>
+                  <h3 className="text-xs sm:text-sm font-black text-[#650000] uppercase tracking-wider flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 text-[#8B0000] shrink-0" />
+                    <span>Student Overall Attendance Variation — June to March</span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Month-by-month student attendance bar graph from June to March ({selectedStandard === 'All' ? 'All Classes 9–12' : `Class ${selectedStandard}`})
+                  </p>
+                </div>
+              </div>
+
+              <div className="h-56 sm:h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={monthlyAttendanceGraphData} margin={{ top: 18, right: 8, left: -12, bottom: 4 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="month" stroke="#475569" fontSize={10} fontWeight={700} />
+                    <YAxis domain={[75, 100]} stroke="#475569" fontSize={10} unit="%" />
+                    <Tooltip
+                      formatter={(val: any) => [`${val}%`, 'Student Attendance']}
+                      labelFormatter={(label: any, payload: any) => payload?.[0]?.payload?.full_month || label}
+                    />
+                    <Bar dataKey="attendance" name="Student Attendance %" radius={[6, 6, 0, 0]}>
+                      {monthlyAttendanceGraphData.map((entry: any, idx: number) => (
+                        <Cell
+                          key={idx}
+                          fill={entry.attendance >= 93 ? '#059669' : entry.attendance >= 91 ? '#d97706' : '#8B0000'}
+                        />
+                      ))}
+                      <LabelList dataKey="attendance" position="top" formatter={(v: any) => `${v}%`} style={{ fontSize: '9px', fontWeight: 800, fill: '#334155' }} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold">
+                <span className="text-slate-600">Academic Year: June – March (10 Months)</span>
+                <span className="text-emerald-700">Peak Month: March ({monthlyAttendanceGraphData[monthlyAttendanceGraphData.length - 1]?.attendance}%)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Requirement 4: Subject-Wise Failure in Numbers */}
+          <div className="glass-card p-4 sm:p-5 border border-slate-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5">
+              <div>
+                <h3 className="text-xs sm:text-base font-black text-[#650000] flex items-center gap-1.5">
+                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-rose-600 shrink-0" />
+                  <span>Subject-Wise Failure in Numbers ({selectedStandard === 'All' ? 'All Classes 9–12' : `Class ${selectedStandard}`})</span>
+                </h3>
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                  Exact number of students scoring below passing mark (&lt; 35) in each subject — Click any card to inspect failed students
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveTab('students')}
+                className="px-3 py-1.5 bg-[#8B0000] text-white rounded-xl text-xs font-bold cursor-pointer self-start sm:self-auto"
+              >
+                Inspect Failed Student List →
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+              {subjectFailures.map((sf: any, idx: number) => {
+                const isLastOdd = idx === subjectFailures.length - 1 && subjectFailures.length % 2 === 1;
+                return (
+                  <div
+                    key={sf.subject}
+                    onClick={() => setActiveTab('students')}
+                    className={`p-3.5 rounded-2xl border-2 border-rose-300 bg-rose-50/80 hover:bg-rose-100/80 transition cursor-pointer flex flex-col justify-between ${
+                      isLastOdd ? 'col-span-2 sm:col-span-1' : ''
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="font-black text-xs text-slate-900 truncate">{sf.subject}</span>
+                      <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white text-[9px] font-black uppercase">
+                        {sf.fail_percentage}% Fail
+                      </span>
+                    </div>
+
+                    <div className="mt-2 flex items-baseline gap-1.5">
+                      <span className="text-2xl sm:text-3xl font-black text-rose-700">
+                        {sf.failed_count}
+                      </span>
+                      <span className="text-xs font-bold text-rose-900">
+                        Failed Students
+                      </span>
+                    </div>
+
+                    <div className="mt-2 pt-1.5 border-t border-rose-200 flex items-center justify-between text-[10px] font-bold text-slate-600">
+                      <span>Low (&lt;50): {sf.low_mark_count}</span>
+                      <span>Evaluated: {sf.total_students}</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

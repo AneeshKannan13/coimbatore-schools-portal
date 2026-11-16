@@ -123,6 +123,7 @@ export const SchoolDetailModal: React.FC<{
           {activeTab === 'students' ? (
             <StudentAnalyticsSection
               schoolId={schoolId}
+              allowUploads={false}
               title={`${data?.school?.name || 'School'} — Student Pass/Fail & Range Classification`}
               onSelectTeacher={(tid) => setSelectedTeacherId(tid)}
             />
