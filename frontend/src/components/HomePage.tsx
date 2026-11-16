@@ -3,7 +3,7 @@ import {
   Building2, Users, GraduationCap, Award, ChevronRight, LogIn, 
   MapPin, Activity, Sparkles, Menu, X, Search, Sun, Moon 
 } from 'lucide-react';
-import apiClient, { CORP_LOGO_URL, CM_PHOTO_URL } from '../api';
+import apiClient, { CORP_LOGO_URL, CM_PHOTO_URL, REAL_SCHOOLS } from '../api';
 
 export const HomePage: React.FC<{
   onOpenLogin: () => void;
@@ -15,16 +15,7 @@ export const HomePage: React.FC<{
   const [directoryZone, setDirectoryZone] = useState('All');
   const [directorySearch, setDirectorySearch] = useState('');
 
-  const defaultSchools = [
-    { id: 1, school_code: "CCM-01", school_name: "Corporation Higher Secondary School, R.S. Puram", zone: "West", ward: "Ward 23", school_type: "Higher Secondary", student_count: 840, teacher_count: 42 },
-    { id: 2, school_code: "CCM-02", school_name: "Corporation Higher Secondary School, Siddhapudur", zone: "Central", ward: "Ward 31", school_type: "Higher Secondary", student_count: 760, teacher_count: 38 },
-    { id: 3, school_code: "CCM-03", school_name: "Corporation High School, Ramanathapuram", zone: "East", ward: "Ward 62", school_type: "High School", student_count: 520, teacher_count: 26 },
-    { id: 4, school_code: "CCM-04", school_name: "Corporation Girls Higher Secondary School, Oppanakara St", zone: "South", ward: "Ward 45", school_type: "Higher Secondary", student_count: 910, teacher_count: 45 },
-    { id: 5, school_code: "CCM-05", school_name: "Corporation High School, Peelamedu", zone: "East", ward: "Ward 38", school_type: "High School", student_count: 490, teacher_count: 24 },
-    { id: 6, school_code: "CCM-06", school_name: "Corporation Higher Secondary School, Rathinapuri", zone: "North", ward: "Ward 18", school_type: "Higher Secondary", student_count: 680, teacher_count: 35 },
-  ];
-
-  const [schools, setSchools] = useState<any[]>(defaultSchools);
+  const [schools, setSchools] = useState<any[]>(REAL_SCHOOLS);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -279,8 +270,8 @@ export const HomePage: React.FC<{
               <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B0000] shrink-0" />
               <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-600 truncate">Schools</span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-[#650000]">{data?.stats?.total_schools || 42}</div>
-            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">Across 5 Zones & 100 Wards</p>
+            <div className="text-2xl sm:text-3xl font-black text-[#650000]">{data?.stats?.total_schools || 4}</div>
+            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">Anupparpalayam, Ramanathapuram, Rathinapuri, Selvapuram</p>
           </div>
 
           <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#FFC928] hover:border-[#8B0000] transition">
@@ -289,9 +280,9 @@ export const HomePage: React.FC<{
               <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-600 truncate">Students</span>
             </div>
             <div className="text-2xl sm:text-3xl font-black text-[#650000]">
-              {data?.stats?.total_students?.toLocaleString() || '18,750'}
+              {data?.stats?.total_students?.toLocaleString() || '1,088'}
             </div>
-            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">EMIS Tracked Records</p>
+            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">EMIS Tracked Records (Classes 9–12)</p>
           </div>
 
           <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#8B0000] hover:border-[#FFD700] transition">
@@ -299,8 +290,8 @@ export const HomePage: React.FC<{
               <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B0000] shrink-0" />
               <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-600 truncate">Teaching Staff</span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-[#650000]">{data?.stats?.total_teachers || 950}</div>
-            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">PG & BT Assistants</p>
+            <div className="text-2xl sm:text-3xl font-black text-[#650000]">{data?.stats?.total_teachers || 63}</div>
+            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">PG &amp; BT Assistants</p>
           </div>
 
           <div className="glass-card p-3.5 sm:p-5 border-l-4 border-l-[#FFC928] hover:border-[#8B0000] transition">
@@ -308,8 +299,8 @@ export const HomePage: React.FC<{
               <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B0000] shrink-0" />
               <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-600 truncate">Attendance</span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-[#650000]">{data?.stats?.avg_attendance || '91.4'}%</div>
-            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">Corporation Benchmark</p>
+            <div className="text-2xl sm:text-3xl font-black text-[#650000]">{data?.stats?.avg_attendance || '90.4'}%</div>
+            <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">79 Working Days (Jun–Sep)</p>
           </div>
         </div>
       </section>

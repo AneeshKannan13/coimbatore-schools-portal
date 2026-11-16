@@ -238,7 +238,7 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
             <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000]">
               <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Corp Schools</div>
-              <div className="text-lg sm:text-2xl font-black text-[#650000]">{data?.kpis?.total_schools || 7}</div>
+              <div className="text-lg sm:text-2xl font-black text-[#650000]">{data?.kpis?.total_schools || 4}</div>
               <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">
                 {selectedStandard === 'All' ? 'Classes 9, 10, 11 & 12' : `Class ${selectedStandard} Selected`}
               </p>

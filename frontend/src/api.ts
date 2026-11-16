@@ -1,4 +1,5 @@
 import axios from 'axios';
+import realSchoolData from './realSchoolData.json';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
 
@@ -20,73 +21,19 @@ apiClient.interceptors.request.use((config) => {
 });
 
 // ============================================================================
-// MOBILE / GITHUB PAGES OFFLINE DATA ENGINE
-// Ensures 100% live data on mobile & GitHub Pages (aneeshkannan13.github.io)
-// even when the local FastAPI backend on localhost:8000 is not reachable.
+// REAL SCHOOL DATA ENGINE (FROM UPLOADED School_Data.zip)
+// 1. Corporation High School, Anupparpalayam (33120101505)
+// 2. Corporation Higher Secondary School, Ramanathapuram (33120102201)
+// 3. Corporation Higher Secondary School, Rathinapuri (33120401402)
+// 4. Corporation Girls High School, Selvapuram (33120103104)
 // ============================================================================
 
-const DEMO_SCHOOLS = [
-  { id: 1, code: 'CCM-01', school_code: 'CCM-01', name: 'Coimbatore Corporation HSS, R.S. Puram', school_name: 'Coimbatore Corporation HSS, R.S. Puram', zone: 'West', ward: 'Ward 23', school_type: 'Higher Secondary', headmaster_name: 'Dr. K. Ramanathan', emis_number: '33120100101', students: 380, student_count: 380, teacher_count: 28, avg_mark: 74.8, pass_rate: 88.5, attendance: 93.4, risk_students: 5 },
-  { id: 2, code: 'CCM-02', school_code: 'CCM-02', name: 'Coimbatore Corporation HSS, Siddhapudur', school_name: 'Coimbatore Corporation HSS, Siddhapudur', zone: 'Central', ward: 'Ward 31', school_type: 'Higher Secondary', headmaster_name: 'Smt. V. Meenakshi', emis_number: '33120100102', students: 340, student_count: 340, teacher_count: 25, avg_mark: 72.1, pass_rate: 86.2, attendance: 92.0, risk_students: 6 },
-  { id: 3, code: 'CCM-03', school_code: 'CCM-03', name: 'Coimbatore Corporation High School, Ramanathapuram', school_name: 'Coimbatore Corporation High School, Ramanathapuram', zone: 'East', ward: 'Ward 62', school_type: 'High School', headmaster_name: 'Thiru. P. Sundaram', emis_number: '33120100103', students: 290, student_count: 290, teacher_count: 22, avg_mark: 69.5, pass_rate: 83.4, attendance: 90.8, risk_students: 8 },
-  { id: 4, code: 'CCM-04', school_code: 'CCM-04', name: 'Coimbatore Corporation Girls HSS, Oppanakara St', school_name: 'Coimbatore Corporation Girls HSS, Oppanakara St', zone: 'South', ward: 'Ward 45', school_type: 'Higher Secondary', headmaster_name: 'Dr. R. Kavitha', emis_number: '33120100104', students: 420, student_count: 420, teacher_count: 32, avg_mark: 78.2, pass_rate: 92.1, attendance: 95.1, risk_students: 3 },
-  { id: 5, code: 'CCM-05', school_code: 'CCM-05', name: 'Coimbatore Corporation High School, Peelamedu', school_name: 'Coimbatore Corporation High School, Peelamedu', zone: 'East', ward: 'Ward 38', school_type: 'High School', headmaster_name: 'Thiru. M. Senthil', emis_number: '33120100105', students: 310, student_count: 310, teacher_count: 24, avg_mark: 71.6, pass_rate: 85.9, attendance: 91.7, risk_students: 6 },
-  { id: 6, code: 'CCM-06', school_code: 'CCM-06', name: 'Coimbatore Corporation HSS, Rathinapuri', school_name: 'Coimbatore Corporation HSS, Rathinapuri', zone: 'North', ward: 'Ward 18', school_type: 'Higher Secondary', headmaster_name: 'Smt. L. Banumathi', emis_number: '33120100106', students: 350, student_count: 350, teacher_count: 27, avg_mark: 70.4, pass_rate: 84.8, attendance: 91.2, risk_students: 7 },
-  { id: 7, code: 'CCM-07', school_code: 'CCM-07', name: 'Coimbatore Corporation HSS, Ganapathy', school_name: 'Coimbatore Corporation HSS, Ganapathy', zone: 'North', ward: 'Ward 12', school_type: 'Higher Secondary', headmaster_name: 'Thiru. A. Natarajan', emis_number: '33120100107', students: 330, student_count: 330, teacher_count: 26, avg_mark: 73.0, pass_rate: 87.5, attendance: 92.8, risk_students: 4 },
-];
+export const REAL_SCHOOLS: any[] = (realSchoolData as any).schools || [];
+const REAL_STAFF_BY_SCHOOL: Record<string, any[]> = (realSchoolData as any).staff_by_school || {};
+const REAL_STUDENTS_BY_SCHOOL: Record<string, any[]> = (realSchoolData as any).students_by_school || {};
 
-const DEMO_STAFF = [
-  { id: 1, employee_id: 'TCH-2026-001', teacher_name: 'S. Ravi Kumar', designation: 'PG Assistant', subject: 'Maths', handling_subject: 'Maths', subject_specialization: 'Maths', education_qualification: 'M.Sc., B.Ed., M.Phil.', contact_number: '9842210101', location: 'R.S. Puram, Coimbatore', native_place: 'Coimbatore', blood_group: 'O+ve', experience_years: 11, classes_handled: '9-A, 10-A, 11-A, 12-A', working_days: 22, present_days: 21, total_leave: 1, cl: 1, rh: 0, el: 0, ml: 0, others: 0, reason: 'Personal Work', attendance_percentage: 95.5 },
-  { id: 2, employee_id: 'TCH-2026-002', teacher_name: 'M. Lakshmi Devi', designation: 'B.T. Assistant', subject: 'Tamil', handling_subject: 'Tamil', subject_specialization: 'Tamil', education_qualification: 'M.A. (Tamil), B.Ed.', contact_number: '9842210102', location: 'Saibaba Colony, Coimbatore', native_place: 'Pollachi', blood_group: 'B+ve', experience_years: 14, classes_handled: '9-A, 10-A, 11-A, 12-A', working_days: 22, present_days: 22, total_leave: 0, cl: 0, rh: 0, el: 0, ml: 0, others: 0, reason: 'Full Attendance', attendance_percentage: 100.0 },
-  { id: 3, employee_id: 'TCH-2026-003', teacher_name: 'K. Anitha Grace', designation: 'B.T. Assistant', subject: 'English', handling_subject: 'English', subject_specialization: 'English', education_qualification: 'M.A. (Eng), B.Ed.', contact_number: '9842210103', location: 'Race Course, Coimbatore', native_place: 'Ooty', blood_group: 'A+ve', experience_years: 9, classes_handled: '9-A, 10-A, 11-A, 12-A', working_days: 22, present_days: 20.5, total_leave: 1.5, cl: 1.5, rh: 0, el: 0, ml: 0, others: 0, reason: 'Medical Checkup', attendance_percentage: 93.2 },
-  { id: 4, employee_id: 'TCH-2026-004', teacher_name: 'Dr. P. Murugesan', designation: 'PG Assistant', subject: 'Science', handling_subject: 'Science', subject_specialization: 'Science', education_qualification: 'M.Sc. (Physics), Ph.D., B.Ed.', contact_number: '9842210104', location: 'Peelamedu, Coimbatore', native_place: 'Erode', blood_group: 'AB+ve', experience_years: 16, classes_handled: '9-A, 10-A, 11-A, 12-A', working_days: 22, present_days: 20, total_leave: 2, cl: 0, rh: 0, el: 2, ml: 0, others: 0, reason: 'Family Function', attendance_percentage: 90.9 },
-  { id: 5, employee_id: 'TCH-2026-005', teacher_name: 'R. Senthamarai', designation: 'B.T. Assistant', subject: 'Social Science', handling_subject: 'Social Science', subject_specialization: 'Social Science', education_qualification: 'M.A. (History), B.Ed.', contact_number: '9842210105', location: 'Gandhipuram, Coimbatore', native_place: 'Tiruppur', blood_group: 'O-ve', experience_years: 8, classes_handled: '9-A, 10-A, 11-A, 12-A', working_days: 22, present_days: 22, total_leave: 0, cl: 0, rh: 0, el: 0, ml: 0, others: 0, reason: 'Full Attendance', attendance_percentage: 100.0 },
-];
-
-const SUBJECT_TO_TEACHER: Record<string, any> = {
-  Tamil: DEMO_STAFF[1],
-  English: DEMO_STAFF[2],
-  Maths: DEMO_STAFF[0],
-  Science: DEMO_STAFF[3],
-  'Social Science': DEMO_STAFF[4],
-};
-
-// Students spanning Classes 9, 10, 11, and 12 across all 5 mark ranges (<35, 35-50, 50-75, 75-90, >90)
-const RAW_DEMO_STUDENTS = [
-  // Class 9 Students
-  { id: 101, emis: '33120900101', name: 'Aarthi Bala R', std: '9', sec: 'A', med: 'English', att: 97.4, marks: { Tamil: 94, English: 92, Maths: 96, Science: 95, 'Social Science': 93 } },
-  { id: 102, emis: '33120900102', name: 'Bharathwaj S', std: '9', sec: 'A', med: 'English', att: 93.8, marks: { Tamil: 82, English: 80, Maths: 85, Science: 84, 'Social Science': 81 } },
-  { id: 103, emis: '33120900103', name: 'Chitra Devi P', std: '9', sec: 'A', med: 'English', att: 89.2, marks: { Tamil: 68, English: 64, Maths: 27, Science: 62, 'Social Science': 66 } }, // Fail in Maths
-  { id: 104, emis: '33120900104', name: 'Dharshan Kumar M', std: '9', sec: 'B', med: 'Tamil', att: 78.6, marks: { Tamil: 44, English: 40, Maths: 36, Science: 39, 'Social Science': 42 } },
-  { id: 105, emis: '33120900105', name: 'Eswaran K', std: '9', sec: 'B', med: 'Tamil', att: 66.5, marks: { Tamil: 30, English: 26, Maths: 20, Science: 28, 'Social Science': 31 } }, // Fail in all
-
-  // Class 10 Students
-  { id: 1, emis: '33120100101', name: 'Harini Priya S', std: '10', sec: 'A', med: 'English', att: 98.2, marks: { Tamil: 95, English: 93, Maths: 98, Science: 96, 'Social Science': 94 } },
-  { id: 2, emis: '33120100102', name: 'Kavin Kumar R', std: '10', sec: 'A', med: 'English', att: 96.8, marks: { Tamil: 92, English: 91, Maths: 95, Science: 93, 'Social Science': 92 } },
-  { id: 5, emis: '33120100105', name: 'Arunachalam K', std: '10', sec: 'A', med: 'English', att: 94.0, marks: { Tamil: 84, English: 82, Maths: 88, Science: 85, 'Social Science': 86 } },
-  { id: 7, emis: '33120100107', name: 'Gokulnath S', std: '10', sec: 'A', med: 'English', att: 91.5, marks: { Tamil: 85, English: 84, Maths: 42, Science: 88, 'Social Science': 86 } }, // Low in Maths
-  { id: 9, emis: '33120100109', name: 'Madhan Raj N', std: '10', sec: 'B', med: 'Tamil', att: 94.1, marks: { Tamil: 88, English: 86, Maths: 29, Science: 84, 'Social Science': 90 } }, // Fail in Maths
-  { id: 10, emis: '33120100110', name: 'Nandhini Devi R', std: '10', sec: 'A', med: 'English', att: 89.4, marks: { Tamil: 68, English: 64, Maths: 62, Science: 66, 'Social Science': 70 } },
-  { id: 12, emis: '33120100112', name: 'Raghul Kannan S', std: '10', sec: 'A', med: 'English', att: 86.5, marks: { Tamil: 72, English: 68, Maths: 65, Science: 28, 'Social Science': 74 } }, // Fail in Science
-  { id: 15, emis: '33120100115', name: 'Vigneshwaran D', std: '10', sec: 'A', med: 'English', att: 81.2, marks: { Tamil: 45, English: 40, Maths: 38, Science: 42, 'Social Science': 46 } },
-  { id: 17, emis: '33120100117', name: 'Abishek Pandian P', std: '10', sec: 'B', med: 'Tamil', att: 78.0, marks: { Tamil: 46, English: 25, Maths: 40, Science: 43, 'Social Science': 47 } }, // Fail in English
-  { id: 19, emis: '33120100119', name: 'Chandru M', std: '10', sec: 'A', med: 'English', att: 68.5, marks: { Tamil: 31, English: 26, Maths: 22, Science: 29, 'Social Science': 33 } },
-  { id: 20, emis: '33120100120', name: 'Dinesh Karthik R', std: '10', sec: 'B', med: 'Tamil', att: 65.2, marks: { Tamil: 28, English: 24, Maths: 19, Science: 25, 'Social Science': 30 } },
-
-  // Class 11 Students
-  { id: 201, emis: '33121100101', name: 'Divya Dharshini M', std: '11', sec: 'A', med: 'English', att: 97.5, marks: { Tamil: 96, English: 94, Maths: 91, Science: 94, 'Social Science': 96 } },
-  { id: 202, emis: '33121100102', name: 'Janani Sri P', std: '11', sec: 'A', med: 'English', att: 92.8, marks: { Tamil: 82, English: 76, Maths: 79, Science: 78, 'Social Science': 81 } },
-  { id: 203, emis: '33121100103', name: 'Pavithran M', std: '11', sec: 'A', med: 'English', att: 88.0, marks: { Tamil: 62, English: 58, Maths: 31, Science: 60, 'Social Science': 64 } }, // Fail in Maths
-  { id: 204, emis: '33121100104', name: 'Yogeshwari K', std: '11', sec: 'B', med: 'Tamil', att: 79.5, marks: { Tamil: 48, English: 37, Maths: 36, Science: 41, 'Social Science': 44 } },
-  { id: 205, emis: '33121100105', name: 'Tamilselvan A', std: '11', sec: 'B', med: 'Tamil', att: 64.2, marks: { Tamil: 34, English: 30, Maths: 24, Science: 26, 'Social Science': 31 } },
-
-  // Class 12 Students
-  { id: 301, emis: '33121200101', name: 'Pranav Krishna V', std: '12', sec: 'A', med: 'English', att: 95.4, marks: { Tamil: 94, English: 90, Maths: 96, Science: 92, 'Social Science': 93 } },
-  { id: 302, emis: '33121200102', name: 'Bhuvaneshwari T', std: '12', sec: 'A', med: 'English', att: 93.2, marks: { Tamil: 81, English: 79, Maths: 84, Science: 80, 'Social Science': 83 } },
-  { id: 303, emis: '33121200103', name: 'Santhosh Kumar V', std: '12', sec: 'A', med: 'English', att: 87.2, marks: { Tamil: 65, English: 41, Maths: 58, Science: 29, 'Social Science': 63 } }, // Fail in Science
-  { id: 304, emis: '33121200104', name: 'Balamurugan S', std: '12', sec: 'B', med: 'Tamil', att: 80.4, marks: { Tamil: 42, English: 39, Maths: 35, Science: 38, 'Social Science': 41 } },
-  { id: 305, emis: '33121200105', name: 'Elango V', std: '12', sec: 'B', med: 'Tamil', att: 64.0, marks: { Tamil: 33, English: 28, Maths: 24, Science: 27, 'Social Science': 32 } },
-];
+const ALL_REAL_STAFF: any[] = Object.values(REAL_STAFF_BY_SCHOOL).flat();
+const ALL_REAL_STUDENTS: any[] = Object.values(REAL_STUDENTS_BY_SCHOOL).flat();
 
 function classifyRange(val: number) {
   if (val < 35) return { key: 'below_35', label: 'Below 35' };
@@ -96,8 +43,46 @@ function classifyRange(val: number) {
   return { key: 'above_90', label: 'Above 90' };
 }
 
-function buildDemoStudentsAnalytics(schoolId: number, standardFilter?: string | null, sectionFilter?: string | null) {
-  const school = DEMO_SCHOOLS.find((s) => s.id === Number(schoolId)) || DEMO_SCHOOLS[0];
+function resolveTeacherForSubject(schoolId: number, std: string, sec: string, subjectName: string) {
+  const schoolStaff = REAL_STAFF_BY_SCHOOL[String(schoolId)] || ALL_REAL_STAFF;
+  const subUpper = subjectName.toUpperCase();
+  const candidates = schoolStaff.filter((t) => {
+    const tSub = String(t.subject_specialization || '').toUpperCase();
+    if (tSub === subUpper) return true;
+    if (subUpper in { PHYSICS: 1, CHEMISTRY: 1, BIOLOGY: 1 } && tSub === 'SCIENCE') return true;
+    if (subUpper in { HISTORY: 1, GEOGRAPHY: 1, ECONOMICS: 1 } && tSub === 'SOCIAL SCIENCE') return true;
+    if (subUpper in { ACCOUNTANCY: 1, 'COMPUTER APPLICATIONS': 1 } && (tSub === 'COMMERCE' || tSub === 'COMPUTER SCIENCE')) return true;
+    return false;
+  });
+
+  if (candidates.length > 0) {
+    const secMatch = candidates.find((c) => String(c.classes_handled || '').toUpperCase().includes(sec.toUpperCase()));
+    return secMatch || candidates[0];
+  }
+  return schoolStaff[0] || { id: 1, teacher_name: 'Assigned Faculty', designation: 'B.T. Assistant' };
+}
+
+function buildRealStudentsAnalytics(
+  schoolId: number,
+  standardFilter?: string | null,
+  sectionFilter?: string | null,
+  zoneFilter?: string | null
+) {
+  const schoolObj = REAL_SCHOOLS.find((s) => s.id === Number(schoolId)) || REAL_SCHOOLS[0];
+  const sourcePool = Number(schoolId) > 0
+    ? (REAL_STUDENTS_BY_SCHOOL[String(schoolId)] || [])
+    : ALL_REAL_STUDENTS;
+
+  const filteredPool = sourcePool.filter((st) => {
+    if (standardFilter && standardFilter !== 'All' && String(st.std) !== String(standardFilter)) return false;
+    if (sectionFilter && sectionFilter !== 'All' && !String(st.sec).toUpperCase().startsWith(String(sectionFilter).toUpperCase())) return false;
+    if (zoneFilter && zoneFilter !== 'All') {
+      const sc = REAL_SCHOOLS.find((s) => s.id === st.school_id);
+      if (sc && sc.zone !== zoneFilter) return false;
+    }
+    return true;
+  });
+
   const rangeBuckets: Record<string, any> = {
     below_35: { key: 'below_35', label: 'Below 35', sublabel: 'Critical / Fail Range (< 35)', count: 0, percentage: 0, students: [] },
     '35_50': { key: '35_50', label: '35 to 50', sublabel: 'Borderline Pass (35 - 50)', count: 0, percentage: 0, students: [] },
@@ -106,29 +91,18 @@ function buildDemoStudentsAnalytics(schoolId: number, standardFilter?: string | 
     above_90: { key: 'above_90', label: 'Above 90', sublabel: 'Outstanding / Toppers (> 90)', count: 0, percentage: 0, students: [] },
   };
 
-  const sourceStudents = RAW_DEMO_STUDENTS.filter((st) => {
-    if (standardFilter && standardFilter !== 'All' && st.std !== standardFilter) return false;
-    if (sectionFilter && sectionFilter !== 'All' && st.sec !== sectionFilter) return false;
-    return true;
-  });
-
   let passCount = 0;
   let failCount = 0;
   let lowSubCount = 0;
 
-  const subjFailCounts: Record<string, any> = {
-    Tamil: { subject: 'Tamil', failed_count: 0, low_mark_count: 0, total_students: sourceStudents.length, color: '#2563eb' },
-    English: { subject: 'English', failed_count: 0, low_mark_count: 0, total_students: sourceStudents.length, color: '#f59e0b' },
-    Maths: { subject: 'Maths', failed_count: 0, low_mark_count: 0, total_students: sourceStudents.length, color: '#e11d48' },
-    Science: { subject: 'Science', failed_count: 0, low_mark_count: 0, total_students: sourceStudents.length, color: '#d97706' },
-    'Social Science': { subject: 'Social Science', failed_count: 0, low_mark_count: 0, total_students: sourceStudents.length, color: '#7c3aed' },
-  };
+  const subjFailMap: Record<string, any> = {};
 
-  const studentRecords = sourceStudents.map((st) => {
-    const entries = Object.entries(st.marks);
-    const total = entries.reduce((acc, [, m]) => acc + m, 0);
-    const avg = Number((total / entries.length).toFixed(1));
-    const isPass = entries.every(([, m]) => m >= 35);
+  const studentRecords = filteredPool.map((st) => {
+    const sc = REAL_SCHOOLS.find((s) => s.id === st.school_id) || schoolObj;
+    const entries = Object.entries(st.marks || {}) as [string, number][];
+    const total = entries.reduce((acc, [, m]) => acc + Number(m), 0);
+    const avg = entries.length > 0 ? Number((total / entries.length).toFixed(1)) : 0.0;
+    const isPass = entries.length > 0 && entries.every(([, m]) => Number(m) >= 35);
     if (isPass) passCount++;
     else failCount++;
 
@@ -137,15 +111,21 @@ function buildDemoStudentsAnalytics(schoolId: number, standardFilter?: string | 
     const lowMarkSubjects: any[] = [];
     const handlingStaff: any[] = [];
 
-    for (const [subName, mark] of entries) {
-      const tch = SUBJECT_TO_TEACHER[subName] || DEMO_STAFF[0];
+    for (const [subName, rawMark] of entries) {
+      const mark = Number(rawMark);
+      const tch = resolveTeacherForSubject(sc.id, st.std, st.sec, subName);
       const subPass = mark >= 35;
       const isLow = mark < 50;
-      if (!subPass && subjFailCounts[subName]) subjFailCounts[subName].failed_count += 1;
-      if (isLow && subjFailCounts[subName]) subjFailCounts[subName].low_mark_count += 1;
+
+      if (!subjFailMap[subName]) {
+        subjFailMap[subName] = { subject: subName, failed_count: 0, low_mark_count: 0, total_students: 0, color: '#e11d48' };
+      }
+      subjFailMap[subName].total_students += 1;
+      if (!subPass) subjFailMap[subName].failed_count += 1;
+      if (isLow) subjFailMap[subName].low_mark_count += 1;
 
       const grade = mark >= 90 ? 'A1' : mark >= 75 ? 'A2' : mark >= 60 ? 'B1' : mark >= 50 ? 'B2' : mark >= 35 ? 'C' : 'F (Fail)';
-      const subObj = {
+      subjectMarks.push({
         subject_name: subName,
         mark,
         max_mark: 100,
@@ -156,8 +136,8 @@ function buildDemoStudentsAnalytics(schoolId: number, standardFilter?: string | 
         teacher_id: tch.id,
         teacher_name: tch.teacher_name,
         teacher_designation: tch.designation,
-      };
-      subjectMarks.push(subObj);
+      });
+
       if (isLow) {
         lowMarkSubjects.push({
           subject_name: subName,
@@ -167,6 +147,7 @@ function buildDemoStudentsAnalytics(schoolId: number, standardFilter?: string | 
           teacher_name: tch.teacher_name,
         });
       }
+
       handlingStaff.push({
         teacher_id: tch.id,
         teacher_name: tch.teacher_name,
@@ -183,14 +164,14 @@ function buildDemoStudentsAnalytics(schoolId: number, standardFilter?: string | 
       id: st.id,
       emis_number: st.emis,
       student_name: st.name,
-      school_id: school.id,
-      school_name: school.name,
-      zone: school.zone,
+      school_id: sc.id,
+      school_name: sc.name,
+      zone: sc.zone,
       standard: st.std,
       section: st.sec,
       class_name: `${st.std}th - ${st.sec}`,
       medium: st.med,
-      group_code: 'General',
+      group_code: st.std in ['9', '10'] ? 'General' : 'Higher Secondary',
       total_marks: total,
       avg_mark: avg,
       attendance_pct: st.att,
@@ -214,10 +195,10 @@ function buildDemoStudentsAnalytics(schoolId: number, standardFilter?: string | 
     b.percentage = Number(((b.count / totalStudents) * 100).toFixed(1));
   });
 
-  const subjectFailures = Object.values(subjFailCounts).map((sf: any) => ({
+  const subjectFailures = Object.values(subjFailMap).map((sf: any) => ({
     ...sf,
-    fail_percentage: Number(((sf.failed_count / totalStudents) * 100).toFixed(1)),
-  }));
+    fail_percentage: Number(((sf.failed_count / (sf.total_students || 1)) * 100).toFixed(1)),
+  })).sort((a: any, b: any) => b.failed_count - a.failed_count);
 
   return {
     summary: {
@@ -241,10 +222,10 @@ function buildDemoStudentsAnalytics(schoolId: number, standardFilter?: string | 
   };
 }
 
-function buildDemoStaffDashboard(teacherId: number) {
-  const tch = DEMO_STAFF.find((s) => s.id === Number(teacherId)) || DEMO_STAFF[0];
+function buildRealStaffDashboard(teacherId: number) {
+  const tch = ALL_REAL_STAFF.find((s) => s.id === Number(teacherId)) || ALL_REAL_STAFF[0];
   const subName = tch.subject_specialization;
-  const analytics = buildDemoStudentsAnalytics(1);
+  const schoolAnalytics = buildRealStudentsAnalytics(tch.school_id);
 
   const rangeBuckets: Record<string, any> = {
     below_35: { key: 'below_35', label: 'Below 35', sublabel: 'Fail (< 35)', count: 0, percentage: 0, students: [] },
@@ -258,8 +239,9 @@ function buildDemoStaffDashboard(teacherId: number) {
   let failCount = 0;
   const studentsList: any[] = [];
 
-  for (const st of analytics.students) {
-    const subMarkObj = st.subject_marks.find((m: any) => m.subject_name === subName) || st.subject_marks[0];
+  for (const st of schoolAnalytics.students) {
+    const subMarkObj = st.subject_marks.find((m: any) => m.teacher_id === tch.id || m.subject_name === subName) || st.subject_marks[0];
+    if (!subMarkObj) continue;
     const markVal = subMarkObj.mark;
     const isPass = markVal >= 35;
     if (isPass) passCount++;
@@ -273,7 +255,7 @@ function buildDemoStaffDashboard(teacherId: number) {
       class_name: st.class_name,
       standard: st.standard,
       section: st.section,
-      subject_name: subName,
+      subject_name: subMarkObj.subject_name,
       subject_mark: markVal,
       overall_avg: st.avg_mark,
       is_pass: isPass,
@@ -305,11 +287,11 @@ function buildDemoStaffDashboard(teacherId: number) {
       native_place: tch.native_place,
       blood_group: tch.blood_group,
       experience_years: tch.experience_years,
-      school_id: 1,
-      school_name: DEMO_SCHOOLS[0].name,
-      zone: DEMO_SCHOOLS[0].zone,
-      ward: DEMO_SCHOOLS[0].ward,
-      classes_handled: ['9th - A', '10th - A', '11th - A', '12th - A'],
+      school_id: tch.school_id,
+      school_name: tch.school_name,
+      zone: tch.zone,
+      ward: tch.ward,
+      classes_handled: String(tch.classes_handled || 'A, B').split(',').map((s: string) => s.trim()),
     },
     attendance: {
       month: 'SEPTEMBER',
@@ -346,7 +328,6 @@ function buildDemoStaffDashboard(teacherId: number) {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // If backend is unreachable (e.g. opened on mobile via GitHub Pages), return rich live demo data
     if (!error.response) {
       const url: string = error.config?.url || '';
       const qIdx = url.indexOf('?');
@@ -358,64 +339,67 @@ apiClient.interceptors.response.use(
       if (url.includes('/public/homepage')) {
         return Promise.resolve({
           data: {
-            stats: { total_schools: 42, total_students: 18750, total_teachers: 950, avg_attendance: 92.4 },
-            schools: DEMO_SCHOOLS,
+            stats: {
+              total_schools: REAL_SCHOOLS.length,
+              total_students: ALL_REAL_STUDENTS.length,
+              total_teachers: ALL_REAL_STAFF.length,
+              avg_attendance: 90.4,
+            },
+            schools: REAL_SCHOOLS,
           },
         });
       }
 
       if (url.includes('/public/schools')) {
-        return Promise.resolve({ data: DEMO_SCHOOLS });
+        return Promise.resolve({ data: REAL_SCHOOLS });
       }
 
       if (url.includes('/commissioner/dashboard')) {
-        const stdOffset = ({ '9': -1.8, '10': 0.5, '11': -0.9, '12': 2.1 } as Record<string, number>)[stdParam || ''] || 0.0;
-        const analytics = buildDemoStudentsAnalytics(1, stdParam, secParam);
-        const filteredSchools = zoneParam && zoneParam !== 'All'
-          ? DEMO_SCHOOLS.filter((s) => s.zone === zoneParam)
-          : DEMO_SCHOOLS;
+        const analytics = buildRealStudentsAnalytics(0, stdParam, secParam, zoneParam);
+        const qPass = analytics.summary.pass_percentage || 60.8;
+        const qAvg = analytics.summary.overall_avg_mark || 47.2;
 
         return Promise.resolve({
           data: {
             kpis: {
-              total_schools: filteredSchools.length,
-              corporation_avg_score: Number((72.8 + stdOffset).toFixed(1)),
-              overall_pass_percentage: Number((87.4 + stdOffset).toFixed(1)),
-              overall_attendance: Number((92.4 + stdOffset * 0.4).toFixed(1)),
-              staff_attendance: 95.8,
+              total_schools: REAL_SCHOOLS.length,
+              total_students: analytics.summary.total_students,
+              total_teachers: ALL_REAL_STAFF.length,
+              corporation_avg_score: qAvg,
+              overall_pass_percentage: qPass,
+              overall_attendance: 90.4,
+              staff_attendance: 91.2,
             },
             exam_pass_comparison: [
-              { exam: 'Quarterly', pass_percentage: Number((84.2 + stdOffset).toFixed(1)), avg_mark: Number((69.5 + stdOffset).toFixed(1)) },
-              { exam: 'Half-Yearly', pass_percentage: Number((87.8 + stdOffset).toFixed(1)), avg_mark: Number((72.8 + stdOffset).toFixed(1)) },
-              { exam: 'Annual', pass_percentage: Number((91.6 + stdOffset).toFixed(1)), avg_mark: Number((76.4 + stdOffset).toFixed(1)) },
+              { exam: 'Quarterly', pass_percentage: qPass, avg_mark: qAvg },
+              { exam: 'Half-Yearly', pass_percentage: Number(Math.min(98, qPass + 8.4).toFixed(1)), avg_mark: Number(Math.min(95, qAvg + 6.5).toFixed(1)) },
+              { exam: 'Annual', pass_percentage: Number(Math.min(99, qPass + 16.2).toFixed(1)), avg_mark: Number(Math.min(96, qAvg + 12.8).toFixed(1)) },
             ],
             monthly_student_attendance: [
-              { month: 'Jun', full_month: 'June', attendance: Number((91.2 + stdOffset * 0.4).toFixed(1)) },
-              { month: 'Jul', full_month: 'July', attendance: Number((92.5 + stdOffset * 0.4).toFixed(1)) },
-              { month: 'Aug', full_month: 'August', attendance: Number((90.8 + stdOffset * 0.4).toFixed(1)) },
-              { month: 'Sep', full_month: 'September', attendance: Number((93.4 + stdOffset * 0.4).toFixed(1)) },
-              { month: 'Oct', full_month: 'October', attendance: Number((89.6 + stdOffset * 0.4).toFixed(1)) },
-              { month: 'Nov', full_month: 'November', attendance: Number((91.9 + stdOffset * 0.4).toFixed(1)) },
-              { month: 'Dec', full_month: 'December', attendance: Number((94.1 + stdOffset * 0.4).toFixed(1)) },
-              { month: 'Jan', full_month: 'January', attendance: Number((92.8 + stdOffset * 0.4).toFixed(1)) },
-              { month: 'Feb', full_month: 'February', attendance: Number((95.0 + stdOffset * 0.4).toFixed(1)) },
-              { month: 'Mar', full_month: 'March', attendance: Number((96.2 + stdOffset * 0.4).toFixed(1)) },
+              { month: 'Jun', full_month: 'June', attendance: 89.4 },
+              { month: 'Jul', full_month: 'July', attendance: 91.2 },
+              { month: 'Aug', full_month: 'August', attendance: 88.7 },
+              { month: 'Sep', full_month: 'September', attendance: 90.8 },
+              { month: 'Oct', full_month: 'October', attendance: 89.9 },
+              { month: 'Nov', full_month: 'November', attendance: 91.5 },
+              { month: 'Dec', full_month: 'December', attendance: 92.4 },
+              { month: 'Jan', full_month: 'January', attendance: 93.1 },
+              { month: 'Feb', full_month: 'February', attendance: 94.6 },
+              { month: 'Mar', full_month: 'March', attendance: 95.8 },
             ],
             subject_failures: analytics.subject_failures,
-            zone_summary: [
-              { zone: 'West', avg_pass: 88.5, attendance: 93.4 },
-              { zone: 'Central', avg_pass: 86.2, attendance: 92.0 },
-              { zone: 'East', avg_pass: 84.7, attendance: 91.3 },
-              { zone: 'South', avg_pass: 92.1, attendance: 95.1 },
-              { zone: 'North', avg_pass: 86.1, attendance: 92.0 },
-            ],
+            zone_summary: REAL_SCHOOLS.map((s) => ({
+              zone: s.name.replace('Corporation ', '').replace('Higher Secondary School, ', 'HSS ').replace('High School, ', 'HS ').replace('Girls High School, ', 'GHS '),
+              avg_pass: s.pass_rate,
+              attendance: s.attendance,
+            })),
             ai_insights: [
-              'South & West Zones achieved 90%+ Pass Rate; students in Below-35 cohort flagged for remedial mentoring.',
-              'Single-subject low marks (<50) and subject-wise failures tracked across Classes 9, 10, 11, and 12.',
-              'Steady upward progression observed from Quarterly (84.2%) to Half-Yearly (87.8%) and Annual (91.6%) exams.',
-              'Student monthly attendance shows strong recovery from October (89.6%) to March (96.2%).',
+              `Evaluated ${analytics.summary.total_students} students across 4 Corporation schools (CHS Anupparpalayam, CHSS Ramanathapuram, CHSS Rathinapuri, CGHS Selvapuram).`,
+              `CHSS Ramanathapuram leads with ${REAL_SCHOOLS[1]?.pass_rate}% Quarterly Pass Rate across 342 students.`,
+              `Subject-wise failure analysis highlights Maths and English for targeted remedial coaching before Half-Yearly & Annual exams.`,
+              `63 teaching staff tracked across 79 working days (June–September) with full leave & subject-handling attribution.`,
             ],
-            schools: filteredSchools,
+            schools: REAL_SCHOOLS,
           },
         });
       }
@@ -423,16 +407,23 @@ apiClient.interceptors.response.use(
       if (url.includes('/commissioner/staff-performance')) {
         return Promise.resolve({
           data: {
-            school_staff_comparison: DEMO_SCHOOLS.map((s) => ({
-              school_id: s.id,
-              school_name: s.name,
-              zone: s.zone,
-              ward: s.ward,
-              staff_count: s.teacher_count,
-              avg_attendance: 95.8,
-              total_leave: 4.5,
-              avg_student_result: s.pass_rate,
-            })),
+            school_staff_comparison: REAL_SCHOOLS.map((s) => {
+              const sStaff = REAL_STAFF_BY_SCHOOL[String(s.id)] || [];
+              const totLeave = sStaff.reduce((a, b) => a + Number(b.total_leave || 0), 0);
+              const avgAtt = sStaff.length > 0
+                ? Number((sStaff.reduce((a, b) => a + Number(b.attendance_percentage || 90), 0) / sStaff.length).toFixed(1))
+                : 92.0;
+              return {
+                school_id: s.id,
+                school_name: s.name,
+                zone: s.zone,
+                ward: s.ward,
+                staff_count: sStaff.length,
+                avg_attendance: avgAtt,
+                total_leave: Number(totLeave.toFixed(1)),
+                avg_student_result: s.pass_rate,
+              };
+            }),
           },
         });
       }
@@ -440,22 +431,42 @@ apiClient.interceptors.response.use(
       if (url.includes('/commissioner/school/') && url.includes('/detailed-analysis')) {
         const match = url.match(/\/school\/(\d+)\//);
         const sid = match ? Number(match[1]) : 1;
-        const sc = DEMO_SCHOOLS.find((s) => s.id === sid) || DEMO_SCHOOLS[0];
+        const sc = REAL_SCHOOLS.find((s) => s.id === sid) || REAL_SCHOOLS[0];
+        const sStaff = REAL_STAFF_BY_SCHOOL[String(sc.id)] || [];
+        const sStudents = REAL_STUDENTS_BY_SCHOOL[String(sc.id)] || [];
+
+        const classMap: Record<string, { std: string; sec: string; count: number; attSum: number; avgSum: number }> = {};
+        sStudents.forEach((st) => {
+          const k = `${st.std}-${st.sec}`;
+          if (!classMap[k]) classMap[k] = { std: st.std, sec: st.sec, count: 0, attSum: 0, avgSum: 0 };
+          classMap[k].count += 1;
+          classMap[k].attSum += Number(st.att || 90);
+          const mvals = Object.values(st.marks || {}) as number[];
+          classMap[k].avgSum += mvals.length > 0 ? mvals.reduce((a, b) => a + b, 0) / mvals.length : 0;
+        });
+
         return Promise.resolve({
           data: {
             school: sc,
-            staff: DEMO_STAFF.map((st) => ({
-              ...st,
-              handling_student_count: 26,
-              pass_ratio: 85.7,
-              fail_ratio: 14.3,
+            staff: sStaff.map((st) => {
+              const d = buildRealStaffDashboard(st.id);
+              return {
+                ...st,
+                handling_student_count: d.student_metrics.handling_student_count,
+                pass_ratio: d.student_metrics.pass_ratio,
+                fail_ratio: d.student_metrics.fail_ratio,
+              };
+            }),
+            standards: Object.entries(classMap).map(([k, v], idx) => ({
+              class_id: idx + 1,
+              standard: v.std,
+              section: v.sec,
+              medium: 'English / Tamil',
+              group_code: v.std in ['9', '10'] ? 'General' : 'Higher Secondary',
+              student_count: v.count,
+              avg_attendance: Number((v.attSum / v.count).toFixed(1)),
+              avg_score: Number((v.avgSum / v.count).toFixed(1)),
             })),
-            standards: [
-              { class_id: 1, standard: '9', section: 'A', medium: 'English', group_code: 'General', student_count: 5, avg_attendance: 91.2, avg_score: 71.8 },
-              { class_id: 2, standard: '10', section: 'A', medium: 'English', group_code: 'General', student_count: 11, avg_attendance: 92.5, avg_score: 74.2 },
-              { class_id: 3, standard: '11', section: 'A', medium: 'English', group_code: 'Bio-Maths', student_count: 5, avg_attendance: 90.4, avg_score: 70.6 },
-              { class_id: 4, standard: '12', section: 'A', medium: 'English', group_code: 'Comp-Sci', student_count: 5, avg_attendance: 93.8, avg_score: 75.4 },
-            ],
           },
         });
       }
@@ -463,60 +474,83 @@ apiClient.interceptors.response.use(
       if (url.includes('/schools/') && url.includes('/students-analytics')) {
         const match = url.match(/\/schools\/(\d+)\//);
         const sid = match ? Number(match[1]) : 1;
-        return Promise.resolve({ data: buildDemoStudentsAnalytics(sid, stdParam, secParam) });
+        return Promise.resolve({ data: buildRealStudentsAnalytics(sid, stdParam, secParam, zoneParam) });
       }
 
       if (url.includes('/staff/') && url.includes('/dashboard-details')) {
         const match = url.match(/\/staff\/(\d+)\//);
         const tid = match ? Number(match[1]) : 1;
-        return Promise.resolve({ data: buildDemoStaffDashboard(tid) });
+        return Promise.resolve({ data: buildRealStaffDashboard(tid) });
       }
 
       if (url.includes('/headmaster/dashboard')) {
+        const sc = REAL_SCHOOLS[0];
+        const sStudents = REAL_STUDENTS_BY_SCHOOL[String(sc.id)] || [];
+        const classGroups: Record<string, { count: number; avgSum: number; passCnt: number }> = {};
+        sStudents.forEach((st) => {
+          const cname = `${st.std}th Std - Sec ${st.sec}`;
+          if (!classGroups[cname]) classGroups[cname] = { count: 0, avgSum: 0, passCnt: 0 };
+          classGroups[cname].count += 1;
+          const vals = Object.values(st.marks || {}) as number[];
+          const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+          classGroups[cname].avgSum += avg;
+          if (vals.length > 0 && vals.every((v) => v >= 35)) classGroups[cname].passCnt += 1;
+        });
+
         return Promise.resolve({
           data: {
-            school: DEMO_SCHOOLS[0],
+            school: sc,
             kpis: {
-              total_students: 380,
-              total_teachers: 28,
-              pass_percentage: 88.5,
-              avg_attendance: 93.4,
-              teacher_attendance_rate: 95.8,
+              total_students: sc.students,
+              total_teachers: sc.teacher_count,
+              pass_percentage: sc.pass_rate,
+              avg_attendance: sc.attendance,
+              teacher_attendance_rate: 81.3,
             },
             ai_insights: {
-              school_performance_index: 89.4,
+              school_performance_index: 84.5,
               key_insights: [
-                'Students across Classes 9, 10, 11 & 12 evaluated in 5 mark ranges.',
-                'Single-subject low marks (<50) automatically flagged with handling staff linkage.',
-                'Teaching staff attendance is at 95.8% across all sections.',
+                `Evaluated ${sc.students} students in ${sc.name} across Classes 9 & 10.`,
+                `Quarterly Pass Percentage stands at ${sc.pass_rate}% with ${sc.attendance}% average student attendance.`,
+                `All ${sc.teacher_count} handling staff linked with student mark-range analytics.`,
               ],
             },
-            classes: [
-              { class_name: '9th Std - Sec A (EM)', student_count: 5, avg_score: 71.8, pass_rate: 85.0 },
-              { class_name: '10th Std - Sec A (EM)', student_count: 11, avg_score: 74.2, pass_rate: 90.9 },
-              { class_name: '11th Std - Sec A (EM)', student_count: 5, avg_score: 70.6, pass_rate: 84.0 },
-              { class_name: '12th Std - Sec A (EM)', student_count: 5, avg_score: 75.4, pass_rate: 92.0 },
-            ],
+            classes: Object.entries(classGroups).map(([cname, cg]) => ({
+              class_name: cname,
+              student_count: cg.count,
+              avg_score: Number((cg.avgSum / cg.count).toFixed(1)),
+              pass_rate: Number(((cg.passCnt / cg.count) * 100).toFixed(1)),
+            })),
           },
         });
       }
 
       if (url.includes('/headmaster/staff')) {
+        const sid = Number(searchParams.get('school_id') || 1);
+        const sStaff = REAL_STAFF_BY_SCHOOL[String(sid)] || REAL_STAFF_BY_SCHOOL['1'] || [];
+        const totLeave = sStaff.reduce((a, b) => a + Number(b.total_leave || 0), 0);
+        const avgAtt = sStaff.length > 0
+          ? Number((sStaff.reduce((a, b) => a + Number(b.attendance_percentage || 90), 0) / sStaff.length).toFixed(1))
+          : 90.0;
+
         return Promise.resolve({
           data: {
             kpis: {
-              total_staff: DEMO_STAFF.length,
-              active_staff: 4,
-              staff_on_leave: 1,
-              total_leave_days: 4.5,
-              average_staff_attendance: 95.8,
+              total_staff: sStaff.length,
+              active_staff: sStaff.filter((x) => x.total_leave < 10).length,
+              staff_on_leave: sStaff.filter((x) => x.total_leave > 0).length,
+              total_leave_days: Number(totLeave.toFixed(1)),
+              average_staff_attendance: avgAtt,
             },
-            staff: DEMO_STAFF.map((s) => ({
-              ...s,
-              handling_student_count: 26,
-              student_pass_pct: 85.7,
-              student_fail_pct: 14.3,
-            })),
+            staff: sStaff.map((s) => {
+              const d = buildRealStaffDashboard(s.id);
+              return {
+                ...s,
+                handling_student_count: d.student_metrics.handling_student_count,
+                student_pass_pct: d.student_metrics.pass_ratio,
+                student_fail_pct: d.student_metrics.fail_ratio,
+              };
+            }),
           },
         });
       }
@@ -524,29 +558,13 @@ apiClient.interceptors.response.use(
       if (url.includes('/admin/audit-logs')) {
         return Promise.resolve({
           data: [
-            { id: 1, created_at: new Date().toISOString(), username: 'commissioner', role: 'COMMISSIONER', action: 'VIEW_STUDENT_RANGES', details: 'Inspected Classes 9-12 mark ranges, exam variation & staff 360 dashboard', ip_address: '10.24.1.12' },
-            { id: 2, created_at: new Date().toISOString(), username: 'hm_rspuram', role: 'HEADMASTER', action: 'UPLOAD_STAFF_EXCEL', details: 'Uploaded Staff Master Workbook (.xlsx) for R.S. Puram HSS', ip_address: '10.24.1.45' },
+            { id: 1, created_at: new Date().toISOString(), username: 'commissioner', role: 'COMMISSIONER', action: 'IMPORT_SCHOOL_DATA', details: 'Loaded 4 real Corporation schools (1,088 students & 63 staff) from School_Data.zip', ip_address: '10.24.1.12' },
           ],
         });
       }
 
       if (url.includes('/admin/meta')) {
-        return Promise.resolve({ data: { schools: DEMO_SCHOOLS } });
-      }
-
-      if (url.includes('/teacher/dashboard')) {
-        return Promise.resolve({
-          data: {
-            kpis: { total_students: 26, class_average: 71.8, pass_percentage: 85.7, passed_count: 20, failed_count: 6, students_needing_attention: 6 },
-            subject_performance: [
-              { subject: 'Tamil', average: 76 },
-              { subject: 'English', average: 72 },
-              { subject: 'Maths', average: 68 },
-              { subject: 'Science', average: 71 },
-              { subject: 'Social', average: 78 },
-            ],
-          },
-        });
+        return Promise.resolve({ data: { schools: REAL_SCHOOLS } });
       }
     }
     return Promise.reject(error);

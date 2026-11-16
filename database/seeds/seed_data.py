@@ -413,10 +413,11 @@ def init_db_seeds():
     db: Session = SessionLocal()
     try:
         ensure_schema_columns(db)
-        # Check if users already seeded
-        if db.query(User).count() > 0:
-            seed_rich_school_data(db)
+        # If the 4 real schools from School_Data.zip are already imported, keep them intact!
+        if db.query(School).count() > 0:
             return
+    finally:
+        db.close()
 
 
         # 1. Seed Corporation Schools

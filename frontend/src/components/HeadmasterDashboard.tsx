@@ -106,7 +106,7 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
               <span className="text-[11px] sm:text-xs text-slate-500 font-bold">EMIS: {data?.school?.code}</span>
             </div>
             <h2 className="text-base sm:text-2xl font-black text-[#650000] mt-1 leading-snug">
-              {data?.school?.name || 'Coimbatore Corporation HSS, R.S. Puram'}
+              {data?.school?.name || 'Corporation High School, Anupparpalayam'}
             </h2>
             <p className="text-[11px] sm:text-xs text-slate-600 font-medium">
               {data?.school?.zone} Zone • {data?.school?.ward} • Student Pass/Fail Ranges &amp; Staff 360° Analytics

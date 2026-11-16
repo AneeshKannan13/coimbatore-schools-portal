@@ -738,10 +738,29 @@ def get_commissioner_dashboard(
         st_q = db.query(Student).filter(Student.school_id == s.id)
         if standard and standard != "All":
             st_q = st_q.join(SchoolClass).filter(SchoolClass.standard == standard)
-        st_count = st_q.count() or 95
-        th_count = db.query(Teacher).filter(Teacher.school_id == s.id).count() or 22
+        s_students = st_q.all()
+        st_count = len(s_students)
+        th_count = db.query(Teacher).filter(Teacher.school_id == s.id).count()
         total_studs += st_count
         total_teach += th_count
+
+        s_pass = 0
+        s_risk = 0
+        s_avg_sum = 0.0
+        s_att_sum = 0.0
+        for st_obj in s_students:
+            s_marks = [m.total_mark for m in st_obj.marks]
+            if s_marks:
+                st_avg = sum(s_marks) / len(s_marks)
+                s_avg_sum += st_avg
+                if all(m >= 35.0 for m in s_marks):
+                    s_pass += 1
+                if st_avg < 35.0:
+                    s_risk += 1
+            st_att = st_obj.attendance[0].percentage if st_obj.attendance else 90.5
+            s_att_sum += st_att
+
+        denom = st_count or 1
         schools_table.append({
             "id": s.id,
             "name": s.school_name,
@@ -750,10 +769,10 @@ def get_commissioner_dashboard(
             "ward": s.ward,
             "students": st_count,
             "teachers": th_count,
-            "avg_mark": 71.2,
-            "pass_rate": 88.5,
-            "attendance": 92.4,
-            "risk_students": 8,
+            "avg_mark": round(s_avg_sum / denom, 1) if st_count > 0 else 0.0,
+            "pass_rate": round((s_pass / denom) * 100, 1) if st_count > 0 else 0.0,
+            "attendance": round(s_att_sum / denom, 1) if st_count > 0 else 90.5,
+            "risk_students": s_risk,
             "upload_status": "Verified"
         })
 

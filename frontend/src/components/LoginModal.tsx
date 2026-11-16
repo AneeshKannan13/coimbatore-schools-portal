@@ -16,11 +16,11 @@ export const LoginModal: React.FC<{
   if (!isOpen) return null;
 
   const DEMO_ACCOUNTS: Record<string, any> = {
-    teacher_ravi: { id: 1, username: 'teacher_ravi', role: 'STAFF', full_name: 'Ravi Kumar (Staff)', school_name: 'Corporation Higher Secondary School, R.S. Puram' },
-    hm_raman: { id: 2, username: 'hm_raman', role: 'HEADMASTER', full_name: 'Dr. K. Ramanathan (HM)', school_name: 'Corporation Higher Secondary School, Siddhapudur' },
-    hm_rspuram: { id: 2, username: 'hm_rspuram', role: 'HEADMASTER', full_name: 'Dr. K. Ramanathan (HM)', school_name: 'Corporation Higher Secondary School, R.S. Puram' },
-    commissioner: { id: 3, username: 'commissioner', role: 'COMMISSIONER', full_name: 'M. Sivaguru Prabakaran IAS (Commissioner)' },
-    admin: { id: 4, username: 'admin', role: 'ADMIN', full_name: 'System Administrator' },
+    teacher_ravi: { id: 1, username: 'teacher_ravi', role: 'STAFF', full_name: 'K. Sumathi (Staff)', school_id: 1, school_name: 'Corporation High School, Anupparpalayam' },
+    hm_raman: { id: 2, username: 'hm_raman', role: 'HEADMASTER', full_name: 'Thangam M (HM)', school_id: 2, school_name: 'Corporation Higher Secondary School, Ramanathapuram' },
+    hm_rathinapuri: { id: 3, username: 'hm_rathinapuri', role: 'HEADMASTER', full_name: 'Seethalakshmi D (HM)', school_id: 3, school_name: 'Corporation Higher Secondary School, Rathinapuri' },
+    commissioner: { id: 4, username: 'commissioner', role: 'COMMISSIONER', full_name: 'M. Sivaguru Prabakaran IAS (Commissioner)' },
+    admin: { id: 5, username: 'admin', role: 'ADMIN', full_name: 'System Administrator' },
   };
 
   const loginAsDemo = (demoKey: string) => {
