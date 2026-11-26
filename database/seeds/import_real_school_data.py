@@ -318,10 +318,36 @@ def parse_all_excel_data():
             emis_str = re.sub(r"\.0$", "", emis_str)
 
         att_info = student_attendance_lookup[skey].get(norm_key(name))
-        att_pct = att_info["percentage"] if att_info else 91.5
-        working_days = att_info["working_days"] if att_info else 79
-        present_days = att_info["present_days"] if att_info else 72.0
-        medium = att_info["medium"] if att_info else "English Medium"
+        if not att_info:
+            # Try matching without initial (e.g. "HARIHARAN S" -> "HARIHARAN")
+            parts = [p for p in re.split(r"[\s\.]+", name.upper()) if len(p) > 2]
+            if parts:
+                base_k = norm_key(parts[0])
+                for k_cand, v_cand in student_attendance_lookup[skey].items():
+                    if k_cand.startswith(base_k) or base_k in k_cand:
+                        att_info = v_cand
+                        break
+
+        if att_info:
+            att_pct = att_info["percentage"]
+            working_days = int(att_info["working_days"] or 79)
+            present_days = float(att_info["present_days"])
+            jun_d = float(att_info["june"])
+            jul_d = float(att_info["july"])
+            aug_d = float(att_info["aug"])
+            sep_d = float(att_info["sep"])
+            medium = att_info["medium"]
+        else:
+            working_days = 79
+            jun_d = 16.0
+            jul_d = 21.0
+            aug_d = 18.0
+            sep_d = 17.0
+            present_days = jun_d + jul_d + aug_d + sep_d
+            att_pct = round((present_days / working_days) * 100, 1)
+            medium = "English Medium"
+
+        absent_days = round(max(0.0, working_days - present_days), 1)
 
         students_by_school[skey].append({
             "emis_number": emis_str,
@@ -332,6 +358,11 @@ def parse_all_excel_data():
             "attendance_pct": att_pct,
             "working_days": working_days,
             "present_days": present_days,
+            "absent_days": absent_days,
+            "june_present": jun_d,
+            "july_present": jul_d,
+            "aug_present": aug_d,
+            "sep_present": sep_d,
             "marks": marks_dict,
         })
 
@@ -906,6 +937,13 @@ def import_into_sqlite_and_export_json():
                 "sec": st_data["section"],
                 "med": st_data["medium"],
                 "att": st_data["attendance_pct"],
+                "working_days": st_data["working_days"],
+                "present_days": st_data["present_days"],
+                "absent_days": st_data["absent_days"],
+                "june": st_data["june_present"],
+                "july": st_data["july_present"],
+                "aug": st_data["aug_present"],
+                "sep": st_data["sep_present"],
                 "marks": marks_entries,
             })
             global_student_id += 1

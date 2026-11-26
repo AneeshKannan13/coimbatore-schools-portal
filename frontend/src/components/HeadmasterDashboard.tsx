@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Sparkles, Calendar, Plus, Upload,
-  Search, FileUp, UserCheck, Building2, BarChart3
+  Search, FileUp, UserCheck, Building2, BarChart3, ArrowUpDown
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -24,6 +24,7 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
   // Staff filters & modals
   const [selectedMonth, setSelectedMonth] = useState('SEPTEMBER');
   const [selectedStaffStandard, setSelectedStaffStandard] = useState<string>('All');
+  const [staffLeaveSort, setStaffLeaveSort] = useState<'LEAVE_DESC' | 'LEAVE_ASC'>('LEAVE_DESC');
   const [searchTerm, setSearchTerm] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showStaffExcelModal, setShowStaffExcelModal] = useState(false);
@@ -87,11 +88,15 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
 
   const totalCalculatedLeave = Number(cl) + Number(rh) + Number(el) + Number(ml) + Number(others);
 
-  const filteredStaff = staffData?.staff?.filter((s: any) =>
+  const filteredStaff = [...(staffData?.staff?.filter((s: any) =>
     s.teacher_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (s.location || '').toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  ) || [])].sort((a: any, b: any) =>
+    staffLeaveSort === 'LEAVE_DESC'
+      ? Number(b.total_leave || 0) - Number(a.total_leave || 0)
+      : Number(a.total_leave || 0) - Number(b.total_leave || 0)
+  );
 
   const activeSchoolObj = REAL_SCHOOLS.find((s) => s.id === selectedSchoolId) || data?.school || REAL_SCHOOLS[0];
   const schoolId = selectedSchoolId;
@@ -479,6 +484,13 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
                   Shows Designation, Location, Contact, Presents, Leaves, Handled Students Count, and Pass/Fail Ratio
                 </p>
               </div>
+              <button
+                onClick={() => setStaffLeaveSort(staffLeaveSort === 'LEAVE_DESC' ? 'LEAVE_ASC' : 'LEAVE_DESC')}
+                className="px-3 py-1.5 bg-[#8B0000] text-[#FFD700] rounded-xl text-xs font-black flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+              >
+                <ArrowUpDown className="w-3.5 h-3.5" />
+                Sort No. of Leaves: {staffLeaveSort === 'LEAVE_ASC' ? 'Low → High ↑' : 'High → Low ↓'}
+              </button>
             </div>
 
             {/* Mobile Staff Cards (<768px) */}
@@ -573,7 +585,14 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
                     <th className="p-3">Designation &amp; Subject</th>
                     <th className="p-3">Location &amp; Contact</th>
                     <th className="p-3 text-center">No. of Presents</th>
-                    <th className="p-3 text-center">No. of Leaves</th>
+                    <th className="p-3 text-center">
+                      <button
+                        onClick={() => setStaffLeaveSort(staffLeaveSort === 'LEAVE_DESC' ? 'LEAVE_ASC' : 'LEAVE_DESC')}
+                        className="inline-flex items-center gap-1 font-black text-[#FFD700] hover:underline cursor-pointer"
+                      >
+                        No. of Leaves {staffLeaveSort === 'LEAVE_ASC' ? '↑' : '↓'} <ArrowUpDown className="w-3.5 h-3.5 text-[#FFD700]" />
+                      </button>
+                    </th>
                     <th className="p-3 text-center">Handling Students</th>
                     <th className="p-3 text-center">Pass / Fail Ratio</th>
                     <th className="p-3 text-right">Actions</th>

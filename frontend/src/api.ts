@@ -189,6 +189,14 @@ function buildRealStudentsAnalytics(
 
     if (lowMarkSubjects.length > 0) lowSubCount++;
 
+    const workingDays = Number(st.working_days ?? 79);
+    const presentDays = Number(st.present_days ?? 72);
+    const absentDays = Number(st.absent_days ?? Math.max(0, workingDays - presentDays));
+    const junePresent = Number(st.june ?? 16);
+    const julyPresent = Number(st.july ?? 21);
+    const augPresent = Number(st.aug ?? 18);
+    const sepPresent = Number(st.sep ?? 17);
+
     const record = {
       id: st.id,
       emis_number: st.emis,
@@ -204,6 +212,13 @@ function buildRealStudentsAnalytics(
       total_marks: total,
       avg_mark: avg,
       attendance_pct: st.att,
+      working_days: workingDays,
+      present_days: presentDays,
+      absent_days: absentDays,
+      june_present: junePresent,
+      july_present: julyPresent,
+      aug_present: augPresent,
+      sep_present: sepPresent,
       is_pass: isPass,
       result_status: isPass ? 'PASS' : 'FAIL',
       passed_subject_count: passedSubjCount,

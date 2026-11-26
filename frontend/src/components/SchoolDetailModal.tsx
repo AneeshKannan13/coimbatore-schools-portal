@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  X, UserCheck, Sun, Moon, Building2
+  X, UserCheck, Sun, Moon, Building2, ArrowUpDown
 } from 'lucide-react';
 import apiClient, { CORP_LOGO_URL, REAL_SCHOOLS } from '../api';
 import { StudentAnalyticsSection } from './StudentAnalyticsSection';
@@ -17,6 +17,7 @@ export const SchoolDetailModal: React.FC<{
   const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
   const [filterSchoolId, setFilterSchoolId] = useState<number>(schoolId);
   const [filterStandard, setFilterStandard] = useState<string>('All');
+  const [staffLeaveSort, setStaffLeaveSort] = useState<'LEAVE_DESC' | 'LEAVE_ASC' | 'PRESENT_DESC' | 'PASS_DESC'>('LEAVE_DESC');
 
   useEffect(() => {
     setFilterSchoolId(schoolId);
@@ -180,16 +181,25 @@ export const SchoolDetailModal: React.FC<{
                   ))}
                 </div>
 
-                {/* School-Wise Filter */}
-                <div className="flex items-center gap-2 shrink-0">
+                {/* School-Wise Filter & No. of Leaves Sort */}
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setStaffLeaveSort(staffLeaveSort === 'LEAVE_DESC' ? 'LEAVE_ASC' : 'LEAVE_DESC')}
+                    className={`px-2.5 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1 ${
+                      staffLeaveSort.startsWith('LEAVE_')
+                        ? 'bg-[#8B0000] text-[#FFD700]'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    <ArrowUpDown className="w-3.5 h-3.5" />
+                    No. of Leaves: {staffLeaveSort === 'LEAVE_ASC' ? 'Low → High ↑' : 'High → Low ↓'}
+                  </button>
+
                   <Building2 className="w-4 h-4 text-[#8B0000] shrink-0" />
-                  <span className="text-[11px] font-black text-[#650000] uppercase shrink-0">
-                    School Filter:
-                  </span>
                   <select
                     value={filterSchoolId}
                     onChange={(e) => setFilterSchoolId(Number(e.target.value))}
-                    className="px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white text-slate-800 cursor-pointer max-w-[280px] sm:max-w-[340px]"
+                    className="px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white text-slate-800 cursor-pointer max-w-[260px] sm:max-w-[320px]"
                   >
                     <option value={0}>All Corporation Schools (Combined Staff)</option>
                     {availableSchools.map((s: any) => (
@@ -207,7 +217,12 @@ export const SchoolDetailModal: React.FC<{
 
               {/* Mobile Staff Cards (<768px) */}
               <div className="md:hidden space-y-2.5">
-                {data?.staff?.map((s: any) => (
+                {[...(data?.staff || [])].sort((a: any, b: any) => {
+                  if (staffLeaveSort === 'LEAVE_DESC') return Number(b.total_leave || 0) - Number(a.total_leave || 0);
+                  if (staffLeaveSort === 'LEAVE_ASC') return Number(a.total_leave || 0) - Number(b.total_leave || 0);
+                  if (staffLeaveSort === 'PRESENT_DESC') return Number(b.present_days || 0) - Number(a.present_days || 0);
+                  return Number(b.pass_ratio || 0) - Number(a.pass_ratio || 0);
+                }).map((s: any) => (
                   <div
                     key={s.id}
                     onClick={() => setSelectedTeacherId(s.id)}
@@ -273,14 +288,26 @@ export const SchoolDetailModal: React.FC<{
                       <th className="p-2.5">Designation, Subject &amp; Class</th>
                       <th className="p-2.5">Location &amp; Contact</th>
                       <th className="p-2.5 text-center">No. of Presents</th>
-                      <th className="p-2.5 text-center">No. of Leaves</th>
+                      <th className="p-2.5 text-center">
+                        <button
+                          onClick={() => setStaffLeaveSort(staffLeaveSort === 'LEAVE_DESC' ? 'LEAVE_ASC' : 'LEAVE_DESC')}
+                          className="inline-flex items-center gap-1 font-black text-[#FFD700] hover:underline cursor-pointer"
+                        >
+                          No. of Leaves {staffLeaveSort === 'LEAVE_ASC' ? '↑' : '↓'} <ArrowUpDown className="w-3.5 h-3.5 text-[#FFD700]" />
+                        </button>
+                      </th>
                       <th className="p-2.5 text-center">Handling Students</th>
                       <th className="p-2.5 text-center">Pass / Fail Ratio</th>
                       <th className="p-2.5 text-right">Dashboard</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white">
-                    {data?.staff?.map((s: any) => (
+                    {[...(data?.staff || [])].sort((a: any, b: any) => {
+                      if (staffLeaveSort === 'LEAVE_DESC') return Number(b.total_leave || 0) - Number(a.total_leave || 0);
+                      if (staffLeaveSort === 'LEAVE_ASC') return Number(a.total_leave || 0) - Number(b.total_leave || 0);
+                      if (staffLeaveSort === 'PRESENT_DESC') return Number(b.present_days || 0) - Number(a.present_days || 0);
+                      return Number(b.pass_ratio || 0) - Number(a.pass_ratio || 0);
+                    }).map((s: any) => (
                       <tr
                         key={s.id}
                         onClick={() => setSelectedTeacherId(s.id)}
