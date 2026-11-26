@@ -258,7 +258,43 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
         />
       ) : activeTab === 'overview' ? (
         <>
-          {/* School-Wise Analysis — Placed Directly Below the Top Class/Zone Filter Bar */}
+          {/* 1. First: Quick Summary Strip (School Count, Quarterly Exam Pass %, Jun–Sep Attendance, 5 Mark Ranges) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+            <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000]">
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Corp Schools</div>
+              <div className="text-lg sm:text-2xl font-black text-[#650000]">{data?.kpis?.total_schools || 4}</div>
+              <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">
+                {selectedStandard === 'All' ? 'Classes 9, 10, 11 & 12' : `Class ${selectedStandard} Selected`}
+              </p>
+            </div>
+
+            <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#FFC928]">
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Quarterly Exam Pass %</div>
+              <div className="text-lg sm:text-2xl font-black text-emerald-700 mt-0.5">
+                {data?.kpis?.overall_pass_percentage ?? 60.8}% <span className="text-xs font-bold text-slate-600">(Avg: {data?.kpis?.corporation_avg_score ?? 47.2}%)</span>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5 truncate">Quarterly Examination (2026–27) ↓</p>
+            </div>
+
+            <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000]">
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Jun–Sep Attendance (79d)</div>
+              <div className="text-xs sm:text-sm font-black text-[#650000] mt-1">
+                Jun: {monthlyAttendanceGraphData[0]?.attendance}% • Jul: {monthlyAttendanceGraphData[1]?.attendance}% • Aug: {monthlyAttendanceGraphData[2]?.attendance}% • Sep: {monthlyAttendanceGraphData[3]?.attendance}%
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5 truncate">4 Uploaded Months (79 Working Days) ↓</p>
+            </div>
+
+            <div
+              onClick={() => setActiveTab('students')}
+              className="glass-card p-3 sm:p-4 border-l-4 border-l-[#FFC928] cursor-pointer hover:shadow-md transition"
+            >
+              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Student Range View</div>
+              <div className="text-lg sm:text-2xl font-black text-rose-700">5 Mark Ranges</div>
+              <p className="text-[10px] sm:text-xs text-[#8B0000] font-bold mt-0.5 underline truncate">Tap for &lt;35 to &gt;90 Lists →</p>
+            </div>
+          </div>
+
+          {/* 2. Second: Corporation Schools Directory & Performance Matrix */}
           <div className="glass-card p-3.5 sm:p-6 border-t-4 border-t-[#8B0000]">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-3.5 sm:mb-4">
               <div>
@@ -479,42 +515,6 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
                   })}
                 </tbody>
               </table>
-            </div>
-          </div>
-
-          {/* Quick Summary Strip */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-            <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000]">
-              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Corp Schools</div>
-              <div className="text-lg sm:text-2xl font-black text-[#650000]">{data?.kpis?.total_schools || 4}</div>
-              <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">
-                {selectedStandard === 'All' ? 'Classes 9, 10, 11 & 12' : `Class ${selectedStandard} Selected`}
-              </p>
-            </div>
-
-            <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#FFC928]">
-              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Quarterly Exam Pass %</div>
-              <div className="text-lg sm:text-2xl font-black text-emerald-700 mt-0.5">
-                {data?.kpis?.overall_pass_percentage ?? 60.8}% <span className="text-xs font-bold text-slate-600">(Avg: {data?.kpis?.corporation_avg_score ?? 47.2}%)</span>
-              </div>
-              <p className="text-[10px] text-slate-500 mt-0.5 truncate">Quarterly Examination (2026–27) ↓</p>
-            </div>
-
-            <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000]">
-              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Jun–Sep Attendance (79d)</div>
-              <div className="text-xs sm:text-sm font-black text-[#650000] mt-1">
-                Jun: {monthlyAttendanceGraphData[0]?.attendance}% • Jul: {monthlyAttendanceGraphData[1]?.attendance}% • Aug: {monthlyAttendanceGraphData[2]?.attendance}% • Sep: {monthlyAttendanceGraphData[3]?.attendance}%
-              </div>
-              <p className="text-[10px] text-slate-500 mt-0.5 truncate">4 Uploaded Months (79 Working Days) ↓</p>
-            </div>
-
-            <div
-              onClick={() => setActiveTab('students')}
-              className="glass-card p-3 sm:p-4 border-l-4 border-l-[#FFC928] cursor-pointer hover:shadow-md transition"
-            >
-              <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500 mb-0.5 truncate">Student Range View</div>
-              <div className="text-lg sm:text-2xl font-black text-rose-700">5 Mark Ranges</div>
-              <p className="text-[10px] sm:text-xs text-[#8B0000] font-bold mt-0.5 underline truncate">Tap for &lt;35 to &gt;90 Lists →</p>
             </div>
           </div>
 

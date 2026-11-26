@@ -377,67 +377,35 @@ export const StudentAnalyticsSection: React.FC<{
           </div>
         </div>
 
-        {/* Dynamic Sections Row (shown here only if Class filter was on row 1) + Failed Subjects Count Filter */}
-        <div className="pt-2 border-t border-slate-200/70 flex flex-col lg:flex-row lg:items-center justify-between gap-2">
-          {!hideClassFilter && (
-            <div className="table-scroll-container flex items-center gap-1.5">
-              <span className="text-[11px] font-black text-slate-600 uppercase shrink-0 pr-1">
-                Section ({selectedStandard === 'All' ? 'All Classes' : `Class ${selectedStandard}`}):
-              </span>
+        {/* Dynamic Sections Row (shown here only if Class filter was on row 1) */}
+        {!hideClassFilter && (
+          <div className="pt-2 border-t border-slate-200/70 table-scroll-container flex items-center gap-1.5">
+            <span className="text-[11px] font-black text-slate-600 uppercase shrink-0 pr-1">
+              Section ({selectedStandard === 'All' ? 'All Classes' : `Class ${selectedStandard}`}):
+            </span>
+            <button
+              onClick={() => setSelectedSection('All')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer shrink-0 ${selectedSection === 'All'
+                ? 'bg-[#FFC928] text-[#650000] shadow-2xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+            >
+              All Sections ({availableSections.length})
+            </button>
+            {availableSections.map((sec) => (
               <button
-                onClick={() => setSelectedSection('All')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer shrink-0 ${selectedSection === 'All'
-                  ? 'bg-[#FFC928] text-[#650000] shadow-2xs'
+                key={sec}
+                onClick={() => setSelectedSection(sec)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${selectedSection === sec
+                  ? 'bg-[#FFC928] text-[#650000] font-black shadow-2xs'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
               >
-                All Sections ({availableSections.length})
-              </button>
-              {availableSections.map((sec) => (
-                <button
-                  key={sec}
-                  onClick={() => setSelectedSection(sec)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${selectedSection === sec
-                    ? 'bg-[#FFC928] text-[#650000] font-black shadow-2xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                >
-                  Sec {sec}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Filter by Number of Failed Subjects */}
-          <div className="table-scroll-container flex items-center gap-1.5">
-            <span className="text-[11px] font-black text-rose-700 uppercase shrink-0 pr-1">
-              Failed Subjects Filter:
-            </span>
-            {[
-              { val: 'ALL', label: 'All Students' },
-              { val: '0', label: '0 Failed (All Pass)' },
-              { val: '1', label: '1 Subj Failed' },
-              { val: '2', label: '2 Subj Failed' },
-              { val: '3', label: '3 Subj Failed' },
-              { val: '4', label: '4 Subj Failed' },
-              { val: '5+', label: '5+ Subj Failed' },
-            ].map((fc) => (
-              <button
-                key={fc.val}
-                onClick={() => setFailedCountFilter(fc.val)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer shrink-0 ${
-                  failedCountFilter === fc.val
-                    ? fc.val === '0'
-                      ? 'bg-emerald-600 text-white shadow-2xs'
-                      : 'bg-rose-600 text-white shadow-2xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {fc.label}
+                Sec {sec}
               </button>
             ))}
           </div>
-        </div>
+        )}
       </div>
 
       {/* Top Summary Banner: Pass/Fail Classification & Single-Subject Low Mark Alert */}
