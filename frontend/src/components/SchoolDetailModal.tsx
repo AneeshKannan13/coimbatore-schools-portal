@@ -85,33 +85,30 @@ export const SchoolDetailModal: React.FC<{
         <div className="grid grid-cols-3 gap-1 sm:gap-1.5 border-b border-slate-200 py-2">
           <button
             onClick={() => setActiveTab('students')}
-            className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
-              activeTab === 'students'
-                ? 'primary-button shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 bg-slate-100'
-            }`}
+            className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${activeTab === 'students'
+              ? 'primary-button shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 bg-slate-100'
+              }`}
           >
             <span className="sm:hidden">Students</span>
             <span className="hidden sm:inline">Student Pass/Fail &amp; Mark Ranges</span>
           </button>
           <button
             onClick={() => setActiveTab('staff')}
-            className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
-              activeTab === 'staff'
-                ? 'gold-button shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 bg-slate-100'
-            }`}
+            className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${activeTab === 'staff'
+              ? 'gold-button shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 bg-slate-100'
+              }`}
           >
             <span className="sm:hidden">Staff ({data?.staff?.length || 0})</span>
             <span className="hidden sm:inline">Staff Details, Leaves &amp; Ratio ({data?.staff?.length || 0})</span>
           </button>
           <button
             onClick={() => setActiveTab('standards')}
-            className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${
-              activeTab === 'standards'
-                ? 'primary-button shadow-xs'
-                : 'text-slate-600 hover:text-slate-900 bg-slate-100'
-            }`}
+            className={`px-2 sm:px-3 py-2 rounded-xl text-[11px] sm:text-xs font-black transition cursor-pointer text-center ${activeTab === 'standards'
+              ? 'primary-button shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 bg-slate-100'
+              }`}
           >
             <span className="sm:hidden">Classes ({data?.standards?.length || 0})</span>
             <span className="hidden sm:inline">Standard &amp; Class Summary ({data?.standards?.length || 0})</span>

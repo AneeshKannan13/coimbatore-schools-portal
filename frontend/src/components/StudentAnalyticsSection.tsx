@@ -58,7 +58,16 @@ const RANGE_THEMES: Record<string, {
   }
 };
 
-type SortMode = 'FAIL_DESC' | 'FAIL_ASC' | 'AVG_ASC' | 'AVG_DESC' | 'NAME_ASC';
+type SortMode =
+  | 'FAIL_DESC'
+  | 'FAIL_ASC'
+  | 'PASS_DESC'
+  | 'PASS_ASC'
+  | 'ATT_DESC'
+  | 'ATT_ASC'
+  | 'AVG_ASC'
+  | 'AVG_DESC'
+  | 'NAME_ASC';
 
 export const StudentAnalyticsSection: React.FC<{
   schoolId: number;
@@ -159,6 +168,8 @@ export const StudentAnalyticsSection: React.FC<{
     return [...list].sort((a: any, b: any) => {
       const ca = getSubjCounts(a);
       const cb = getSubjCounts(b);
+      const attA = Number(a.attendance_pct ?? 90.4);
+      const attB = Number(b.attendance_pct ?? 90.4);
       if (sortBy === 'FAIL_DESC') {
         if (cb.failed !== ca.failed) return cb.failed - ca.failed;
         return a.avg_mark - b.avg_mark;
@@ -166,6 +177,22 @@ export const StudentAnalyticsSection: React.FC<{
       if (sortBy === 'FAIL_ASC') {
         if (ca.failed !== cb.failed) return ca.failed - cb.failed;
         return b.avg_mark - a.avg_mark;
+      }
+      if (sortBy === 'PASS_DESC') {
+        if (cb.passed !== ca.passed) return cb.passed - ca.passed;
+        return b.avg_mark - a.avg_mark;
+      }
+      if (sortBy === 'PASS_ASC') {
+        if (ca.passed !== cb.passed) return ca.passed - cb.passed;
+        return a.avg_mark - b.avg_mark;
+      }
+      if (sortBy === 'ATT_DESC') {
+        if (attB !== attA) return attB - attA;
+        return b.avg_mark - a.avg_mark;
+      }
+      if (sortBy === 'ATT_ASC') {
+        if (attA !== attB) return attA - attB;
+        return a.avg_mark - b.avg_mark;
       }
       if (sortBy === 'AVG_ASC') return a.avg_mark - b.avg_mark;
       if (sortBy === 'AVG_DESC') return b.avg_mark - a.avg_mark;
@@ -237,30 +264,60 @@ export const StudentAnalyticsSection: React.FC<{
               <button
                 key={c.val}
                 onClick={() => setSelectedStandard(c.val)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition whitespace-nowrap cursor-pointer shrink-0 ${
-                  selectedStandard === c.val
-                    ? 'primary-button shadow-xs'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition whitespace-nowrap cursor-pointer shrink-0 ${selectedStandard === c.val
+                  ? 'primary-button shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
               >
                 {c.label}
               </button>
             ))}
           </div>
 
-          {/* Sort Fail Order Quick Switcher */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          {/* Sort Filter Quick Switcher for Pass, Attendance & Fail Count */}
+          <div className="flex flex-wrap items-center gap-1.5 shrink-0">
             <ArrowUpDown className="w-3.5 h-3.5 text-[#8B0000] shrink-0" />
-            <span className="text-[11px] font-black text-[#650000] uppercase">Sort Order:</span>
+            <span className="text-[11px] font-black text-[#650000] uppercase">Sort Filter:</span>
+            <button
+              onClick={() => setSortBy(sortBy === 'PASS_DESC' ? 'PASS_ASC' : 'PASS_DESC')}
+              className={`px-2 py-1 rounded-lg text-[11px] font-black transition cursor-pointer ${sortBy.startsWith('PASS_')
+                ? 'bg-emerald-600 text-white'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+            >
+              Pass {sortBy === 'PASS_ASC' ? '↑' : '↓'}
+            </button>
+            <button
+              onClick={() => setSortBy(sortBy === 'ATT_DESC' ? 'ATT_ASC' : 'ATT_DESC')}
+              className={`px-2 py-1 rounded-lg text-[11px] font-black transition cursor-pointer ${sortBy.startsWith('ATT_')
+                ? 'bg-[#FFC928] text-[#650000]'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+            >
+              Attendance {sortBy === 'ATT_ASC' ? '↑' : '↓'}
+            </button>
+            <button
+              onClick={() => setSortBy(sortBy === 'FAIL_DESC' ? 'FAIL_ASC' : 'FAIL_DESC')}
+              className={`px-2 py-1 rounded-lg text-[11px] font-black transition cursor-pointer ${sortBy.startsWith('FAIL_')
+                ? 'bg-rose-600 text-white'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+            >
+              Fail Count {sortBy === 'FAIL_ASC' ? '↑' : '↓'}
+            </button>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortMode)}
               className="px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-black bg-white text-slate-800 cursor-pointer"
             >
-              <option value="FAIL_DESC">Failed Subjects: High → Low</option>
-              <option value="FAIL_ASC">Failed Subjects: Low → High</option>
-              <option value="AVG_ASC">Average Mark: Low → High</option>
+              <option value="FAIL_DESC">Fail Count: High → Low</option>
+              <option value="FAIL_ASC">Fail Count: Low → High</option>
+              <option value="PASS_DESC">Pass Subjects / %: High → Low</option>
+              <option value="PASS_ASC">Pass Subjects / %: Low → High</option>
+              <option value="ATT_DESC">Attendance %: High → Low</option>
+              <option value="ATT_ASC">Attendance %: Low → High</option>
               <option value="AVG_DESC">Average Mark: High → Low</option>
+              <option value="AVG_ASC">Average Mark: Low → High</option>
               <option value="NAME_ASC">Student Name: A → Z</option>
             </select>
           </div>
@@ -273,11 +330,10 @@ export const StudentAnalyticsSection: React.FC<{
           </span>
           <button
             onClick={() => setSelectedSection('All')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer shrink-0 ${
-              selectedSection === 'All'
-                ? 'bg-[#FFC928] text-[#650000] shadow-2xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
+            className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer shrink-0 ${selectedSection === 'All'
+              ? 'bg-[#FFC928] text-[#650000] shadow-2xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
           >
             All Sections ({availableSections.length})
           </button>
@@ -285,11 +341,10 @@ export const StudentAnalyticsSection: React.FC<{
             <button
               key={sec}
               onClick={() => setSelectedSection(sec)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${
-                selectedSection === sec
-                  ? 'bg-[#FFC928] text-[#650000] font-black shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${selectedSection === sec
+                ? 'bg-[#FFC928] text-[#650000] font-black shadow-2xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
             >
               Sec {sec}
             </button>
@@ -301,9 +356,8 @@ export const StudentAnalyticsSection: React.FC<{
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         <div
           onClick={() => { setStatusFilter('ALL'); setFailedSubjectFilter(null); }}
-          className={`glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000] cursor-pointer transition ${
-            statusFilter === 'ALL' && !failedSubjectFilter ? 'ring-2 ring-[#8B0000]' : ''
-          }`}
+          className={`glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000] cursor-pointer transition ${statusFilter === 'ALL' && !failedSubjectFilter ? 'ring-2 ring-[#8B0000]' : ''
+            }`}
         >
           <div className="text-[10px] sm:text-xs font-bold uppercase text-slate-500 truncate">Total Evaluated</div>
           <div className="text-lg sm:text-2xl font-black text-[#650000] mt-0.5">{summary.total_students || 0}</div>
@@ -312,9 +366,8 @@ export const StudentAnalyticsSection: React.FC<{
 
         <div
           onClick={() => { setStatusFilter(statusFilter === 'PASS' ? 'ALL' : 'PASS'); setFailedSubjectFilter(null); }}
-          className={`p-3 sm:p-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50/90 cursor-pointer transition ${
-            statusFilter === 'PASS' ? 'ring-2 ring-emerald-600 shadow-md' : ''
-          }`}
+          className={`p-3 sm:p-4 rounded-2xl border-2 border-emerald-300 bg-emerald-50/90 cursor-pointer transition ${statusFilter === 'PASS' ? 'ring-2 ring-emerald-600 shadow-md' : ''
+            }`}
         >
           <div className="flex items-center justify-between gap-1">
             <span className="text-[10px] sm:text-xs font-black uppercase text-emerald-800 truncate">Auto PASS</span>
@@ -330,9 +383,8 @@ export const StudentAnalyticsSection: React.FC<{
 
         <div
           onClick={() => { setStatusFilter(statusFilter === 'FAIL' ? 'ALL' : 'FAIL'); setExpandedRangeKey('below_35'); setFailedSubjectFilter(null); }}
-          className={`p-3 sm:p-4 rounded-2xl border-2 border-rose-300 bg-rose-50/90 cursor-pointer transition ${
-            statusFilter === 'FAIL' ? 'ring-2 ring-rose-600 shadow-md' : ''
-          }`}
+          className={`p-3 sm:p-4 rounded-2xl border-2 border-rose-300 bg-rose-50/90 cursor-pointer transition ${statusFilter === 'FAIL' ? 'ring-2 ring-rose-600 shadow-md' : ''
+            }`}
         >
           <div className="flex items-center justify-between gap-1">
             <span className="text-[10px] sm:text-xs font-black uppercase text-rose-800 truncate">Auto FAIL (Below 35)</span>
@@ -348,9 +400,8 @@ export const StudentAnalyticsSection: React.FC<{
 
         <div
           onClick={() => { setStatusFilter(statusFilter === 'LOW_SUBJECT' ? 'ALL' : 'LOW_SUBJECT'); setFailedSubjectFilter(null); }}
-          className={`p-3 sm:p-4 rounded-2xl border-2 border-amber-300 bg-amber-50/90 cursor-pointer transition ${
-            statusFilter === 'LOW_SUBJECT' ? 'ring-2 ring-amber-600 shadow-md' : ''
-          }`}
+          className={`p-3 sm:p-4 rounded-2xl border-2 border-amber-300 bg-amber-50/90 cursor-pointer transition ${statusFilter === 'LOW_SUBJECT' ? 'ring-2 ring-amber-600 shadow-md' : ''
+            }`}
         >
           <div className="flex items-center justify-between gap-1">
             <span className="text-[10px] sm:text-xs font-black uppercase text-amber-900 truncate">Low Subject</span>
@@ -394,22 +445,19 @@ export const StudentAnalyticsSection: React.FC<{
               <button
                 key={sf.subject}
                 onClick={() => setFailedSubjectFilter(isSelected ? null : sf.subject)}
-                className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col justify-between ${
-                  isLastOdd ? 'col-span-2 sm:col-span-1' : ''
-                } ${
-                  isSelected
+                className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col justify-between ${isLastOdd ? 'col-span-2 sm:col-span-1' : ''
+                  } ${isSelected
                     ? 'ring-2 ring-rose-600 border-rose-600 bg-rose-50 shadow-md'
                     : hasFailures
-                    ? 'bg-rose-50/70 hover:bg-rose-100/70 border-rose-300'
-                    : 'bg-emerald-50/60 hover:bg-emerald-100/60 border-emerald-300'
-                }`}
+                      ? 'bg-rose-50/70 hover:bg-rose-100/70 border-rose-300'
+                      : 'bg-emerald-50/60 hover:bg-emerald-100/60 border-emerald-300'
+                  }`}
               >
                 <div className="flex items-center justify-between w-full gap-1">
                   <span className="font-black text-xs text-slate-900 truncate">{sf.subject}</span>
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                      hasFailures ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'
-                    }`}
+                    className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${hasFailures ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'
+                      }`}
                   >
                     {sf.fail_percentage}% Fail
                   </span>
@@ -474,11 +522,9 @@ export const StudentAnalyticsSection: React.FC<{
               <button
                 key={r.key}
                 onClick={() => setExpandedRangeKey(isExpanded ? null : r.key)}
-                className={`p-3 sm:p-3.5 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col justify-between ${
-                  isLastOdd ? 'col-span-2 sm:col-span-1' : ''
-                } ${theme.cardBg} ${
-                  isExpanded ? `${theme.activeRing} shadow-lg` : theme.cardBorder
-                }`}
+                className={`p-3 sm:p-3.5 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col justify-between ${isLastOdd ? 'col-span-2 sm:col-span-1' : ''
+                  } ${theme.cardBg} ${isExpanded ? `${theme.activeRing} shadow-lg` : theme.cardBorder
+                  }`}
               >
                 <div className="flex items-center justify-between w-full gap-1">
                   <span className={`px-2 py-0.5 rounded-lg text-[9px] sm:text-[10px] font-black uppercase ${theme.badge}`}>
@@ -535,9 +581,8 @@ export const StudentAnalyticsSection: React.FC<{
                   <div
                     key={st.id}
                     onClick={() => setSelectedStudent(st)}
-                    className={`p-3 cursor-pointer transition ${
-                      st.is_pass ? 'bg-emerald-50/30' : 'bg-rose-50/60'
-                    }`}
+                    className={`p-3 cursor-pointer transition ${st.is_pass ? 'bg-emerald-50/30' : 'bg-rose-50/60'
+                      }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -547,9 +592,8 @@ export const StudentAnalyticsSection: React.FC<{
                             Pass: {counts.passed}/{counts.total} Subj
                           </span>
                           <span
-                            className={`px-1.5 py-0.5 rounded text-[9px] font-black ${
-                              counts.failed > 0 ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600'
-                            }`}
+                            className={`px-1.5 py-0.5 rounded text-[9px] font-black ${counts.failed > 0 ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600'
+                              }`}
                           >
                             Fail: {counts.failed} Subj
                           </span>
@@ -561,9 +605,8 @@ export const StudentAnalyticsSection: React.FC<{
                       <div className="flex items-center gap-1.5 shrink-0">
                         <span className="font-black text-xs text-[#650000]">{st.avg_mark}%</span>
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                            st.is_pass ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
-                          }`}
+                          className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${st.is_pass ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                            }`}
                         >
                           {st.result_status}
                         </span>
@@ -575,11 +618,10 @@ export const StudentAnalyticsSection: React.FC<{
                         {st.low_mark_subjects.map((ls: any, i: number) => (
                           <span
                             key={i}
-                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ${
-                              ls.is_fail
-                                ? 'bg-rose-600 text-white'
-                                : 'bg-amber-200 text-amber-950'
-                            }`}
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 ${ls.is_fail
+                              ? 'bg-rose-600 text-white'
+                              : 'bg-amber-200 text-amber-950'
+                              }`}
                           >
                             <AlertTriangle className="w-3 h-3 shrink-0" />
                             {ls.subject_name}: {ls.mark}
@@ -630,11 +672,10 @@ export const StudentAnalyticsSection: React.FC<{
                       <tr
                         key={st.id}
                         onClick={() => setSelectedStudent(st)}
-                        className={`cursor-pointer transition ${
-                          st.is_pass
-                            ? 'bg-emerald-50/30 hover:bg-emerald-100/50'
-                            : 'bg-rose-50/70 hover:bg-rose-100/70'
-                        }`}
+                        className={`cursor-pointer transition ${st.is_pass
+                          ? 'bg-emerald-50/30 hover:bg-emerald-100/50'
+                          : 'bg-rose-50/70 hover:bg-rose-100/70'
+                          }`}
                       >
                         <td className="p-2.5 font-mono text-[11px] text-slate-500">{st.emis_number}</td>
                         <td className="p-2.5">
@@ -644,11 +685,10 @@ export const StudentAnalyticsSection: React.FC<{
                               Pass: {counts.passed}/{counts.total} Subj
                             </span>
                             <span
-                              className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
-                                counts.failed > 0
-                                  ? 'bg-rose-600 text-white shadow-2xs'
-                                  : 'bg-slate-100 text-slate-600'
-                              }`}
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-black ${counts.failed > 0
+                                ? 'bg-rose-600 text-white shadow-2xs'
+                                : 'bg-slate-100 text-slate-600'
+                                }`}
                             >
                               Fail: {counts.failed} Subj
                             </span>
@@ -658,11 +698,10 @@ export const StudentAnalyticsSection: React.FC<{
                         <td className="p-2.5 text-center font-black text-sm text-[#650000]">{st.avg_mark}%</td>
                         <td className="p-2.5 text-center">
                           <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                              st.is_pass
-                                ? 'bg-emerald-600 text-white'
-                                : 'bg-rose-600 text-white'
-                            }`}
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${st.is_pass
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-rose-600 text-white'
+                              }`}
                           >
                             {st.result_status}
                           </span>
@@ -673,11 +712,10 @@ export const StudentAnalyticsSection: React.FC<{
                               {st.low_mark_subjects.map((ls: any, i: number) => (
                                 <span
                                   key={i}
-                                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 ${
-                                    ls.is_fail
-                                      ? 'bg-rose-600 text-white'
-                                      : 'bg-amber-200 text-amber-950'
-                                  }`}
+                                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold flex items-center gap-1 ${ls.is_fail
+                                    ? 'bg-rose-600 text-white'
+                                    : 'bg-amber-200 text-amber-950'
+                                    }`}
                                 >
                                   <AlertTriangle className="w-3 h-3 shrink-0" />
                                   {ls.subject_name}: {ls.mark} {ls.is_fail ? '(FAIL)' : '(Low)'}
@@ -784,11 +822,10 @@ export const StudentAnalyticsSection: React.FC<{
                 <div
                   key={st.id}
                   onClick={() => setSelectedStudent(st)}
-                  className={`p-3 rounded-xl border border-slate-200 border-l-4 cursor-pointer transition ${
-                    st.is_pass
-                      ? 'border-l-emerald-500 bg-white'
-                      : 'border-l-rose-600 bg-rose-50/60'
-                  }`}
+                  className={`p-3 rounded-xl border border-slate-200 border-l-4 cursor-pointer transition ${st.is_pass
+                    ? 'border-l-emerald-500 bg-white'
+                    : 'border-l-rose-600 bg-rose-50/60'
+                    }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
@@ -798,9 +835,8 @@ export const StudentAnalyticsSection: React.FC<{
                           Pass: {counts.passed}/{counts.total}
                         </span>
                         <span
-                          className={`px-1.5 py-0.5 rounded text-[9px] font-black ${
-                            counts.failed > 0 ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600'
-                          }`}
+                          className={`px-1.5 py-0.5 rounded text-[9px] font-black ${counts.failed > 0 ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600'
+                            }`}
                         >
                           Fail: {counts.failed}
                         </span>
@@ -814,9 +850,8 @@ export const StudentAnalyticsSection: React.FC<{
                         {st.range_label}
                       </span>
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                          st.is_pass ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
-                        }`}
+                        className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${st.is_pass ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                          }`}
                       >
                         {st.result_status}
                       </span>
@@ -828,13 +863,12 @@ export const StudentAnalyticsSection: React.FC<{
                     {st.subject_marks?.map((m: any, idx: number) => (
                       <span
                         key={idx}
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                          !m.is_pass
-                            ? 'bg-rose-600 text-white font-black'
-                            : m.mark < 50
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${!m.is_pass
+                          ? 'bg-rose-600 text-white font-black'
+                          : m.mark < 50
                             ? 'bg-amber-100 text-amber-900 border border-amber-300'
                             : 'bg-slate-100 text-slate-700'
-                        }`}
+                          }`}
                       >
                         {m.subject_name.slice(0, 3)}: {m.mark}
                       </span>
@@ -901,11 +935,10 @@ export const StudentAnalyticsSection: React.FC<{
                     <tr
                       key={st.id}
                       onClick={() => setSelectedStudent(st)}
-                      className={`cursor-pointer transition border-l-4 ${
-                        st.is_pass
-                          ? 'border-l-emerald-500 bg-emerald-50/20 hover:bg-emerald-50/60'
-                          : 'border-l-rose-600 bg-rose-50/60 hover:bg-rose-100/70'
-                      }`}
+                      className={`cursor-pointer transition border-l-4 ${st.is_pass
+                        ? 'border-l-emerald-500 bg-emerald-50/20 hover:bg-emerald-50/60'
+                        : 'border-l-rose-600 bg-rose-50/60 hover:bg-rose-100/70'
+                        }`}
                     >
                       <td className="p-2.5 font-mono text-[11px] text-slate-500">{st.emis_number}</td>
                       <td className="p-2.5">
@@ -915,13 +948,15 @@ export const StudentAnalyticsSection: React.FC<{
                             Pass: {counts.passed}/{counts.total} Subj
                           </span>
                           <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-black ${
-                              counts.failed > 0
-                                ? 'bg-rose-600 text-white shadow-2xs'
-                                : 'bg-slate-100 text-slate-600'
-                            }`}
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-black ${counts.failed > 0
+                              ? 'bg-rose-600 text-white shadow-2xs'
+                              : 'bg-slate-100 text-slate-600'
+                              }`}
                           >
                             Fail: {counts.failed} Subj
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 text-[10px] font-bold">
+                            Att: {st.attendance_pct ?? 90.4}%
                           </span>
                         </div>
                         <div className="text-[10px] text-slate-500 mt-0.5">{st.school_name}</div>
@@ -932,13 +967,12 @@ export const StudentAnalyticsSection: React.FC<{
                           {st.subject_marks?.map((m: any, idx: number) => (
                             <span
                               key={idx}
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                !m.is_pass
-                                  ? 'bg-rose-600 text-white font-black'
-                                  : m.mark < 50
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${!m.is_pass
+                                ? 'bg-rose-600 text-white font-black'
+                                : m.mark < 50
                                   ? 'bg-amber-100 text-amber-900 border border-amber-300'
                                   : 'bg-slate-100 text-slate-700'
-                              }`}
+                                }`}
                               title={`Handled by: ${m.teacher_name}`}
                             >
                               {m.subject_name.slice(0, 3)}: {m.mark}
@@ -954,11 +988,10 @@ export const StudentAnalyticsSection: React.FC<{
                       </td>
                       <td className="p-2.5 text-center">
                         <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-2xs ${
-                            st.is_pass
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-rose-600 text-white'
-                          }`}
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-2xs ${st.is_pass
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-rose-600 text-white'
+                            }`}
                         >
                           {st.result_status}
                         </span>
@@ -969,11 +1002,10 @@ export const StudentAnalyticsSection: React.FC<{
                             {st.low_mark_subjects.map((ls: any, i: number) => (
                               <span
                                 key={i}
-                                className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                  ls.is_fail
-                                    ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                                    : 'bg-amber-100 text-amber-900 border border-amber-300'
-                                }`}
+                                className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${ls.is_fail
+                                  ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                                  : 'bg-amber-100 text-amber-900 border border-amber-300'
+                                  }`}
                               >
                                 ⚠ {ls.subject_name}: {ls.mark}
                               </span>
@@ -1015,9 +1047,8 @@ export const StudentAnalyticsSection: React.FC<{
                     EMIS: {selectedStudent.emis_number}
                   </span>
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase ${
-                      selectedStudent.is_pass ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
-                    }`}
+                    className={`px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase ${selectedStudent.is_pass ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
+                      }`}
                   >
                     RESULT: {selectedStudent.result_status}
                   </span>
@@ -1080,13 +1111,12 @@ export const StudentAnalyticsSection: React.FC<{
                   {selectedStudent.subject_marks?.map((m: any, idx: number) => (
                     <div
                       key={idx}
-                      className={`p-3 rounded-xl border border-slate-200 ${
-                        !m.is_pass
-                          ? 'bg-rose-50/80 border-rose-300'
-                          : m.is_low
+                      className={`p-3 rounded-xl border border-slate-200 ${!m.is_pass
+                        ? 'bg-rose-50/80 border-rose-300'
+                        : m.is_low
                           ? 'bg-amber-50/60 border-amber-300'
                           : 'bg-white'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-black text-slate-900 text-xs">{m.subject_name}</span>
@@ -1146,8 +1176,8 @@ export const StudentAnalyticsSection: React.FC<{
                             !m.is_pass
                               ? 'bg-rose-50/80'
                               : m.is_low
-                              ? 'bg-amber-50/60'
-                              : 'hover:bg-slate-50'
+                                ? 'bg-amber-50/60'
+                                : 'hover:bg-slate-50'
                           }
                         >
                           <td className="p-2.5 font-black text-slate-800">{m.subject_name}</td>

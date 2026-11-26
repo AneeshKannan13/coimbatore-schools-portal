@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Building2, Sparkles, ChevronRight, UserCheck, BarChart3, Calendar, BookOpen
+  Building2, Sparkles, ChevronRight, UserCheck, BarChart3, Calendar, BookOpen, ArrowUpDown
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -11,6 +11,16 @@ import { SchoolDetailModal } from './SchoolDetailModal';
 import { StudentAnalyticsSection } from './StudentAnalyticsSection';
 import { StaffAnalyticsModal } from './StaffAnalyticsModal';
 
+type SchoolSortMode =
+  | 'FAIL_DESC'
+  | 'FAIL_ASC'
+  | 'PASS_DESC'
+  | 'PASS_ASC'
+  | 'ATT_DESC'
+  | 'ATT_ASC'
+  | 'AVG_DESC'
+  | 'ENROLLED_DESC';
+
 export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'students' | 'staff'>('overview');
   const [data, setData] = useState<any>(null);
@@ -18,6 +28,7 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
   const [schoolStaffList, setSchoolStaffList] = useState<any[]>([]);
   const [selectedZone, setSelectedZone] = useState<string>('All');
   const [selectedStandard, setSelectedStandard] = useState<string>('All');
+  const [schoolSortBy, setSchoolSortBy] = useState<SchoolSortMode>('FAIL_DESC');
   const [filterSchoolId, setFilterSchoolId] = useState<number>(1);
   const [selectedSchoolId, setSelectedSchoolId] = useState<number | null>(null);
   const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
@@ -32,8 +43,12 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
     apiClient.get(`/commissioner/dashboard${query}`)
       .then(res => {
         setData(res.data);
-        if (res.data?.schools?.length > 0 && !filterSchoolId) {
-          setFilterSchoolId(res.data.schools[0].id);
+        const list: any[] = res.data?.schools || [];
+        if (list.length > 0) {
+          const exists = list.some((s: any) => s.id === filterSchoolId);
+          if (!filterSchoolId || !exists) {
+            setFilterSchoolId(list[0].id);
+          }
         }
       })
       .catch(console.error);
@@ -43,6 +58,20 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [selectedZone, selectedStandard]);
+
+  const sortedSchools = [...(data?.schools || [])].sort((a: any, b: any) => {
+    const failA = a.fail_count ?? a.risk_students ?? 0;
+    const failB = b.fail_count ?? b.risk_students ?? 0;
+    if (schoolSortBy === 'FAIL_DESC') return failB - failA;
+    if (schoolSortBy === 'FAIL_ASC') return failA - failB;
+    if (schoolSortBy === 'PASS_DESC') return (b.pass_rate || 0) - (a.pass_rate || 0);
+    if (schoolSortBy === 'PASS_ASC') return (a.pass_rate || 0) - (b.pass_rate || 0);
+    if (schoolSortBy === 'ATT_DESC') return (b.attendance || 0) - (a.attendance || 0);
+    if (schoolSortBy === 'ATT_ASC') return (a.attendance || 0) - (b.attendance || 0);
+    if (schoolSortBy === 'AVG_DESC') return (b.avg_mark || 0) - (a.avg_mark || 0);
+    if (schoolSortBy === 'ENROLLED_DESC') return (b.students || 0) - (a.students || 0);
+    return 0;
+  });
 
   useEffect(() => {
     if (filterSchoolId > 0) {
@@ -229,6 +258,230 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
         />
       ) : activeTab === 'overview' ? (
         <>
+          {/* School-Wise Analysis — Placed Directly Below the Top Class/Zone Filter Bar */}
+          <div className="glass-card p-3.5 sm:p-6 border-t-4 border-t-[#8B0000]">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-3.5 sm:mb-4">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="font-black text-[#650000] text-xs sm:text-base">
+                    Corporation Schools Directory &amp; Performance Matrix
+                  </h3>
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#8B0000] text-[#FFD700] text-[10px] font-black uppercase">
+                    {selectedStandard === 'All'
+                      ? `All Classes (9–12) • ${sortedSchools.length} Schools`
+                      : `Class ${selectedStandard} • ${sortedSchools.length} Active School${sortedSchools.length === 1 ? '' : 's'}`}
+                  </span>
+                </div>
+                <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+                  {selectedStandard === '11' || selectedStandard === '12'
+                    ? `Showing only Higher Secondary schools that offer Class ${selectedStandard} • Tap any school to inspect Student Mark Ranges & Staff 360°`
+                    : 'Tap any school to inspect all Student Mark Ranges (<35 to >90) and Staff 360° Details'}
+                </p>
+              </div>
+
+              {/* Quick Sort Filter Buttons + Dropdown for Pass %, Attendance %, and Fail Count */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] sm:text-[11px] font-black text-[#650000] uppercase flex items-center gap-1 mr-1">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-[#8B0000]" /> Sort By:
+                </span>
+                <button
+                  onClick={() => setSchoolSortBy(schoolSortBy === 'PASS_DESC' ? 'PASS_ASC' : 'PASS_DESC')}
+                  className={`px-2.5 py-1 rounded-xl text-[11px] font-black transition cursor-pointer flex items-center gap-1 ${
+                    schoolSortBy.startsWith('PASS_')
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  Pass % {schoolSortBy === 'PASS_ASC' ? '↑' : '↓'}
+                </button>
+                <button
+                  onClick={() => setSchoolSortBy(schoolSortBy === 'ATT_DESC' ? 'ATT_ASC' : 'ATT_DESC')}
+                  className={`px-2.5 py-1 rounded-xl text-[11px] font-black transition cursor-pointer flex items-center gap-1 ${
+                    schoolSortBy.startsWith('ATT_')
+                      ? 'bg-[#FFC928] text-[#650000] shadow-xs'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  Attendance {schoolSortBy === 'ATT_ASC' ? '↑' : '↓'}
+                </button>
+                <button
+                  onClick={() => setSchoolSortBy(schoolSortBy === 'FAIL_DESC' ? 'FAIL_ASC' : 'FAIL_DESC')}
+                  className={`px-2.5 py-1 rounded-xl text-[11px] font-black transition cursor-pointer flex items-center gap-1 ${
+                    schoolSortBy.startsWith('FAIL_')
+                      ? 'bg-rose-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  Fail Count {schoolSortBy === 'FAIL_ASC' ? '↑' : '↓'}
+                </button>
+
+                <select
+                  value={schoolSortBy}
+                  onChange={(e) => setSchoolSortBy(e.target.value as SchoolSortMode)}
+                  className="px-2.5 py-1 border border-slate-300 rounded-xl text-[11px] font-bold bg-white text-slate-800 cursor-pointer"
+                >
+                  <option value="FAIL_DESC">Fail Count: High → Low</option>
+                  <option value="FAIL_ASC">Fail Count: Low → High</option>
+                  <option value="PASS_DESC">Pass %: High → Low</option>
+                  <option value="PASS_ASC">Pass %: Low → High</option>
+                  <option value="ATT_DESC">Attendance %: High → Low</option>
+                  <option value="ATT_ASC">Attendance %: Low → High</option>
+                  <option value="AVG_DESC">Avg Mark: High → Low</option>
+                  <option value="ENROLLED_DESC">Enrolled: High → Low</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Mobile School Cards (<768px) */}
+            <div className="md:hidden space-y-2.5">
+              {sortedSchools.map((s: any) => {
+                const failCount = s.fail_count ?? s.risk_students ?? 0;
+                const passCount = s.pass_count ?? Math.max(0, (s.students || 0) - failCount);
+                return (
+                  <div
+                    key={s.id}
+                    onClick={() => setSelectedSchoolId(s.id)}
+                    className="p-3 bg-white rounded-xl border border-slate-200 border-l-4 border-l-[#8B0000] shadow-2xs cursor-pointer"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 font-mono text-[9px] font-bold rounded">
+                          {s.code} • {s.zone} Zone
+                        </span>
+                        <div className="font-black text-[#8B0000] text-xs mt-1 leading-snug">{s.name}</div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedSchoolId(s.id);
+                        }}
+                        className="px-2.5 py-1 bg-[#8B0000] text-white rounded-lg font-bold text-[10px] shrink-0 cursor-pointer"
+                      >
+                        Inspect →
+                      </button>
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-slate-100 grid grid-cols-5 gap-1 text-center text-[10px]">
+                      <div>
+                        <div className="text-slate-400">Enrolled</div>
+                        <div className="font-bold text-slate-800">{s.students}</div>
+                      </div>
+                      <div>
+                        <div className="text-slate-400">Avg Mark</div>
+                        <div className="font-bold text-slate-800">{s.avg_mark}%</div>
+                      </div>
+                      <div>
+                        <div className="text-slate-400">Pass %</div>
+                        <div className="font-black text-emerald-700">{s.pass_rate}% ({passCount})</div>
+                      </div>
+                      <div>
+                        <div className="text-slate-400">Attend</div>
+                        <div className="font-bold text-slate-800">{s.attendance}%</div>
+                      </div>
+                      <div>
+                        <div className="text-slate-400">Fail Count</div>
+                        <div className="font-black text-rose-600">{failCount}</div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table (>=768px) */}
+            <div className="hidden md:block table-scroll-container rounded-xl border border-slate-200">
+              <table className="w-full text-left text-xs min-w-[680px]">
+                <thead className="bg-[#8B0000] text-white">
+                  <tr>
+                    <th className="p-3">School Code</th>
+                    <th className="p-3">Institution Name (Click to Open Staff &amp; Student Drilldown)</th>
+                    <th className="p-3">Zone / Ward</th>
+                    <th className="p-3">
+                      <button
+                        onClick={() => setSchoolSortBy('ENROLLED_DESC')}
+                        className="flex items-center gap-1 font-black text-white hover:text-[#FFD700] cursor-pointer"
+                      >
+                        Enrolled <ArrowUpDown className="w-3 h-3 opacity-80" />
+                      </button>
+                    </th>
+                    <th className="p-3">
+                      <button
+                        onClick={() => setSchoolSortBy('AVG_DESC')}
+                        className="flex items-center gap-1 font-black text-white hover:text-[#FFD700] cursor-pointer"
+                      >
+                        Avg Mark <ArrowUpDown className="w-3 h-3 opacity-80" />
+                      </button>
+                    </th>
+                    <th className="p-3">
+                      <button
+                        onClick={() => setSchoolSortBy(schoolSortBy === 'PASS_DESC' ? 'PASS_ASC' : 'PASS_DESC')}
+                        className="flex items-center gap-1 font-black text-white hover:text-[#FFD700] cursor-pointer"
+                      >
+                        Pass % <ArrowUpDown className="w-3 h-3 text-[#FFD700]" />
+                      </button>
+                    </th>
+                    <th className="p-3">
+                      <button
+                        onClick={() => setSchoolSortBy(schoolSortBy === 'ATT_DESC' ? 'ATT_ASC' : 'ATT_DESC')}
+                        className="flex items-center gap-1 font-black text-white hover:text-[#FFD700] cursor-pointer"
+                      >
+                        Attendance <ArrowUpDown className="w-3 h-3 text-[#FFD700]" />
+                      </button>
+                    </th>
+                    <th className="p-3">
+                      <button
+                        onClick={() => setSchoolSortBy(schoolSortBy === 'FAIL_DESC' ? 'FAIL_ASC' : 'FAIL_DESC')}
+                        className="flex items-center gap-1 font-black text-white hover:text-[#FFD700] cursor-pointer"
+                      >
+                        Fail Count <ArrowUpDown className="w-3 h-3 text-[#FFD700]" />
+                      </button>
+                    </th>
+                    <th className="p-3">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 bg-white">
+                  {sortedSchools.map((s: any) => {
+                    const failCount = s.fail_count ?? s.risk_students ?? 0;
+                    const passCount = s.pass_count ?? Math.max(0, (s.students || 0) - failCount);
+                    return (
+                      <tr key={s.id} className="hover:bg-[#FFF3B0]/30 transition">
+                        <td className="p-3 font-mono font-medium text-slate-600">{s.code}</td>
+                        <td className="p-3">
+                          <button
+                            onClick={() => setSelectedSchoolId(s.id)}
+                            className="font-bold text-[#8B0000] hover:text-[#B31312] hover:underline text-left cursor-pointer flex items-center gap-1.5"
+                          >
+                            {s.name} <ChevronRight className="w-3.5 h-3.5 text-[#FFC928]" />
+                          </button>
+                        </td>
+                        <td className="p-3 text-slate-600">{s.zone} / {s.ward}</td>
+                        <td className="p-3 font-semibold text-slate-700">{s.students}</td>
+                        <td className="p-3 font-semibold text-slate-700">{s.avg_mark}%</td>
+                        <td className="p-3 font-bold text-emerald-700">
+                          {s.pass_rate}% <span className="text-[10px] font-semibold text-slate-500">({passCount})</span>
+                        </td>
+                        <td className="p-3 font-semibold text-slate-700">{s.attendance}%</td>
+                        <td className="p-3">
+                          <span className="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 font-black text-xs">
+                            {failCount}
+                          </span>
+                        </td>
+                        <td className="p-3">
+                          <button
+                            onClick={() => setSelectedSchoolId(s.id)}
+                            className="px-2.5 py-1 bg-[#8B0000] text-white rounded-lg font-bold text-[10px] cursor-pointer"
+                          >
+                            Staff &amp; Students →
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           {/* Quick Summary Strip */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
             <div className="glass-card p-3 sm:p-4 border-l-4 border-l-[#8B0000]">
@@ -446,112 +699,6 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
                   <Bar dataKey="attendance" fill="#FFC928" name="Attendance %" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* School-Wise Analysis */}
-          <div className="glass-card p-3.5 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
-              <div>
-                <h3 className="font-black text-[#650000] text-xs sm:text-base">Corporation Schools Directory &amp; Performance Matrix</h3>
-                <p className="text-[11px] sm:text-xs text-slate-500">Tap any school to inspect all Student Mark Ranges (&lt;35 to &gt;90) and Staff 360° Details</p>
-              </div>
-            </div>
-
-            {/* Mobile School Cards (<768px) */}
-            <div className="md:hidden space-y-2.5">
-              {data?.schools?.map((s: any) => (
-                <div
-                  key={s.id}
-                  onClick={() => setSelectedSchoolId(s.id)}
-                  className="p-3 bg-white rounded-xl border border-slate-200 border-l-4 border-l-[#8B0000] shadow-2xs cursor-pointer"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 font-mono text-[9px] font-bold rounded">
-                        {s.code} • {s.zone} Zone
-                      </span>
-                      <div className="font-black text-[#8B0000] text-xs mt-1 leading-snug">{s.name}</div>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedSchoolId(s.id);
-                      }}
-                      className="px-2.5 py-1 bg-[#8B0000] text-white rounded-lg font-bold text-[10px] shrink-0 cursor-pointer"
-                    >
-                      Inspect →
-                    </button>
-                  </div>
-
-                  <div className="mt-2 pt-2 border-t border-slate-100 grid grid-cols-4 gap-1 text-center text-[10px]">
-                    <div>
-                      <div className="text-slate-400">Enrolled</div>
-                      <div className="font-bold text-slate-800">{s.students}</div>
-                    </div>
-                    <div>
-                      <div className="text-slate-400">Avg Mark</div>
-                      <div className="font-bold text-slate-800">{s.avg_mark}%</div>
-                    </div>
-                    <div>
-                      <div className="text-slate-400">Pass %</div>
-                      <div className="font-black text-emerald-700">{s.pass_rate}%</div>
-                    </div>
-                    <div>
-                      <div className="text-slate-400">Risk</div>
-                      <div className="font-black text-rose-600">{s.risk_students}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Desktop Table (>=768px) */}
-            <div className="hidden md:block table-scroll-container rounded-xl border border-slate-200">
-              <table className="w-full text-left text-xs min-w-[640px]">
-                <thead className="bg-[#8B0000] text-white">
-                  <tr>
-                    <th className="p-3">School Code</th>
-                    <th className="p-3">Institution Name (Click to Open Staff &amp; Student Drilldown)</th>
-                    <th className="p-3">Zone / Ward</th>
-                    <th className="p-3">Enrolled</th>
-                    <th className="p-3">Avg Mark</th>
-                    <th className="p-3">Pass %</th>
-                    <th className="p-3">Attendance</th>
-                    <th className="p-3">Risk Cohort</th>
-                    <th className="p-3">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
-                  {data?.schools?.map((s: any) => (
-                    <tr key={s.id} className="hover:bg-[#FFF3B0]/30 transition">
-                      <td className="p-3 font-mono font-medium text-slate-600">{s.code}</td>
-                      <td className="p-3">
-                        <button
-                          onClick={() => setSelectedSchoolId(s.id)}
-                          className="font-bold text-[#8B0000] hover:text-[#B31312] hover:underline text-left cursor-pointer flex items-center gap-1.5"
-                        >
-                          {s.name} <ChevronRight className="w-3.5 h-3.5 text-[#FFC928]" />
-                        </button>
-                      </td>
-                      <td className="p-3 text-slate-600">{s.zone} / {s.ward}</td>
-                      <td className="p-3 font-semibold text-slate-700">{s.students}</td>
-                      <td className="p-3 font-semibold text-slate-700">{s.avg_mark}%</td>
-                      <td className="p-3 font-bold text-emerald-700">{s.pass_rate}%</td>
-                      <td className="p-3 font-semibold text-slate-700">{s.attendance}%</td>
-                      <td className="p-3 font-bold text-rose-600">{s.risk_students}</td>
-                      <td className="p-3">
-                        <button
-                          onClick={() => setSelectedSchoolId(s.id)}
-                          className="px-2.5 py-1 bg-[#8B0000] text-white rounded-lg font-bold text-[10px] cursor-pointer"
-                        >
-                          Staff &amp; Students →
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </div>
         </>

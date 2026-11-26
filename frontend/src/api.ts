@@ -393,6 +393,30 @@ apiClient.interceptors.response.use(
         const qPass = analytics.summary.pass_percentage || 60.8;
         const qAvg = analytics.summary.overall_avg_mark || 47.2;
 
+        // Filter schools dynamically by selected Class (stdParam) and Zone (zoneParam)
+        // Schools that do not have students in the selected class (e.g. Class 11 or 12 for High Schools) are excluded
+        const filteredSchools = REAL_SCHOOLS.map((s) => {
+          if (zoneParam && zoneParam !== 'All' && s.zone !== zoneParam) return null;
+          const scAn = buildRealStudentsAnalytics(s.id, stdParam, secParam, zoneParam);
+          const scTotal = scAn.summary.total_students;
+          if (stdParam && stdParam !== 'All' && scTotal === 0) {
+            return null;
+          }
+          const scAtt = scAn.students.length > 0
+            ? Number((scAn.students.reduce((acc: number, st: any) => acc + Number(st.attendance_pct || s.attendance || 90.4), 0) / scAn.students.length).toFixed(1))
+            : s.attendance;
+          return {
+            ...s,
+            students: scTotal,
+            avg_mark: scAn.summary.overall_avg_mark,
+            pass_rate: scAn.summary.pass_percentage,
+            pass_count: scAn.summary.pass_count,
+            fail_count: scAn.summary.fail_count,
+            risk_students: scAn.summary.fail_count,
+            attendance: scAtt,
+          };
+        }).filter(Boolean) as any[];
+
         // Requirement 2: ONLY Quarterly Examination Pass & Average Marks (broken down by Class 9, 10, 11, 12)
         const stdList = stdParam && stdParam !== 'All' ? [stdParam] : ['9', '10', '11', '12'];
         const quarterlyByClass = stdList.map((sv) => {
@@ -418,7 +442,7 @@ apiClient.interceptors.response.use(
         return Promise.resolve({
           data: {
             kpis: {
-              total_schools: REAL_SCHOOLS.length,
+              total_schools: filteredSchools.length,
               total_students: analytics.summary.total_students,
               total_teachers: ALL_REAL_STAFF.length,
               corporation_avg_score: qAvg,
@@ -429,18 +453,18 @@ apiClient.interceptors.response.use(
             exam_pass_comparison: quarterlyByClass,
             monthly_student_attendance: monthlyAttendanceUploaded,
             subject_failures: analytics.subject_failures,
-            zone_summary: REAL_SCHOOLS.map((s) => ({
+            zone_summary: filteredSchools.map((s) => ({
               zone: s.name.replace('Corporation ', '').replace('Higher Secondary School, ', 'HSS ').replace('High School, ', 'HS ').replace('Girls High School, ', 'GHS '),
               avg_pass: s.pass_rate,
               attendance: s.attendance,
             })),
             ai_insights: [
-              `Quarterly Exam evaluated across ${analytics.summary.total_students} students in 4 Corporation schools (CHS Anupparpalayam, CHSS Ramanathapuram, CHSS Rathinapuri, CGHS Selvapuram).`,
+              `Quarterly Exam evaluated across ${analytics.summary.total_students} students in ${filteredSchools.length} Corporation school(s)${stdParam && stdParam !== 'All' ? ` offering Class ${stdParam}` : ''}.`,
               `Quarterly Pass Percentage: ${qPass}% (${analytics.summary.pass_count} Passed, ${analytics.summary.fail_count} Failed in ≥1 subject).`,
               `4-Month Student Attendance (79 Working Days: June 18d, July 23d, Aug 20d, Sep 18d) averages 90.4%.`,
               `63 teaching staff tracked across 79 working days with complete leave & subject-handling attribution.`,
             ],
-            schools: REAL_SCHOOLS,
+            schools: filteredSchools,
           },
         });
       }
