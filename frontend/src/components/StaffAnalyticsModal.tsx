@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   Phone, MapPin, Award, Calendar, CheckCircle2,
-  AlertTriangle, Users, X, Briefcase, ChevronDown, ChevronUp, Sun, Moon
+  AlertTriangle, Users, X, Briefcase, Sun, Moon
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  Cell, PieChart, Pie, CartesianGrid
+  Cell, PieChart, Pie, CartesianGrid, LabelList
 } from 'recharts';
 import apiClient from '../api';
 
@@ -60,12 +60,10 @@ export const StaffAnalyticsModal: React.FC<{
 }> = ({ isOpen, onClose, teacherId }) => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedRangeKey, setSelectedRangeKey] = useState<string>('ALL');
 
   useEffect(() => {
     if (!isOpen || !teacherId) return;
     setLoading(true);
-    setSelectedRangeKey('ALL');
     apiClient.get(`/staff/${teacherId}/dashboard-details`)
       .then(res => setData(res.data))
       .catch(console.error)
@@ -77,23 +75,82 @@ export const StaffAnalyticsModal: React.FC<{
   const staff = data?.staff || {};
   const att = data?.attendance || {};
   const metrics = data?.student_metrics || {};
-  const ranges: any[] = metrics.mark_ranges || [];
   const allStudents: any[] = metrics.students || [];
+  const filteredStudents = allStudents;
 
-  const filteredStudents = selectedRangeKey === 'ALL'
-    ? allStudents
-    : allStudents.filter((s: any) => s.range_key === selectedRangeKey);
+  const clDays = Number(att.cl ?? 0);
+  const rhDays = Number(att.rh ?? 0);
+  const elDays = Number(att.el ?? 0);
+  const mlDays = Number(att.ml ?? 0);
+  const otherDays = Number(att.others ?? 0);
+  const totalLeaveDays = Number(att.total_leave ?? (clDays + rhDays + elDays + mlDays + otherDays));
+  const workingDays = Number(att.working_days ?? 79);
+  const presentDays = Number(att.present_days ?? Math.max(0, workingDays - totalLeaveDays));
+  const attendancePct = Number(att.attendance_percentage ?? ((presentDays / (workingDays || 1)) * 100).toFixed(1));
+  const leaveReason = att.reason || (totalLeaveDays > 0 ? 'Personal / Medical Leave' : 'No Leave Taken (100% Regular Duty)');
 
-  const chartData = ranges.map((r: any) => ({
-    name: r.label,
-    count: r.count,
-    key: r.key,
-    color: RANGE_STYLES[r.key]?.barColor || '#8B0000'
-  }));
+  // Extracted Leave Types from the Staff Attendance Excel Workbook (CL, RH, EL, ML, OTHERS)
+  const leaveTypesList = [
+    {
+      code: 'CL',
+      label: 'Casual Leave (CL)',
+      shortLabel: 'CL (Casual)',
+      days: clDays,
+      color: '#f59e0b',
+      bg: 'bg-amber-50 border-amber-300',
+      badge: 'bg-amber-500 text-white',
+      text: 'text-amber-900',
+      desc: 'Short-term casual / personal leave'
+    },
+    {
+      code: 'RH',
+      label: 'Restricted Holiday (RH)',
+      shortLabel: 'RH (Restricted)',
+      days: rhDays,
+      color: '#2563eb',
+      bg: 'bg-blue-50 border-blue-300',
+      badge: 'bg-blue-600 text-white',
+      text: 'text-blue-900',
+      desc: 'Optional / festival restricted holiday'
+    },
+    {
+      code: 'EL',
+      label: 'Earned Leave (EL)',
+      shortLabel: 'EL (Earned)',
+      days: elDays,
+      color: '#7c3aed',
+      bg: 'bg-purple-50 border-purple-300',
+      badge: 'bg-purple-700 text-white',
+      text: 'text-purple-900',
+      desc: 'Privilege / earned leave'
+    },
+    {
+      code: 'ML',
+      label: 'Medical Leave (ML)',
+      shortLabel: 'ML (Medical)',
+      days: mlDays,
+      color: '#e11d48',
+      bg: 'bg-rose-50 border-rose-300',
+      badge: 'bg-rose-600 text-white',
+      text: 'text-rose-800',
+      desc: 'Health & medical treatment leave'
+    },
+    {
+      code: 'OTHERS',
+      label: 'Other Leave (OTHERS)',
+      shortLabel: 'OTHERS',
+      days: otherDays,
+      color: '#0d9488',
+      bg: 'bg-teal-50 border-teal-300',
+      badge: 'bg-teal-600 text-white',
+      text: 'text-teal-900',
+      desc: 'On-duty / special / other leave'
+    }
+  ];
 
-  const passFailPie = [
-    { name: 'Pass', value: metrics.pass_count || 0, color: '#10b981' },
-    { name: 'Fail', value: metrics.fail_count || 0, color: '#e11d48' }
+  const attendancePieData = [
+    { name: 'Present Days', value: presentDays, color: '#10b981' },
+    { name: 'Total Leave Days', value: totalLeaveDays, color: '#e11d48' }
   ];
 
   return (
@@ -270,94 +327,183 @@ export const StaffAnalyticsModal: React.FC<{
                 </div>
               </div>
 
-              {/* Row 3: Mark-Wise Range Distribution Interactive Cards + Visual Chart */}
-              <div className="glass-card p-3 sm:p-4 border border-slate-200">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+              {/* Row 3: Staff Leave Days & Leave Type Breakdown (CL, RH, EL, ML, OTHERS) + Visual Chart & Official Ledger Table */}
+              <div className="glass-card p-3.5 sm:p-5 border border-slate-200 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
-                    <h3 className="text-xs sm:text-sm font-black text-[#650000] uppercase tracking-wider">
-                      Mark-Wise Range Distribution (Tap any range to filter)
+                    <h3 className="text-xs sm:text-sm font-black text-[#650000] uppercase tracking-wider flex items-center gap-1.5">
+                      <Calendar className="w-4 h-4 text-[#8B0000] shrink-0" />
+                      <span>Staff Leave Type Breakdown &amp; 79-Day Attendance Analytics (CL • RH • EL • ML • OTHERS)</span>
                     </h3>
-                    <p className="text-[11px] text-slate-500">
-                      Breakdown of {metrics.handling_student_count} students handled by {staff.teacher_name} in {staff.subject_specialization}
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Extracted from Staff Attendance Workbook for <b>{staff.teacher_name}</b> • Total Leave: <b>{totalLeaveDays} Days</b> out of <b>{workingDays} Working Days</b>
                     </p>
                   </div>
-                  {selectedRangeKey !== 'ALL' && (
-                    <button
-                      onClick={() => setSelectedRangeKey('ALL')}
-                      className="px-3 py-1.5 bg-slate-800 text-white rounded-lg text-[11px] font-bold cursor-pointer self-start sm:self-auto"
-                    >
-                      Show All ({allStudents.length})
-                    </button>
-                  )}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-800 text-xs font-black">
+                      Present: {presentDays} / {workingDays} Days ({attendancePct}%)
+                    </span>
+                    <span className={`px-2.5 py-1 rounded-xl text-xs font-black ${
+                      totalLeaveDays > 0 ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-700'
+                    }`}>
+                      Total Leave: {totalLeaveDays} Days
+                    </span>
+                  </div>
                 </div>
 
-                {/* 5 Interactive Range Cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5 mb-4">
-                  {ranges.map((r: any, idx: number) => {
-                    const st = RANGE_STYLES[r.key] || RANGE_STYLES['50_75'];
-                    const isSelected = selectedRangeKey === r.key;
-                    const isLastOdd = idx === ranges.length - 1 && ranges.length % 2 === 1;
+                {/* 5 Leave Type Cards (CL, RH, EL, ML, OTHERS) */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
+                  {leaveTypesList.map((lt, idx) => {
+                    const isLastOdd = idx === leaveTypesList.length - 1 && leaveTypesList.length % 2 === 1;
+                    const pctOfLeave = totalLeaveDays > 0 ? Number(((lt.days / totalLeaveDays) * 100).toFixed(1)) : 0;
                     return (
-                      <button
-                        key={r.key}
-                        onClick={() => setSelectedRangeKey(isSelected ? 'ALL' : r.key)}
-                        className={`p-2.5 sm:p-3 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col justify-between ${
+                      <div
+                        key={lt.code}
+                        className={`p-3 rounded-2xl border-2 flex flex-col justify-between ${
                           isLastOdd ? 'col-span-2 sm:col-span-1' : ''
-                        } ${st.bg} ${
-                          isSelected ? 'ring-2 ring-[#8B0000] border-[#8B0000] shadow-md' : st.border
-                        }`}
+                        } ${lt.bg}`}
                       >
                         <div className="flex items-center justify-between w-full gap-1">
-                          <span className={`px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-black ${st.badge}`}>
-                            {r.label}
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${lt.badge}`}>
+                            {lt.code}
                           </span>
-                          <span className={`text-[11px] font-black ${st.text}`}>
-                            {r.percentage}%
+                          <span className={`text-[11px] font-black ${lt.text}`}>
+                            {pctOfLeave}% of Leave
                           </span>
                         </div>
-                        <div className={`text-xl sm:text-2xl font-black mt-1.5 sm:mt-2 ${st.text}`}>
-                          {r.count} <span className="text-[11px] sm:text-xs font-bold">Students</span>
+                        <div className={`text-xl sm:text-2xl font-black mt-2 ${lt.text}`}>
+                          {lt.days} <span className="text-xs font-bold">Days</span>
                         </div>
-                        <div className="text-[10px] text-slate-600 font-medium mt-1 flex items-center justify-between">
-                          <span className="truncate">{r.sublabel}</span>
-                          {isSelected ? <ChevronUp className="w-3.5 h-3.5 shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 shrink-0" />}
+                        <div className="mt-1.5 pt-1.5 border-t border-black/10 text-[10px] font-bold text-slate-700">
+                          <div>{lt.label}</div>
+                          <div className="text-[9px] text-slate-500 font-medium mt-0.5">{lt.desc}</div>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
 
-                {/* Bar Chart & Pass/Fail Pie */}
+                {/* Official Staff Leave Ledger Table (Exact Columns from Excel Sheet) */}
+                <div className="table-scroll-container rounded-xl border border-slate-200">
+                  <table className="w-full text-left text-xs min-w-[760px]">
+                    <thead className="bg-[#8B0000] text-white">
+                      <tr>
+                        <th className="p-2.5">Teacher Name &amp; Role</th>
+                        <th className="p-2.5">Subject &amp; Class/Section</th>
+                        <th className="p-2.5 text-center">CL (Casual)</th>
+                        <th className="p-2.5 text-center">RH (Restricted)</th>
+                        <th className="p-2.5 text-center">EL (Earned)</th>
+                        <th className="p-2.5 text-center">ML (Medical)</th>
+                        <th className="p-2.5 text-center">OTHERS</th>
+                        <th className="p-2.5 text-center">Total Leave</th>
+                        <th className="p-2.5 text-center">Present (79d)</th>
+                        <th className="p-2.5">Reason (From Excel)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-slate-100">
+                      <tr className="hover:bg-[#FFF3B0]/20">
+                        <td className="p-2.5">
+                          <div className="font-black text-slate-900">{staff.teacher_name}</div>
+                          <div className="text-[10px] font-bold text-slate-500">{staff.designation}</div>
+                        </td>
+                        <td className="p-2.5">
+                          <div className="font-bold text-[#8B0000]">{staff.subject_specialization}</div>
+                          <div className="text-[10px] font-bold text-slate-600">
+                            {staff.classes_label || `Sec ${staff.classes_handled?.join(', ')}`}
+                          </div>
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span className={`px-2 py-0.5 rounded font-black text-xs ${clDays > 0 ? 'bg-amber-100 text-amber-900' : 'text-slate-400'}`}>
+                            {clDays}d
+                          </span>
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span className={`px-2 py-0.5 rounded font-black text-xs ${rhDays > 0 ? 'bg-blue-100 text-blue-900' : 'text-slate-400'}`}>
+                            {rhDays}d
+                          </span>
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span className={`px-2 py-0.5 rounded font-black text-xs ${elDays > 0 ? 'bg-purple-100 text-purple-900' : 'text-slate-400'}`}>
+                            {elDays}d
+                          </span>
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span className={`px-2 py-0.5 rounded font-black text-xs ${mlDays > 0 ? 'bg-rose-100 text-rose-800' : 'text-slate-400'}`}>
+                            {mlDays}d
+                          </span>
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span className={`px-2 py-0.5 rounded font-black text-xs ${otherDays > 0 ? 'bg-teal-100 text-teal-900' : 'text-slate-400'}`}>
+                            {otherDays}d
+                          </span>
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span className={`px-2.5 py-0.5 rounded-full font-black text-xs ${
+                            totalLeaveDays > 0 ? 'bg-rose-600 text-white' : 'bg-emerald-100 text-emerald-800'
+                          }`}>
+                            {totalLeaveDays} Days
+                          </span>
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-black text-xs">
+                            {presentDays} / {workingDays}d
+                          </span>
+                        </td>
+                        <td className="p-2.5">
+                          <span className={`px-2 py-1 rounded-lg text-[11px] font-black inline-block ${
+                            totalLeaveDays >= 10
+                              ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                              : totalLeaveDays > 0
+                              ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                              : 'bg-emerald-100 text-emerald-800'
+                          }`}>
+                            {leaveReason}
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Leave Type Bar Chart & Present vs Leave Donut Visualization */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
-                  <div className="md:col-span-2 h-40 sm:h-44">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData}>
+                  <div className="md:col-span-2 h-44 sm:h-48">
+                    <div className="text-[11px] font-black text-[#650000] uppercase mb-1">
+                      Leave Days by Leave Type (CL, RH, EL, ML, OTHERS)
+                    </div>
+                    <ResponsiveContainer width="100%" height="90%">
+                      <BarChart data={leaveTypesList} margin={{ top: 18, right: 12, left: -10, bottom: 4 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                        <XAxis dataKey="name" fontSize={10} stroke="#475569" />
-                        <YAxis allowDecimals={false} fontSize={10} stroke="#475569" width={28} />
-                        <Tooltip />
-                        <Bar dataKey="count" name="Students" radius={[6, 6, 0, 0]}>
-                          {chartData.map((entry, idx) => (
+                        <XAxis dataKey="shortLabel" fontSize={10} fontWeight={700} stroke="#475569" />
+                        <YAxis allowDecimals={true} fontSize={10} stroke="#475569" width={32} unit="d" />
+                        <Tooltip formatter={(val: any) => [`${val} Days`, 'Leave Days']} />
+                        <Bar dataKey="days" name="Leave Days" radius={[6, 6, 0, 0]}>
+                          {leaveTypesList.map((entry, idx) => (
                             <Cell key={idx} fill={entry.color} />
                           ))}
+                          <LabelList dataKey="days" position="top" formatter={(v: any) => `${v}d`} style={{ fontSize: '10px', fontWeight: 800, fill: '#334155' }} />
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
-                  <div className="h-40 sm:h-44 flex flex-col items-center justify-center">
-                    <ResponsiveContainer width="100%" height="100%">
+
+                  <div className="h-44 sm:h-48 flex flex-col items-center justify-center">
+                    <div className="text-[11px] font-black text-[#650000] uppercase mb-1">
+                      79 Working Days Attendance Ratio
+                    </div>
+                    <ResponsiveContainer width="100%" height="80%">
                       <PieChart>
-                        <Pie data={passFailPie} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={48} innerRadius={25}>
-                          {passFailPie.map((entry, i) => (
+                        <Pie data={attendancePieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={48} innerRadius={25}>
+                          {attendancePieData.map((entry, i) => (
                             <Cell key={i} fill={entry.color} />
                           ))}
                         </Pie>
-                        <Tooltip />
+                        <Tooltip formatter={(val: any) => [`${val} Days`, '']} />
                       </PieChart>
                     </ResponsiveContainer>
-                    <div className="flex gap-3 text-[11px] font-bold">
-                      <span className="text-emerald-700">● Pass: {metrics.pass_count} ({metrics.pass_ratio}%)</span>
-                      <span className="text-rose-700">● Fail: {metrics.fail_count} ({metrics.fail_ratio}%)</span>
+                    <div className="flex flex-wrap justify-center gap-3 text-[11px] font-bold">
+                      <span className="text-emerald-700">● Present: {presentDays}d ({attendancePct}%)</span>
+                      <span className="text-rose-700">● Leave: {totalLeaveDays}d</span>
                     </div>
                   </div>
                 </div>
