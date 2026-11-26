@@ -58,7 +58,7 @@ const RANGE_THEMES: Record<string, {
   }
 };
 
-type SortMode =
+export type SortMode =
   | 'FAIL_DESC'
   | 'FAIL_ASC'
   | 'PASS_DESC'
@@ -73,20 +73,40 @@ export const StudentAnalyticsSection: React.FC<{
   schoolId: number;
   zone?: string;
   initialStandard?: string;
+  externalSection?: string;
+  onSectionChange?: (sec: string) => void;
+  onAvailableSectionsChange?: (secs: string[]) => void;
+  externalSortBy?: SortMode;
+  onSortByChange?: (s: SortMode) => void;
   hideClassFilter?: boolean;
+  hideTopFilterCard?: boolean;
   allowUploads?: boolean;
   title?: string;
   onSelectTeacher?: (teacherId: number) => void;
-}> = ({ schoolId, zone = 'All', initialStandard = 'All', hideClassFilter = false, allowUploads = true, title, onSelectTeacher }) => {
+}> = ({
+  schoolId,
+  zone = 'All',
+  initialStandard = 'All',
+  externalSection,
+  onSectionChange,
+  onAvailableSectionsChange,
+  externalSortBy,
+  onSortByChange,
+  hideClassFilter = false,
+  hideTopFilterCard = false,
+  allowUploads = true,
+  title,
+  onSelectTeacher,
+}) => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedStandard, setSelectedStandard] = useState<string>(initialStandard);
-  const [selectedSection, setSelectedSection] = useState<string>('All');
+  const [selectedSection, setSelectedSection] = useState<string>(externalSection || 'All');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PASS' | 'FAIL' | 'LOW_SUBJECT'>('ALL');
   const [failedSubjectFilter, setFailedSubjectFilter] = useState<string | null>(null);
   const [failedCountFilter, setFailedCountFilter] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<SortMode>('FAIL_DESC');
+  const [sortBy, setSortBy] = useState<SortMode>(externalSortBy || 'FAIL_DESC');
 
   // Check if current logged-in user is Commissioner (Commissioner view never shows upload buttons)
   const canShowUploads = (() => {
@@ -116,6 +136,28 @@ export const StudentAnalyticsSection: React.FC<{
     setSelectedStandard(initialStandard);
   }, [initialStandard]);
 
+  useEffect(() => {
+    if (externalSection !== undefined && externalSection !== selectedSection) {
+      setSelectedSection(externalSection);
+    }
+  }, [externalSection]);
+
+  useEffect(() => {
+    if (externalSortBy !== undefined && externalSortBy !== sortBy) {
+      setSortBy(externalSortBy);
+    }
+  }, [externalSortBy]);
+
+  const updateSection = (sec: string) => {
+    setSelectedSection(sec);
+    onSectionChange?.(sec);
+  };
+
+  const updateSortBy = (nextSort: SortMode) => {
+    setSortBy(nextSort);
+    onSortByChange?.(nextSort);
+  };
+
   const fetchStudentsAnalytics = () => {
     setLoading(true);
     const params = new URLSearchParams();
@@ -139,8 +181,11 @@ export const StudentAnalyticsSection: React.FC<{
     : ['A', 'A1', 'A2', 'A3', 'B', 'B1', 'B2', 'C', 'D'];
 
   useEffect(() => {
+    if (data?.available_sections?.length) {
+      onAvailableSectionsChange?.(data.available_sections);
+    }
     if (selectedSection !== 'All' && data?.available_sections?.length && !data.available_sections.includes(selectedSection)) {
-      setSelectedSection('All');
+      updateSection('All');
     }
   }, [selectedStandard, schoolId, data?.available_sections]);
 
@@ -271,41 +316,120 @@ export const StudentAnalyticsSection: React.FC<{
 
   return (
     <div className="space-y-4 sm:space-y-5">
-      {/* Section (A, A1, A2, A3, B, B1, B2, C, D), Failed Subject Count Filter & Sort Filter Bar */}
-      <div className="glass-card p-3 sm:p-4 flex flex-col gap-2.5 border border-slate-200">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
-          {!hideClassFilter ? (
-            <div className="table-scroll-container flex items-center gap-1.5 pb-0.5 sm:pb-0">
-              <span className="text-[11px] font-black text-[#650000] uppercase tracking-wider shrink-0 pr-1">
-                Class:
-              </span>
-              {[
-                { val: 'All', label: 'All Classes (9–12)' },
-                { val: '9', label: 'Class 9' },
-                { val: '10', label: 'Class 10' },
-                { val: '11', label: 'Class 11' },
-                { val: '12', label: 'Class 12' },
-              ].map((c) => (
+      {/* Unified Class, Section & Sort Filter Bar (Hidden when Commissioner top bar renders the unified Zone -> School -> Class -> Section panel) */}
+      {!hideTopFilterCard && (
+        <div className="glass-card p-3 sm:p-4 flex flex-col gap-2.5 border border-slate-200">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+            {!hideClassFilter ? (
+              <div className="table-scroll-container flex items-center gap-1.5 pb-0.5 sm:pb-0">
+                <span className="text-[11px] font-black text-[#650000] uppercase tracking-wider shrink-0 pr-1">
+                  Class:
+                </span>
+                {[
+                  { val: 'All', label: 'All Classes (9–12)' },
+                  { val: '9', label: 'Class 9' },
+                  { val: '10', label: 'Class 10' },
+                  { val: '11', label: 'Class 11' },
+                  { val: '12', label: 'Class 12' },
+                ].map((c) => (
+                  <button
+                    key={c.val}
+                    onClick={() => setSelectedStandard(c.val)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition whitespace-nowrap cursor-pointer shrink-0 ${selectedStandard === c.val
+                      ? 'primary-button shadow-xs'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="table-scroll-container flex items-center gap-1.5 pb-0.5 sm:pb-0">
+                <span className="text-[11px] font-black text-[#650000] uppercase shrink-0 pr-1">
+                  Section ({selectedStandard === 'All' ? 'All Classes' : `Class ${selectedStandard}`}):
+                </span>
                 <button
-                  key={c.val}
-                  onClick={() => setSelectedStandard(c.val)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition whitespace-nowrap cursor-pointer shrink-0 ${selectedStandard === c.val
-                    ? 'primary-button shadow-xs'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  onClick={() => updateSection('All')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer shrink-0 ${selectedSection === 'All'
+                    ? 'bg-[#FFC928] text-[#650000] shadow-2xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                 >
-                  {c.label}
+                  All Sections ({availableSections.length})
                 </button>
-              ))}
+                {availableSections.map((sec) => (
+                  <button
+                    key={sec}
+                    onClick={() => updateSection(sec)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${selectedSection === sec
+                      ? 'bg-[#FFC928] text-[#650000] font-black shadow-2xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                  >
+                    Sec {sec}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Sort Filter Quick Switcher for Pass, Attendance & Fail Count */}
+            <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+              <ArrowUpDown className="w-3.5 h-3.5 text-[#8B0000] shrink-0" />
+              <span className="text-[11px] font-black text-[#650000] uppercase">Sort Filter:</span>
+              <button
+                onClick={() => updateSortBy(sortBy === 'PASS_DESC' ? 'PASS_ASC' : 'PASS_DESC')}
+                className={`px-2 py-1 rounded-lg text-[11px] font-black transition cursor-pointer ${sortBy.startsWith('PASS_')
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+              >
+                Pass {sortBy === 'PASS_ASC' ? '↑' : '↓'}
+              </button>
+              <button
+                onClick={() => updateSortBy(sortBy === 'ATT_DESC' ? 'ATT_ASC' : 'ATT_DESC')}
+                className={`px-2 py-1 rounded-lg text-[11px] font-black transition cursor-pointer ${sortBy.startsWith('ATT_')
+                  ? 'bg-[#FFC928] text-[#650000]'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+              >
+                Attendance {sortBy === 'ATT_ASC' ? '↑' : '↓'}
+              </button>
+              <button
+                onClick={() => updateSortBy(sortBy === 'FAIL_DESC' ? 'FAIL_ASC' : 'FAIL_DESC')}
+                className={`px-2 py-1 rounded-lg text-[11px] font-black transition cursor-pointer ${sortBy.startsWith('FAIL_')
+                  ? 'bg-rose-600 text-white'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+              >
+                Fail Count {sortBy === 'FAIL_ASC' ? '↑' : '↓'}
+              </button>
+              <select
+                value={sortBy}
+                onChange={(e) => updateSortBy(e.target.value as SortMode)}
+                className="px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-black bg-white text-slate-800 cursor-pointer"
+              >
+                <option value="FAIL_DESC">Fail Count: High → Low</option>
+                <option value="FAIL_ASC">Fail Count: Low → High</option>
+                <option value="PASS_DESC">Pass Subjects / %: High → Low</option>
+                <option value="PASS_ASC">Pass Subjects / %: Low → High</option>
+                <option value="ATT_DESC">Attendance %: High → Low</option>
+                <option value="ATT_ASC">Attendance %: Low → High</option>
+                <option value="AVG_DESC">Average Mark: High → Low</option>
+                <option value="AVG_ASC">Average Mark: Low → High</option>
+                <option value="NAME_ASC">Student Name: A → Z</option>
+              </select>
             </div>
-          ) : (
-            /* When Class filter is already in Commissioner top bar, show Section filter on the first row */
-            <div className="table-scroll-container flex items-center gap-1.5 pb-0.5 sm:pb-0">
-              <span className="text-[11px] font-black text-[#650000] uppercase shrink-0 pr-1">
+          </div>
+
+          {/* Dynamic Sections Row (shown here only if Class filter was on row 1) */}
+          {!hideClassFilter && (
+            <div className="pt-2 border-t border-slate-200/70 table-scroll-container flex items-center gap-1.5">
+              <span className="text-[11px] font-black text-slate-600 uppercase shrink-0 pr-1">
                 Section ({selectedStandard === 'All' ? 'All Classes' : `Class ${selectedStandard}`}):
               </span>
               <button
-                onClick={() => setSelectedSection('All')}
+                onClick={() => updateSection('All')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer shrink-0 ${selectedSection === 'All'
                   ? 'bg-[#FFC928] text-[#650000] shadow-2xs'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -316,7 +440,7 @@ export const StudentAnalyticsSection: React.FC<{
               {availableSections.map((sec) => (
                 <button
                   key={sec}
-                  onClick={() => setSelectedSection(sec)}
+                  onClick={() => updateSection(sec)}
                   className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${selectedSection === sec
                     ? 'bg-[#FFC928] text-[#650000] font-black shadow-2xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -327,86 +451,8 @@ export const StudentAnalyticsSection: React.FC<{
               ))}
             </div>
           )}
-
-          {/* Sort Filter Quick Switcher for Pass, Attendance & Fail Count */}
-          <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-            <ArrowUpDown className="w-3.5 h-3.5 text-[#8B0000] shrink-0" />
-            <span className="text-[11px] font-black text-[#650000] uppercase">Sort Filter:</span>
-            <button
-              onClick={() => setSortBy(sortBy === 'PASS_DESC' ? 'PASS_ASC' : 'PASS_DESC')}
-              className={`px-2 py-1 rounded-lg text-[11px] font-black transition cursor-pointer ${sortBy.startsWith('PASS_')
-                ? 'bg-emerald-600 text-white'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-            >
-              Pass {sortBy === 'PASS_ASC' ? '↑' : '↓'}
-            </button>
-            <button
-              onClick={() => setSortBy(sortBy === 'ATT_DESC' ? 'ATT_ASC' : 'ATT_DESC')}
-              className={`px-2 py-1 rounded-lg text-[11px] font-black transition cursor-pointer ${sortBy.startsWith('ATT_')
-                ? 'bg-[#FFC928] text-[#650000]'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-            >
-              Attendance {sortBy === 'ATT_ASC' ? '↑' : '↓'}
-            </button>
-            <button
-              onClick={() => setSortBy(sortBy === 'FAIL_DESC' ? 'FAIL_ASC' : 'FAIL_DESC')}
-              className={`px-2 py-1 rounded-lg text-[11px] font-black transition cursor-pointer ${sortBy.startsWith('FAIL_')
-                ? 'bg-rose-600 text-white'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-            >
-              Fail Count {sortBy === 'FAIL_ASC' ? '↑' : '↓'}
-            </button>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortMode)}
-              className="px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-black bg-white text-slate-800 cursor-pointer"
-            >
-              <option value="FAIL_DESC">Fail Count: High → Low</option>
-              <option value="FAIL_ASC">Fail Count: Low → High</option>
-              <option value="PASS_DESC">Pass Subjects / %: High → Low</option>
-              <option value="PASS_ASC">Pass Subjects / %: Low → High</option>
-              <option value="ATT_DESC">Attendance %: High → Low</option>
-              <option value="ATT_ASC">Attendance %: Low → High</option>
-              <option value="AVG_DESC">Average Mark: High → Low</option>
-              <option value="AVG_ASC">Average Mark: Low → High</option>
-              <option value="NAME_ASC">Student Name: A → Z</option>
-            </select>
-          </div>
         </div>
-
-        {/* Dynamic Sections Row (shown here only if Class filter was on row 1) */}
-        {!hideClassFilter && (
-          <div className="pt-2 border-t border-slate-200/70 table-scroll-container flex items-center gap-1.5">
-            <span className="text-[11px] font-black text-slate-600 uppercase shrink-0 pr-1">
-              Section ({selectedStandard === 'All' ? 'All Classes' : `Class ${selectedStandard}`}):
-            </span>
-            <button
-              onClick={() => setSelectedSection('All')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer shrink-0 ${selectedSection === 'All'
-                ? 'bg-[#FFC928] text-[#650000] shadow-2xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-            >
-              All Sections ({availableSections.length})
-            </button>
-            {availableSections.map((sec) => (
-              <button
-                key={sec}
-                onClick={() => setSelectedSection(sec)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${selectedSection === sec
-                  ? 'bg-[#FFC928] text-[#650000] font-black shadow-2xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-              >
-                Sec {sec}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Top Summary Banner: Pass/Fail Classification & Single-Subject Low Mark Alert */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">

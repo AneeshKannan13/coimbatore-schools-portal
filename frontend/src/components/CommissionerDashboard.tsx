@@ -8,7 +8,7 @@ import {
 } from 'recharts';
 import apiClient, { CORP_LOGO_URL } from '../api';
 import { SchoolDetailModal } from './SchoolDetailModal';
-import { StudentAnalyticsSection } from './StudentAnalyticsSection';
+import { StudentAnalyticsSection, type SortMode } from './StudentAnalyticsSection';
 import { StaffAnalyticsModal } from './StaffAnalyticsModal';
 
 type SchoolSortMode =
@@ -27,10 +27,13 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
   const [staffData, setStaffData] = useState<any>(null);
   const [schoolStaffList, setSchoolStaffList] = useState<any[]>([]);
   const [selectedZone, setSelectedZone] = useState<string>('All');
+  const [filterSchoolId, setFilterSchoolId] = useState<number>(0);
   const [selectedStandard, setSelectedStandard] = useState<string>('All');
+  const [selectedSection, setSelectedSection] = useState<string>('All');
+  const [availableSections, setAvailableSections] = useState<string[]>(['A', 'A1', 'A2', 'A3', 'B', 'B1', 'B2', 'C', 'D']);
+  const [studentSortBy, setStudentSortBy] = useState<SortMode>('FAIL_DESC');
   const [schoolSortBy, setSchoolSortBy] = useState<SchoolSortMode>('FAIL_DESC');
   const [staffLeaveSort, setStaffLeaveSort] = useState<'LEAVE_DESC' | 'LEAVE_ASC' | 'PRESENT_DESC' | 'PASS_DESC'>('LEAVE_DESC');
-  const [filterSchoolId, setFilterSchoolId] = useState<number>(1);
   const [selectedSchoolId, setSelectedSchoolId] = useState<number | null>(null);
   const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,17 +42,15 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
     const params = new URLSearchParams();
     if (selectedZone !== 'All') params.append('zone', selectedZone);
     if (selectedStandard !== 'All') params.append('standard', selectedStandard);
+    if (selectedSection !== 'All') params.append('section', selectedSection);
     const query = params.toString() ? `?${params.toString()}` : '';
 
     apiClient.get(`/commissioner/dashboard${query}`)
       .then(res => {
         setData(res.data);
         const list: any[] = res.data?.schools || [];
-        if (list.length > 0) {
-          const exists = list.some((s: any) => s.id === filterSchoolId);
-          if (!filterSchoolId || !exists) {
-            setFilterSchoolId(list[0].id);
-          }
+        if (filterSchoolId !== 0 && list.length > 0 && !list.some((s: any) => s.id === filterSchoolId)) {
+          setFilterSchoolId(0);
         }
       })
       .catch(console.error);
@@ -58,9 +59,28 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
       .then(res => setStaffData(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [selectedZone, selectedStandard]);
+  }, [selectedZone, selectedStandard, selectedSection]);
 
-  const sortedSchools = [...(data?.schools || [])].sort((a: any, b: any) => {
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (selectedStandard !== 'All') params.append('standard', selectedStandard);
+    if (selectedZone !== 'All') params.append('zone', selectedZone);
+    apiClient.get(`/schools/${filterSchoolId}/students-analytics?${params.toString()}`)
+      .then(res => {
+        const secs: string[] = res.data?.available_sections || [];
+        if (secs.length > 0) {
+          setAvailableSections(secs);
+          if (selectedSection !== 'All' && !secs.includes(selectedSection)) {
+            setSelectedSection('All');
+          }
+        }
+      })
+      .catch(console.error);
+  }, [filterSchoolId, selectedStandard, selectedZone]);
+
+  const sortedSchools = [...(data?.schools || [])]
+    .filter((s: any) => (filterSchoolId > 0 ? s.id === filterSchoolId : true))
+    .sort((a: any, b: any) => {
     const failA = a.fail_count ?? a.risk_students ?? 0;
     const failB = b.fail_count ?? b.risk_students ?? 0;
     if (schoolSortBy === 'FAIL_DESC') return failB - failA;
@@ -177,82 +197,179 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
           </div>
         </div>
 
-        {/* Classes (9, 10, 11, 12) + Zone Filter Bar */}
-        <div className="pt-2.5 border-t border-slate-200/80 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5">
-          {/* Requirement 1: Classes 9, 10, 11, 12 Filter */}
-          <div className="table-scroll-container flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl">
-            <span className="text-[11px] font-black text-[#650000] pl-2.5 pr-1 shrink-0 uppercase">
-              Class:
-            </span>
-            {[
-              { val: 'All', label: 'All (9–12)' },
-              { val: '9', label: 'Class 9' },
-              { val: '10', label: 'Class 10' },
-              { val: '11', label: 'Class 11' },
-              { val: '12', label: 'Class 12' },
-            ].map((cls) => (
-              <button
-                key={cls.val}
-                onClick={() => setSelectedStandard(cls.val)}
-                className={`px-3 py-1 rounded-xl text-xs font-black transition whitespace-nowrap cursor-pointer shrink-0 ${
-                  selectedStandard === cls.val
-                    ? 'bg-[#8B0000] text-[#FFD700] shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {cls.label}
-              </button>
-            ))}
-          </div>
+        {/* SINGLE UNIFIED FILTER AREA — Strictly Ordered: 1. Zone -> 2. School -> 3. Class -> 4. Section (+ Sort Filter) */}
+        <div className="pt-3 border-t border-slate-200/80">
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/90 flex flex-col gap-2.5">
+            {/* Row 1: (1) ZONE first, then (2) SCHOOL second */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+              {/* 1. Zone Filter */}
+              <div className="table-scroll-container flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200/80">
+                <span className="text-[11px] font-black text-[#650000] pl-2.5 pr-1 shrink-0 uppercase">
+                  1. Zone:
+                </span>
+                {['All', 'North', 'South', 'East', 'West', 'Central'].map((z) => (
+                  <button
+                    key={z}
+                    onClick={() => setSelectedZone(z)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer shrink-0 ${
+                      selectedZone === z
+                        ? 'bg-[#8B0000] text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {z}
+                  </button>
+                ))}
+              </div>
 
-          {/* Zone Filter */}
-          <div className="table-scroll-container flex items-center gap-1 bg-slate-100 p-1 rounded-2xl">
-            <span className="text-[11px] font-bold text-slate-500 pl-2.5 pr-1 shrink-0 uppercase">Zone:</span>
-            {['All', 'North', 'South', 'East', 'West', 'Central'].map((z) => (
-              <button
-                key={z}
-                onClick={() => setSelectedZone(z)}
-                className={`px-2.5 py-1 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer shrink-0 ${
-                  selectedZone === z
-                    ? 'bg-[#8B0000] text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {z}
-              </button>
-            ))}
+              {/* 2. School Filter */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-2 bg-white p-1.5 sm:px-3 sm:py-1 rounded-xl border border-slate-200/80">
+                <div className="flex items-center gap-1.5 text-[11px] font-black text-[#650000] uppercase shrink-0">
+                  <Building2 className="w-3.5 h-3.5 text-[#8B0000] shrink-0" />
+                  <span>2. School:</span>
+                </div>
+                <select
+                  value={filterSchoolId}
+                  onChange={(e) => setFilterSchoolId(Number(e.target.value))}
+                  className="w-full sm:w-auto px-2.5 py-1 border border-slate-300 rounded-lg text-xs font-bold bg-white text-slate-800 sm:min-w-[310px] cursor-pointer"
+                >
+                  <option value={0}>All Corporation Schools (Combined View)</option>
+                  {data?.schools?.map((s: any) => (
+                    <option key={s.id} value={s.id}>
+                      {s.code} — {s.name} ({s.zone} Zone)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Row 2: (3) CLASS third, then (4) SECTION fourth */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 pt-2 border-t border-slate-200/70">
+              {/* 3. Class Filter (9, 10, 11, 12) */}
+              <div className="table-scroll-container flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200/80">
+                <span className="text-[11px] font-black text-[#650000] pl-2.5 pr-1 shrink-0 uppercase">
+                  3. Class:
+                </span>
+                {[
+                  { val: 'All', label: 'All (9–12)' },
+                  { val: '9', label: 'Class 9' },
+                  { val: '10', label: 'Class 10' },
+                  { val: '11', label: 'Class 11' },
+                  { val: '12', label: 'Class 12' },
+                ].map((cls) => (
+                  <button
+                    key={cls.val}
+                    onClick={() => setSelectedStandard(cls.val)}
+                    className={`px-3 py-1 rounded-lg text-xs font-black transition whitespace-nowrap cursor-pointer shrink-0 ${
+                      selectedStandard === cls.val
+                        ? 'bg-[#8B0000] text-[#FFD700] shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {cls.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* 4. Section Filter */}
+              <div className="table-scroll-container flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200/80">
+                <span className="text-[11px] font-black text-[#650000] pl-2.5 pr-1 shrink-0 uppercase">
+                  4. Section:
+                </span>
+                <button
+                  onClick={() => setSelectedSection('All')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer shrink-0 ${
+                    selectedSection === 'All'
+                      ? 'bg-[#FFC928] text-[#650000] shadow-2xs'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  All Sections ({availableSections.length})
+                </button>
+                {availableSections.map((sec) => (
+                  <button
+                    key={sec}
+                    onClick={() => setSelectedSection(sec)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${
+                      selectedSection === sec
+                        ? 'bg-[#FFC928] text-[#650000] font-black shadow-2xs'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    Sec {sec}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Optional Row 3 inside the same unified area when on Students tab: Sort Filter */}
+            {activeTab === 'students' && (
+              <div className="flex flex-wrap items-center justify-end gap-1.5 pt-2 border-t border-slate-200/70">
+                <ArrowUpDown className="w-3.5 h-3.5 text-[#8B0000] shrink-0" />
+                <span className="text-[11px] font-black text-[#650000] uppercase">Sort Filter:</span>
+                <button
+                  onClick={() => setStudentSortBy(studentSortBy === 'PASS_DESC' ? 'PASS_ASC' : 'PASS_DESC')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition cursor-pointer ${
+                    studentSortBy.startsWith('PASS_')
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  Pass {studentSortBy === 'PASS_ASC' ? '↑' : '↓'}
+                </button>
+                <button
+                  onClick={() => setStudentSortBy(studentSortBy === 'ATT_DESC' ? 'ATT_ASC' : 'ATT_DESC')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition cursor-pointer ${
+                    studentSortBy.startsWith('ATT_')
+                      ? 'bg-[#FFC928] text-[#650000]'
+                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  Attendance {studentSortBy === 'ATT_ASC' ? '↑' : '↓'}
+                </button>
+                <button
+                  onClick={() => setStudentSortBy(studentSortBy === 'FAIL_DESC' ? 'FAIL_ASC' : 'FAIL_DESC')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition cursor-pointer ${
+                    studentSortBy.startsWith('FAIL_')
+                      ? 'bg-rose-600 text-white'
+                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  Fail Count {studentSortBy === 'FAIL_ASC' ? '↑' : '↓'}
+                </button>
+                <select
+                  value={studentSortBy}
+                  onChange={(e) => setStudentSortBy(e.target.value as SortMode)}
+                  className="px-2.5 py-1 border border-slate-300 rounded-xl text-xs font-black bg-white text-slate-800 cursor-pointer"
+                >
+                  <option value="FAIL_DESC">Fail Count: High → Low</option>
+                  <option value="FAIL_ASC">Fail Count: Low → High</option>
+                  <option value="PASS_DESC">Pass Subjects / %: High → Low</option>
+                  <option value="PASS_ASC">Pass Subjects / %: Low → High</option>
+                  <option value="ATT_DESC">Attendance %: High → Low</option>
+                  <option value="ATT_ASC">Attendance %: Low → High</option>
+                  <option value="AVG_DESC">Average Mark: High → Low</option>
+                  <option value="AVG_ASC">Average Mark: Low → High</option>
+                  <option value="NAME_ASC">Student Name: A → Z</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
       </div>
-
-      {/* School Selector Bar for Students & Staff Tabs */}
-      {activeTab !== 'overview' && (
-        <div className="glass-card p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 border-l-4 border-l-[#FFC928]">
-          <div className="flex items-center gap-2 text-xs font-black text-[#650000]">
-            <Building2 className="w-4 h-4 text-[#8B0000] shrink-0" />
-            <span>Select Corporation School to Inspect Staff &amp; Student Mark Ranges:</span>
-          </div>
-          <select
-            value={filterSchoolId}
-            onChange={(e) => setFilterSchoolId(Number(e.target.value))}
-            className="w-full sm:w-auto px-3 py-2 border border-slate-300 rounded-xl text-xs font-bold bg-white text-slate-800 sm:min-w-[340px]"
-          >
-            <option value={0}>All Corporation Schools (Combined View)</option>
-            {data?.schools?.map((s: any) => (
-              <option key={s.id} value={s.id}>
-                {s.code} — {s.name} ({s.zone} Zone)
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
 
       {activeTab === 'students' ? (
         <StudentAnalyticsSection
           schoolId={filterSchoolId}
           zone={selectedZone}
           initialStandard={selectedStandard}
+          externalSection={selectedSection}
+          onSectionChange={setSelectedSection}
+          onAvailableSectionsChange={setAvailableSections}
+          externalSortBy={studentSortBy}
+          onSortByChange={setStudentSortBy}
           hideClassFilter={true}
+          hideTopFilterCard={true}
           allowUploads={false}
           title="Corporation Commissioner — Student Pass/Fail Classification & 5-Range Breakdown"
           onSelectTeacher={(tid) => setSelectedTeacherId(tid)}
