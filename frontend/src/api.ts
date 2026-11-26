@@ -255,10 +255,51 @@ function buildRealStudentsAnalytics(
   };
 }
 
-function buildRealStaffDashboard(teacherId: number) {
+function getTeacherHandledStandards(tch: any): string[] {
+  const sid = Number(tch?.school_id || 1);
+  // Schools 1 (Anupparpalayam) and 4 (Selvapuram) are High Schools (Classes 9 & 10 only)
+  if (sid === 1 || sid === 4) {
+    return ['9', '10'];
+  }
+  const desig = String(tch?.designation || '').toUpperCase();
+  const subj = String(tch?.subject_specialization || tch?.subject || '').toUpperCase();
+  const hssSubjects = new Set([
+    'PHYSICS', 'CHEMISTRY', 'BIOLOGY', 'COMPUTER SCIENCE', 'COMMERCE',
+    'ACCOUNTANCY', 'ECONOMICS', 'COMPUTER APPLICATIONS', 'HISTORY',
+    'GEOGRAPHY', 'STATISTICS'
+  ]);
+  if (desig.includes('HM')) {
+    return ['9', '10', '11', '12'];
+  }
+  if (desig.includes('PG') || hssSubjects.has(subj)) {
+    return ['11', '12'];
+  }
+  return ['9', '10'];
+}
+
+function getTeacherClassesLabel(tch: any, standardFilter?: string | null): string {
+  const stds = getTeacherHandledStandards(tch);
+  const activeStds = (standardFilter && standardFilter !== 'All')
+    ? stds.filter((s) => s === String(standardFilter))
+    : stds;
+  const stdText = activeStds.length === 4
+    ? 'Classes 9–12'
+    : activeStds.length === 2
+    ? `Classes ${activeStds[0]} & ${activeStds[1]}`
+    : activeStds.length === 1
+    ? `Class ${activeStds[0]}`
+    : `Classes ${stds.join(', ')}`;
+  const secText = String(tch?.classes_handled || 'A, B').trim();
+  return `${stdText} (Sec ${secText})`;
+}
+
+function buildRealStaffDashboard(teacherId: number, standardFilter?: string | null) {
   const tch = ALL_REAL_STAFF.find((s) => s.id === Number(teacherId)) || ALL_REAL_STAFF[0];
-  const subName = tch.subject_specialization;
-  const schoolAnalytics = buildRealStudentsAnalytics(tch.school_id);
+  const subName = String(tch.subject_specialization || tch.subject || '').trim();
+  const subUpper = subName.toUpperCase();
+  const isHM = String(tch.designation || '').toUpperCase().includes('HM') || subUpper === 'ADMINISTRATION';
+  const handledStds = getTeacherHandledStandards(tch);
+  const schoolAnalytics = buildRealStudentsAnalytics(tch.school_id, standardFilter);
 
   const rangeBuckets: Record<string, any> = {
     below_35: { key: 'below_35', label: 'Below 35', sublabel: 'Fail (< 35)', count: 0, percentage: 0, students: [] },
@@ -273,13 +314,25 @@ function buildRealStaffDashboard(teacherId: number) {
   const studentsList: any[] = [];
 
   for (const st of schoolAnalytics.students) {
-    const subMarkObj = st.subject_marks.find((m: any) => m.teacher_id === tch.id || m.subject_name === subName) || st.subject_marks[0];
+    if (!handledStds.includes(String(st.standard))) continue;
+    if (standardFilter && standardFilter !== 'All' && String(st.standard) !== String(standardFilter)) continue;
+
+    let subMarkObj = st.subject_marks.find(
+      (m: any) => m.teacher_id === tch.id || String(m.subject_name).toUpperCase() === subUpper
+    );
+    if (!subMarkObj && isHM) {
+      subMarkObj = {
+        subject_name: 'Overall Average',
+        mark: Math.round(st.avg_mark),
+      };
+    }
     if (!subMarkObj) continue;
-    const markVal = subMarkObj.mark;
-    const isPass = markVal >= 35;
+
+    const markVal = Number(subMarkObj.mark);
+    const isPass = isHM ? Boolean(st.is_pass) : markVal >= 35;
     if (isPass) passCount++;
     else failCount++;
-    const rInfo = classifyRange(markVal);
+    const rInfo = !isPass ? { key: 'below_35', label: 'Below 35' } : classifyRange(markVal);
 
     const row = {
       id: st.id,
@@ -327,6 +380,8 @@ function buildRealStaffDashboard(teacherId: number) {
       school_name: tch.school_name,
       zone: tch.zone,
       ward: tch.ward,
+      standards_handled: handledStds,
+      classes_label: getTeacherClassesLabel(tch, standardFilter),
       classes_handled: String(tch.classes_handled || 'A, B').split(',').map((s: string) => s.trim()),
     },
     attendance: {
@@ -498,12 +553,29 @@ apiClient.interceptors.response.use(
       if (url.includes('/commissioner/school/') && url.includes('/detailed-analysis')) {
         const match = url.match(/\/school\/(\d+)\//);
         const sid = match ? Number(match[1]) : 1;
-        const sc = REAL_SCHOOLS.find((s) => s.id === sid) || REAL_SCHOOLS[0];
-        const sStaff = REAL_STAFF_BY_SCHOOL[String(sc.id)] || [];
-        const sStudents = REAL_STUDENTS_BY_SCHOOL[String(sc.id)] || [];
+        const sc = sid === 0
+          ? {
+              id: 0,
+              code: 'ALL-CCMC',
+              name: 'All Corporation Schools (Combined View)',
+              zone: 'Central',
+              ward: 'All Wards',
+              headmaster_name: 'All Headmasters',
+              emis_number: 'CCMC-ALL',
+            }
+          : (REAL_SCHOOLS.find((s) => s.id === sid) || REAL_SCHOOLS[0]);
+        const rawStaff = sid === 0 ? ALL_REAL_STAFF : (REAL_STAFF_BY_SCHOOL[String(sc.id)] || []);
+        const sStaff = rawStaff.filter((st) => {
+          if (stdParam && stdParam !== 'All') {
+            return getTeacherHandledStandards(st).includes(String(stdParam));
+          }
+          return true;
+        });
+        const sStudents = sid === 0 ? ALL_REAL_STUDENTS : (REAL_STUDENTS_BY_SCHOOL[String(sc.id)] || []);
 
         const classMap: Record<string, { std: string; sec: string; count: number; attSum: number; avgSum: number }> = {};
         sStudents.forEach((st) => {
+          if (stdParam && stdParam !== 'All' && String(st.std) !== String(stdParam)) return;
           const k = `${st.std}-${st.sec}`;
           if (!classMap[k]) classMap[k] = { std: st.std, sec: st.sec, count: 0, attSum: 0, avgSum: 0 };
           classMap[k].count += 1;
@@ -516,9 +588,11 @@ apiClient.interceptors.response.use(
           data: {
             school: sc,
             staff: sStaff.map((st) => {
-              const d = buildRealStaffDashboard(st.id);
+              const d = buildRealStaffDashboard(st.id, stdParam);
               return {
                 ...st,
+                standards_handled: getTeacherHandledStandards(st),
+                classes_label: getTeacherClassesLabel(st, stdParam),
                 handling_student_count: d.student_metrics.handling_student_count,
                 pass_ratio: d.student_metrics.pass_ratio,
                 fail_ratio: d.student_metrics.fail_ratio,
@@ -599,8 +673,17 @@ apiClient.interceptors.response.use(
       }
 
       if (url.includes('/headmaster/staff')) {
-        const sid = Number(searchParams.get('school_id') || 1);
-        const sStaff = REAL_STAFF_BY_SCHOOL[String(sid)] || REAL_STAFF_BY_SCHOOL['1'] || [];
+        const sidParam = searchParams.get('school_id');
+        const sid = sidParam !== null ? Number(sidParam) : 1;
+        const rawStaff = sid === 0
+          ? ALL_REAL_STAFF
+          : (REAL_STAFF_BY_SCHOOL[String(sid)] || REAL_STAFF_BY_SCHOOL['1'] || []);
+        const sStaff = rawStaff.filter((st) => {
+          if (stdParam && stdParam !== 'All') {
+            return getTeacherHandledStandards(st).includes(String(stdParam));
+          }
+          return true;
+        });
         const totLeave = sStaff.reduce((a, b) => a + Number(b.total_leave || 0), 0);
         const avgAtt = sStaff.length > 0
           ? Number((sStaff.reduce((a, b) => a + Number(b.attendance_percentage || 90), 0) / sStaff.length).toFixed(1))
@@ -616,9 +699,11 @@ apiClient.interceptors.response.use(
               average_staff_attendance: avgAtt,
             },
             staff: sStaff.map((s) => {
-              const d = buildRealStaffDashboard(s.id);
+              const d = buildRealStaffDashboard(s.id, stdParam);
               return {
                 ...s,
+                standards_handled: getTeacherHandledStandards(s),
+                classes_label: getTeacherClassesLabel(s, stdParam),
                 handling_student_count: d.student_metrics.handling_student_count,
                 student_pass_pct: d.student_metrics.pass_ratio,
                 student_fail_pct: d.student_metrics.fail_ratio,

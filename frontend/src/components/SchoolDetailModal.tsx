@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  X, UserCheck, Sun, Moon
+  X, UserCheck, Sun, Moon, Building2
 } from 'lucide-react';
-import apiClient, { CORP_LOGO_URL } from '../api';
+import apiClient, { CORP_LOGO_URL, REAL_SCHOOLS } from '../api';
 import { StudentAnalyticsSection } from './StudentAnalyticsSection';
 import { StaffAnalyticsModal } from './StaffAnalyticsModal';
 
@@ -15,15 +15,40 @@ export const SchoolDetailModal: React.FC<{
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'students' | 'staff' | 'standards'>('students');
   const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
+  const [filterSchoolId, setFilterSchoolId] = useState<number>(schoolId);
+  const [filterStandard, setFilterStandard] = useState<string>('All');
 
   useEffect(() => {
-    if (!isOpen || !schoolId) return;
+    setFilterSchoolId(schoolId);
+  }, [schoolId]);
+
+  // Filter available schools based on selected class (High Schools don't have Class 11 & 12)
+  const availableSchools = REAL_SCHOOLS.filter((s: any) => {
+    if (filterStandard === '11' || filterStandard === '12') {
+      return s.id === 2 || s.id === 3;
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    if (
+      filterSchoolId !== 0 &&
+      (filterStandard === '11' || filterStandard === '12') &&
+      !availableSchools.some((s: any) => s.id === filterSchoolId)
+    ) {
+      setFilterSchoolId(0);
+    }
+  }, [filterStandard, filterSchoolId]);
+
+  useEffect(() => {
+    if (!isOpen) return;
     setLoading(true);
-    apiClient.get(`/commissioner/school/${schoolId}/detailed-analysis`)
+    const q = filterStandard !== 'All' ? `?standard=${filterStandard}` : '';
+    apiClient.get(`/commissioner/school/${filterSchoolId}/detailed-analysis${q}`)
       .then(res => setData(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [isOpen, schoolId]);
+  }, [isOpen, filterSchoolId, filterStandard]);
 
   if (!isOpen) return null;
 
@@ -119,13 +144,63 @@ export const SchoolDetailModal: React.FC<{
         <div className="flex-1 overflow-y-auto py-3 pr-0.5 sm:pr-1">
           {activeTab === 'students' ? (
             <StudentAnalyticsSection
-              schoolId={schoolId}
+              schoolId={filterSchoolId}
+              initialStandard={filterStandard}
               allowUploads={false}
               title={`${data?.school?.name || 'School'} — Student Pass/Fail & Range Classification`}
               onSelectTeacher={(tid) => setSelectedTeacherId(tid)}
             />
           ) : activeTab === 'staff' ? (
             <div className="space-y-3">
+              {/* Class-Wise & School-Wise Filter Bar for Staff Listing */}
+              <div className="glass-card p-3 sm:p-3.5 border border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
+                {/* Class-Wise Filter */}
+                <div className="table-scroll-container flex items-center gap-1.5">
+                  <span className="text-[11px] font-black text-[#650000] uppercase shrink-0 pr-1">
+                    Class Filter:
+                  </span>
+                  {[
+                    { val: 'All', label: 'All Classes (9–12)' },
+                    { val: '9', label: 'Class 9' },
+                    { val: '10', label: 'Class 10' },
+                    { val: '11', label: 'Class 11' },
+                    { val: '12', label: 'Class 12' },
+                  ].map((cls) => (
+                    <button
+                      key={cls.val}
+                      onClick={() => setFilterStandard(cls.val)}
+                      className={`px-2.5 py-1 rounded-xl text-xs font-black transition whitespace-nowrap cursor-pointer shrink-0 ${
+                        filterStandard === cls.val
+                          ? 'bg-[#8B0000] text-[#FFD700] shadow-xs'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
+                    >
+                      {cls.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* School-Wise Filter */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <Building2 className="w-4 h-4 text-[#8B0000] shrink-0" />
+                  <span className="text-[11px] font-black text-[#650000] uppercase shrink-0">
+                    School Filter:
+                  </span>
+                  <select
+                    value={filterSchoolId}
+                    onChange={(e) => setFilterSchoolId(Number(e.target.value))}
+                    className="px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white text-slate-800 cursor-pointer max-w-[280px] sm:max-w-[340px]"
+                  >
+                    <option value={0}>All Corporation Schools (Combined Staff)</option>
+                    {availableSchools.map((s: any) => (
+                      <option key={s.id} value={s.id}>
+                        {s.code} — {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <div className="p-2.5 sm:p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] sm:text-xs text-amber-900 font-semibold">
                 Tap any <b>Staff Name</b> below to open their 360° Staff Performance Dashboard (with Handled Students, Pass/Fail Ratio &amp; Mark Ranges).
               </div>
@@ -146,6 +221,16 @@ export const SchoolDetailModal: React.FC<{
                         </div>
                         <div className="text-[10px] text-slate-600 font-bold mt-0.5">
                           {s.designation} • <span className="text-[#8B0000]">{s.handling_subject}</span>
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-1">
+                          <span className="px-1.5 py-0.5 rounded bg-[#FFC928]/30 text-[#650000] text-[9px] font-black">
+                            {s.classes_label || 'Classes 9 & 10'}
+                          </span>
+                          {s.school_name && (
+                            <span className="text-[9px] font-bold text-slate-500">
+                              • {s.school_name}
+                            </span>
+                          )}
                         </div>
                         <div className="text-[10px] text-slate-500 mt-0.5">
                           📍 {s.location} • 📞 {s.contact_number}
@@ -171,7 +256,7 @@ export const SchoolDetailModal: React.FC<{
                         <div className="font-black text-amber-900">{s.total_leave}d</div>
                       </div>
                       <div className="bg-rose-50/70 rounded-lg py-1">
-                        <div className="text-slate-500">{s.handling_student_count || 12} Students</div>
+                        <div className="text-slate-500">{s.handling_student_count ?? 0} Students</div>
                         <div className="font-black text-emerald-700">{s.pass_ratio ?? 85}% Pass</div>
                       </div>
                     </div>
@@ -181,11 +266,11 @@ export const SchoolDetailModal: React.FC<{
 
               {/* Desktop Table (>=768px) */}
               <div className="hidden md:block table-scroll-container rounded-xl border border-slate-200">
-                <table className="w-full text-left text-xs min-w-[780px]">
+                <table className="w-full text-left text-xs min-w-[820px]">
                   <thead className="bg-[#8B0000] text-white">
                     <tr>
-                      <th className="p-2.5">Staff Name (Click for Dashboard)</th>
-                      <th className="p-2.5">Designation &amp; Subject</th>
+                      <th className="p-2.5">Staff Name &amp; School (Click for Dashboard)</th>
+                      <th className="p-2.5">Designation, Subject &amp; Class</th>
                       <th className="p-2.5">Location &amp; Contact</th>
                       <th className="p-2.5 text-center">No. of Presents</th>
                       <th className="p-2.5 text-center">No. of Leaves</th>
@@ -213,10 +298,16 @@ export const SchoolDetailModal: React.FC<{
                             {s.teacher_name}
                           </button>
                           <div className="text-[10px] font-mono text-slate-400">{s.employee_id}</div>
+                          {s.school_name && (
+                            <div className="text-[10px] font-semibold text-slate-500 mt-0.5">{s.school_name}</div>
+                          )}
                         </td>
                         <td className="p-2.5">
                           <div className="font-bold text-slate-800">{s.designation}</div>
                           <div className="text-[11px] font-bold text-[#8B0000]">{s.handling_subject}</div>
+                          <span className="inline-block mt-0.5 px-2 py-0.5 rounded bg-[#FFC928]/30 text-[#650000] text-[10px] font-black">
+                            {s.classes_label || 'Classes 9 & 10'}
+                          </span>
                         </td>
                         <td className="p-2.5 text-slate-600">
                           <div className="font-semibold text-slate-800">{s.location}</div>
@@ -236,7 +327,7 @@ export const SchoolDetailModal: React.FC<{
                           </span>
                         </td>
                         <td className="p-2.5 text-center font-black text-[#650000]">
-                          {s.handling_student_count || 12} Students
+                          {s.handling_student_count ?? 0} Students
                         </td>
                         <td className="p-2.5 text-center">
                           <span className="text-emerald-700 font-black">{s.pass_ratio ?? 85}% Pass</span>

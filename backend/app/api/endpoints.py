@@ -448,16 +448,39 @@ def get_hm_dashboard(
     }
 
 # ----------------- HM STAFF PERFORMANCE & ATTENDANCE -----------------
+def _teacher_handled_standards(t: Teacher) -> list[str]:
+    if t.school_id in (1, 4):
+        return ["9", "10"]
+    desig = (t.designation or "").upper()
+    subj = (t.subject_specialization or "").upper()
+    hss_subjects = {
+        "PHYSICS", "CHEMISTRY", "BIOLOGY", "COMPUTER SCIENCE", "COMMERCE",
+        "ACCOUNTANCY", "ECONOMICS", "COMPUTER APPLICATIONS", "HISTORY",
+        "GEOGRAPHY", "STATISTICS"
+    }
+    if "HM" in desig:
+        return ["9", "10", "11", "12"]
+    if "PG" in desig or subj in hss_subjects:
+        return ["11", "12"]
+    return ["9", "10"]
+
 @router.get("/headmaster/staff")
 def get_hm_staff(
     month: Optional[str] = "SEPTEMBER",
     academic_year: Optional[str] = "2026-2027",
     school_id: Optional[int] = None,
+    standard: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.HEADMASTER.value, UserRole.COMMISSIONER.value, UserRole.ADMIN.value))
 ):
-    target_school_id = school_id or current_user.school_id or 1
-    teachers = db.query(Teacher).filter(Teacher.school_id == target_school_id).all()
+    if school_id == 0:
+        teachers = db.query(Teacher).all()
+    else:
+        target_school_id = school_id or current_user.school_id or 1
+        teachers = db.query(Teacher).filter(Teacher.school_id == target_school_id).all()
+
+    if standard and standard != "All":
+        teachers = [t for t in teachers if str(standard) in _teacher_handled_standards(t)]
     
     total_staff = len(teachers)
     staff_list = []
@@ -508,32 +531,50 @@ def get_hm_staff(
         if not classes_labels:
             classes_labels = ["10th - A", "10th - B"]
 
-        subj_name = t.subject_specialization or ("Maths" if "Math" in (t.designation or "") else "Science")
-        if handled_class_ids and handled_subject_ids:
-            t_marks = db.query(StudentMark).join(Student).filter(
-                Student.class_id.in_(handled_class_ids),
-                StudentMark.subject_id.in_(handled_subject_ids)
-            ).all()
-        else:
-            t_marks = db.query(StudentMark).join(Student).join(Subject).filter(
-                Student.school_id == target_school_id,
-                Subject.subject_name.ilike(f"%{subj_name}%")
-            ).all()
+        stds_handled = _teacher_handled_standards(t)
+        active_stds = [str(standard)] if (standard and standard != "All") else stds_handled
+        classes_label = (
+            "Classes 9–12" if len(active_stds) == 4
+            else f"Classes {active_stds[0]} & {active_stds[1]}" if len(active_stds) == 2
+            else f"Class {active_stds[0]}"
+        )
+        t_school = db.query(School).filter(School.id == t.school_id).first()
 
-        st_count = len(t_marks) or 12
-        pass_cnt = sum(1 for m in t_marks if m.total_mark >= 35.0) if t_marks else 10
-        fail_cnt = (st_count - pass_cnt) if t_marks else 2
-        pass_ratio = round((pass_cnt / st_count) * 100, 1) if st_count else 85.0
-        fail_ratio = round(100.0 - pass_ratio, 1)
+        subj_name = t.subject_specialization or ("Maths" if "Math" in (t.designation or "") else "Science")
+        t_marks_q = db.query(StudentMark).join(Student).join(SchoolClass).filter(
+            Student.school_id == t.school_id,
+            SchoolClass.standard.in_(active_stds)
+        )
+        if "HM" not in (t.designation or "").upper() and subj_name.upper() != "ADMINISTRATION":
+            t_marks_q = t_marks_q.join(Subject).filter(Subject.subject_name.ilike(f"%{subj_name}%"))
+        t_marks = t_marks_q.all()
+
+        if "HM" in (t.designation or "").upper() or subj_name.upper() == "ADMINISTRATION":
+            hm_studs = db.query(Student).join(SchoolClass).filter(
+                Student.school_id == t.school_id,
+                SchoolClass.standard.in_(active_stds)
+            ).all()
+            st_count = len(hm_studs)
+            pass_cnt = sum(1 for st_o in hm_studs if st_o.marks and all(m.total_mark >= 35.0 for m in st_o.marks))
+        else:
+            st_count = len(t_marks)
+            pass_cnt = sum(1 for m in t_marks if m.total_mark >= 35.0)
+        fail_cnt = max(0, st_count - pass_cnt)
+        pass_ratio = round((pass_cnt / st_count) * 100, 1) if st_count else 0.0
+        fail_ratio = round(100.0 - pass_ratio, 1) if st_count else 0.0
 
         staff_list.append({
             "id": t.id,
             "employee_id": t.employee_id or f"TCH-{t.id:03d}",
+            "school_id": t.school_id,
+            "school_name": t_school.school_name if t_school else "Corporation School",
             "teacher_name": t.teacher_name,
             "designation": t.designation,
             "subject": subj_name,
             "subject_specialization": t.subject_specialization or subj_name,
-            "classes_handled": ", ".join(classes_labels),
+            "standards_handled": stds_handled,
+            "classes_label": classes_label,
+            "classes_handled": classes_label,
             "medium": "English & Tamil Medium",
             "location": t.location or "Coimbatore",
             "native_place": t.native_place or "Coimbatore",
@@ -941,20 +982,29 @@ def get_metadata(db: Session = Depends(get_db)):
 def get_school_detailed_analysis(
     school_id: int,
     month: Optional[str] = "SEPTEMBER",
+    standard: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(UserRole.COMMISSIONER.value, UserRole.ADMIN.value))
 ):
-    school = db.query(School).filter(School.id == school_id).first()
-    if not school:
-        raise HTTPException(status_code=404, detail="School not found")
+    if school_id == 0:
+        school = db.query(School).first()
+        hm_name = "All Headmasters"
+        classes = db.query(SchoolClass).all()
+        teachers = db.query(Teacher).all()
+    else:
+        school = db.query(School).filter(School.id == school_id).first()
+        if not school:
+            raise HTTPException(status_code=404, detail="School not found")
+        hm_user = db.query(User).filter(User.school_id == school_id, User.role == UserRole.HEADMASTER.value).first()
+        hm_teacher = db.query(Teacher).filter(Teacher.school_id == school_id, Teacher.designation.ilike("%HM%")).first()
+        hm_name = hm_teacher.teacher_name if hm_teacher else (hm_user.username if hm_user else "Headmaster In-Charge")
+        classes = db.query(SchoolClass).filter(SchoolClass.school_id == school_id).all()
+        teachers = db.query(Teacher).filter(Teacher.school_id == school_id).all()
 
-    # Find Headmaster
-    hm_user = db.query(User).filter(User.school_id == school_id, User.role == UserRole.HEADMASTER.value).first()
-    hm_teacher = db.query(Teacher).filter(Teacher.school_id == school_id, Teacher.designation.ilike("%HM%")).first()
-    hm_name = hm_teacher.teacher_name if hm_teacher else (hm_user.username if hm_user else "Headmaster In-Charge")
+    if standard and standard != "All":
+        classes = [c for c in classes if str(c.standard) == str(standard)]
+        teachers = [t for t in teachers if str(standard) in _teacher_handled_standards(t)]
 
-    # Students details & counts by standard
-    classes = db.query(SchoolClass).filter(SchoolClass.school_id == school_id).all()
     classes_summary = []
     total_students = 0
     for c in classes:
@@ -971,8 +1021,6 @@ def get_school_detailed_analysis(
             "avg_score": 72.8
         })
 
-    # Staff in the school with handling subjects, leave status, attendance
-    teachers = db.query(Teacher).filter(Teacher.school_id == school_id).all()
     staff_details = []
     for t in teachers:
         att = db.query(TeacherAttendance).filter(
@@ -986,34 +1034,49 @@ def get_school_detailed_analysis(
         att_pct = att.attendance_percentage if att else round((present_days / working_days) * 100, 1)
         reason = att.reason if att else "Normal Duty"
 
-        subj_name = t.subject_specialization or ("Maths" if "Math" in (t.designation or "") else "Science")
-        allocs = db.query(TeacherSubjectAllocation).filter(TeacherSubjectAllocation.teacher_id == t.id).all()
-        handled_class_ids = [a.class_id for a in allocs]
-        handled_subject_ids = list({a.subject_id for a in allocs})
-        if handled_class_ids and handled_subject_ids:
-            t_marks = db.query(StudentMark).join(Student).filter(
-                Student.class_id.in_(handled_class_ids),
-                StudentMark.subject_id.in_(handled_subject_ids)
-            ).all()
-        else:
-            t_marks = db.query(StudentMark).join(Student).join(Subject).filter(
-                Student.school_id == school_id,
-                Subject.subject_name.ilike(f"%{subj_name}%")
-            ).all()
+        stds_handled = _teacher_handled_standards(t)
+        active_stds = [str(standard)] if (standard and standard != "All") else stds_handled
+        classes_label = (
+            "Classes 9–12" if len(active_stds) == 4
+            else f"Classes {active_stds[0]} & {active_stds[1]}" if len(active_stds) == 2
+            else f"Class {active_stds[0]}"
+        )
+        t_school = db.query(School).filter(School.id == t.school_id).first()
 
-        st_count = len(t_marks) or 12
-        pass_cnt = sum(1 for m in t_marks if m.total_mark >= 35.0) if t_marks else 10
-        fail_cnt = (st_count - pass_cnt) if t_marks else 2
-        pass_ratio = round((pass_cnt / st_count) * 100, 1) if st_count else 85.0
-        fail_ratio = round(100.0 - pass_ratio, 1)
+        subj_name = t.subject_specialization or ("Maths" if "Math" in (t.designation or "") else "Science")
+        t_marks_q = db.query(StudentMark).join(Student).join(SchoolClass).filter(
+            Student.school_id == t.school_id,
+            SchoolClass.standard.in_(active_stds)
+        )
+        if "HM" not in (t.designation or "").upper() and subj_name.upper() != "ADMINISTRATION":
+            t_marks_q = t_marks_q.join(Subject).filter(Subject.subject_name.ilike(f"%{subj_name}%"))
+        t_marks = t_marks_q.all()
+
+        if "HM" in (t.designation or "").upper() or subj_name.upper() == "ADMINISTRATION":
+            hm_studs = db.query(Student).join(SchoolClass).filter(
+                Student.school_id == t.school_id,
+                SchoolClass.standard.in_(active_stds)
+            ).all()
+            st_count = len(hm_studs)
+            pass_cnt = sum(1 for st_o in hm_studs if st_o.marks and all(m.total_mark >= 35.0 for m in st_o.marks))
+        else:
+            st_count = len(t_marks)
+            pass_cnt = sum(1 for m in t_marks if m.total_mark >= 35.0)
+        fail_cnt = max(0, st_count - pass_cnt)
+        pass_ratio = round((pass_cnt / st_count) * 100, 1) if st_count else 0.0
+        fail_ratio = round(100.0 - pass_ratio, 1) if st_count else 0.0
 
         staff_details.append({
             "id": t.id,
             "employee_id": t.employee_id or f"TCH-{t.id:03d}",
+            "school_id": t.school_id,
+            "school_name": t_school.school_name if t_school else "Corporation School",
             "teacher_name": t.teacher_name,
             "designation": t.designation,
             "handling_subject": subj_name,
-            "classes_handled": "10th - A, 10th - B",
+            "standards_handled": stds_handled,
+            "classes_label": classes_label,
+            "classes_handled": classes_label,
             "contact_number": t.contact_number or "9876543210",
             "education_qualification": t.education_qualification or "M.Sc., B.Ed.",
             "location": t.location or "Coimbatore Urban",

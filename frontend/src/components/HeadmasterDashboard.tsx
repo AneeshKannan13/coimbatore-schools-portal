@@ -23,6 +23,7 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
 
   // Staff filters & modals
   const [selectedMonth, setSelectedMonth] = useState('SEPTEMBER');
+  const [selectedStaffStandard, setSelectedStaffStandard] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showStaffExcelModal, setShowStaffExcelModal] = useState(false);
@@ -41,11 +42,12 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
 
   const fetchDashboard = () => {
     setLoading(true);
-    apiClient.get(`/headmaster/dashboard?school_id=${selectedSchoolId}`)
+    apiClient.get(`/headmaster/dashboard?school_id=${selectedSchoolId || 1}`)
       .then(res => setData(res.data))
       .catch(console.error);
 
-    apiClient.get(`/headmaster/staff?month=${selectedMonth}&school_id=${selectedSchoolId}`)
+    const stdQ = selectedStaffStandard !== 'All' ? `&standard=${selectedStaffStandard}` : '';
+    apiClient.get(`/headmaster/staff?month=${selectedMonth}&school_id=${selectedSchoolId}${stdQ}`)
       .then(res => setStaffData(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -53,7 +55,7 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
 
   useEffect(() => {
     fetchDashboard();
-  }, [selectedMonth, selectedSchoolId]);
+  }, [selectedMonth, selectedSchoolId, selectedStaffStandard]);
 
   const handleEditAttendance = (staff: any) => {
     setEditingStaff(staff);
@@ -362,55 +364,107 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
             </div>
           </div>
 
-          {/* Action Header & Filters */}
-          <div className="glass-card p-3.5 sm:p-4 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 sm:gap-4">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+          {/* Action Header & Filters (School-Wise, Class-Wise, Month & Search) */}
+          <div className="glass-card p-3.5 sm:p-4 flex flex-col gap-3">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-200/80">
+              {/* Class-Wise Filter */}
+              <div className="table-scroll-container flex items-center gap-1.5">
+                <span className="text-[11px] font-black text-[#650000] uppercase shrink-0 pr-1">
+                  Class Filter:
+                </span>
+                {[
+                  { val: 'All', label: 'All Classes (9–12)' },
+                  { val: '9', label: 'Class 9' },
+                  { val: '10', label: 'Class 10' },
+                  { val: '11', label: 'Class 11' },
+                  { val: '12', label: 'Class 12' },
+                ].map((cls) => (
+                  <button
+                    key={cls.val}
+                    onClick={() => setSelectedStaffStandard(cls.val)}
+                    className={`px-3 py-1 rounded-xl text-xs font-black transition whitespace-nowrap cursor-pointer shrink-0 ${
+                      selectedStaffStandard === cls.val
+                        ? 'bg-[#8B0000] text-[#FFD700] shadow-xs'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    {cls.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* School-Wise Filter */}
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 shrink-0">
-                  <Calendar className="w-4 h-4 text-[#8B0000]" /> Month:
-                </div>
+                <Building2 className="w-4 h-4 text-[#8B0000] shrink-0" />
+                <span className="text-[11px] font-black text-[#650000] uppercase shrink-0">School Filter:</span>
                 <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="px-3 py-2 sm:py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white text-slate-800 flex-1 sm:flex-initial"
+                  value={selectedSchoolId}
+                  onChange={(e) => setSelectedSchoolId(Number(e.target.value))}
+                  className="px-3 py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white text-slate-800 cursor-pointer"
                 >
-                  {['JUNE', 'JULY', 'AUGUST', 'SEPTEMBER'].map(m => (
-                    <option key={m} value={m}>{m}</option>
+                  <option value={0}>All Corporation Schools (Combined Staff)</option>
+                  {REAL_SCHOOLS.filter((s: any) =>
+                    selectedStaffStandard === '11' || selectedStaffStandard === '12'
+                      ? s.id === 2 || s.id === 3
+                      : true
+                  ).map((s: any) => (
+                    <option key={s.id} value={s.id}>
+                      {s.code} — {s.name}
+                    </option>
                   ))}
                 </select>
               </div>
-
-              <div className="relative flex-1 sm:w-64">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  placeholder="Search staff, subject, location..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 sm:py-1.5 text-xs border border-slate-300 rounded-xl bg-white"
-                />
-              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2">
-              <button
-                onClick={() => { setSelectedProfileStaff(null); setShowProfileModal(true); }}
-                className="primary-button px-3.5 sm:px-4 py-2.5 sm:py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5 text-[#FFD700]" /> Add Staff Profile
-              </button>
-              <button
-                onClick={() => setShowStaffExcelModal(true)}
-                className="px-3.5 sm:px-4 py-2.5 sm:py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer bg-slate-800 hover:bg-slate-900 text-white transition"
-              >
-                <FileUp className="w-3.5 h-3.5" /> Upload Staff Workbook (.xlsx)
-              </button>
-              <button
-                onClick={() => setShowUploadModal(true)}
-                className="gold-button px-3.5 sm:px-4 py-2.5 sm:py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-              >
-                <Upload className="w-3.5 h-3.5" /> Upload Attendance (.xlsx)
-              </button>
+            <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full md:w-auto">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 shrink-0">
+                    <Calendar className="w-4 h-4 text-[#8B0000]" /> Month:
+                  </div>
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="px-3 py-2 sm:py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white text-slate-800 flex-1 sm:flex-initial"
+                  >
+                    {['JUNE', 'JULY', 'AUGUST', 'SEPTEMBER'].map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    placeholder="Search staff, subject, location..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-8 pr-3 py-2 sm:py-1.5 text-xs border border-slate-300 rounded-xl bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2">
+                <button
+                  onClick={() => { setSelectedProfileStaff(null); setShowProfileModal(true); }}
+                  className="primary-button px-3.5 sm:px-4 py-2.5 sm:py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#FFD700]" /> Add Staff Profile
+                </button>
+                <button
+                  onClick={() => setShowStaffExcelModal(true)}
+                  className="px-3.5 sm:px-4 py-2.5 sm:py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer bg-slate-800 hover:bg-slate-900 text-white transition"
+                >
+                  <FileUp className="w-3.5 h-3.5" /> Upload Staff Workbook (.xlsx)
+                </button>
+                <button
+                  onClick={() => setShowUploadModal(true)}
+                  className="gold-button px-3.5 sm:px-4 py-2.5 sm:py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Upload className="w-3.5 h-3.5" /> Upload Attendance (.xlsx)
+                </button>
+              </div>
             </div>
           </div>
 
@@ -443,6 +497,16 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
                       </div>
                       <div className="text-[10px] font-bold text-slate-700 mt-0.5">
                         {s.designation} • <span className="text-[#8B0000]">{s.subject}</span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-1">
+                        <span className="px-1.5 py-0.5 rounded bg-[#FFC928]/30 text-[#650000] text-[9px] font-black">
+                          {s.classes_label || `Sec ${s.classes_handled}`}
+                        </span>
+                        {s.school_name && (
+                          <span className="text-[9px] font-bold text-slate-500">
+                            • {s.school_name}
+                          </span>
+                        )}
                       </div>
                       <div className="text-[10px] text-slate-500 mt-0.5">
                         📍 {s.location} • 📞 {s.contact_number}
@@ -527,10 +591,16 @@ export const HeadmasterDashboard: React.FC<{ user: any }> = ({ user }) => {
                           <span>{s.teacher_name}</span>
                         </button>
                         <div className="text-[10px] font-mono text-slate-400 mt-0.5">{s.employee_id}</div>
+                        {s.school_name && (
+                          <div className="text-[10px] font-semibold text-slate-500 mt-0.5">{s.school_name}</div>
+                        )}
                       </td>
                       <td className="p-3">
                         <div className="font-bold text-slate-800">{s.designation}</div>
-                        <div className="text-[11px] font-bold text-[#8B0000]">{s.subject} ({s.classes_handled})</div>
+                        <div className="text-[11px] font-bold text-[#8B0000]">{s.subject}</div>
+                        <span className="inline-block mt-0.5 px-2 py-0.5 rounded bg-[#FFC928]/30 text-[#650000] text-[10px] font-black">
+                          {s.classes_label || `Sec ${s.classes_handled}`}
+                        </span>
                       </td>
                       <td className="p-3">
                         <div className="font-semibold text-slate-700">{s.location}</div>

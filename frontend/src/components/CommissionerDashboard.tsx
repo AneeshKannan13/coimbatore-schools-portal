@@ -74,12 +74,11 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
   });
 
   useEffect(() => {
-    if (filterSchoolId > 0) {
-      apiClient.get(`/headmaster/staff?school_id=${filterSchoolId}`)
-        .then(res => setSchoolStaffList(res.data?.staff || []))
-        .catch(console.error);
-    }
-  }, [filterSchoolId]);
+    const stdQuery = selectedStandard !== 'All' ? `&standard=${selectedStandard}` : '';
+    apiClient.get(`/headmaster/staff?school_id=${filterSchoolId}${stdQuery}`)
+      .then(res => setSchoolStaffList(res.data?.staff || []))
+      .catch(console.error);
+  }, [filterSchoolId, selectedStandard]);
 
   const zoneData = data?.zone_summary?.map((z: any) => ({
     name: `${z.zone} Zone`,
@@ -237,7 +236,7 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
             onChange={(e) => setFilterSchoolId(Number(e.target.value))}
             className="w-full sm:w-auto px-3 py-2 border border-slate-300 rounded-xl text-xs font-bold bg-white text-slate-800 sm:min-w-[340px]"
           >
-            {activeTab === 'students' && <option value={0}>All Corporation Schools (Combined View)</option>}
+            <option value={0}>All Corporation Schools (Combined View)</option>
             {data?.schools?.map((s: any) => (
               <option key={s.id} value={s.id}>
                 {s.code} — {s.name} ({s.zone} Zone)
@@ -701,14 +700,53 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
         <div className="space-y-4 sm:space-y-6">
           {/* Individual School Staff Table with Clickable 360° Staff Analytics */}
           <div className="glass-card p-3.5 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-3.5 sm:mb-4">
               <div>
                 <h3 className="font-black text-[#650000] text-xs sm:text-base">
-                  Teaching Staff Directory — Tap Any Staff Name for 360° Dashboard (Leaves, Presents, Pass/Fail Ratio &amp; Mark Ranges)
+                  Teaching Staff Directory ({schoolStaffList.length} Staff) — Tap Any Staff Name for 360° Dashboard
                 </h3>
                 <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-                  Showing staff details, designation, location, contact, presents, leaves, handling student count &amp; pass/fail ratio
+                  Filtered by Class ({selectedStandard === 'All' ? 'All Classes 9–12' : `Class ${selectedStandard}`}) &amp; School • Showing designation, classes handled, leaves, handling student count &amp; pass/fail ratio
                 </p>
+              </div>
+
+              {/* Class-Wise & School-Wise Filter Controls Inside Staff Directory */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+                  <span className="text-[10px] font-black text-[#650000] uppercase px-2">Class:</span>
+                  {[
+                    { val: 'All', label: 'All (9–12)' },
+                    { val: '9', label: '9th' },
+                    { val: '10', label: '10th' },
+                    { val: '11', label: '11th' },
+                    { val: '12', label: '12th' },
+                  ].map((cls) => (
+                    <button
+                      key={cls.val}
+                      onClick={() => setSelectedStandard(cls.val)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition cursor-pointer ${
+                        selectedStandard === cls.val
+                          ? 'bg-[#8B0000] text-[#FFD700]'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {cls.label}
+                    </button>
+                  ))}
+                </div>
+
+                <select
+                  value={filterSchoolId}
+                  onChange={(e) => setFilterSchoolId(Number(e.target.value))}
+                  className="px-2.5 py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white text-slate-800 cursor-pointer"
+                >
+                  <option value={0}>All Corporation Schools</option>
+                  {data?.schools?.map((s: any) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -728,6 +766,16 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
                       </div>
                       <div className="text-[10px] font-bold text-slate-700 mt-0.5">
                         {s.designation} • <span className="text-[#8B0000]">{s.subject}</span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-1">
+                        <span className="px-1.5 py-0.5 rounded bg-[#FFC928]/30 text-[#650000] text-[9px] font-black">
+                          {s.classes_label || `Sec ${s.classes_handled}`}
+                        </span>
+                        {s.school_name && (
+                          <span className="text-[9px] font-bold text-slate-500">
+                            • {s.school_name}
+                          </span>
+                        )}
                       </div>
                       <div className="text-[10px] text-slate-500 mt-0.5">
                         📍 {s.location} • 📞 {s.contact_number}
@@ -764,11 +812,11 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
 
             {/* Desktop Table (>=768px) */}
             <div className="hidden md:block table-scroll-container rounded-xl border border-slate-200">
-              <table className="w-full text-left text-xs min-w-[820px]">
+              <table className="w-full text-left text-xs min-w-[840px]">
                 <thead className="bg-[#8B0000] text-white">
                   <tr>
-                    <th className="p-3">Staff Name (Click for 360° Dashboard)</th>
-                    <th className="p-3">Designation &amp; Subject</th>
+                    <th className="p-3">Staff Name &amp; School (Click for 360° Dashboard)</th>
+                    <th className="p-3">Designation, Subject &amp; Class</th>
                     <th className="p-3">Location &amp; Contact</th>
                     <th className="p-3 text-center">No. of Presents</th>
                     <th className="p-3 text-center">No. of Leaves</th>
@@ -796,10 +844,16 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
                           <span>{s.teacher_name}</span>
                         </button>
                         <div className="text-[10px] font-mono text-slate-400">{s.employee_id}</div>
+                        {s.school_name && (
+                          <div className="text-[10px] font-semibold text-slate-500 mt-0.5">{s.school_name}</div>
+                        )}
                       </td>
                       <td className="p-3">
                         <div className="font-bold text-slate-800">{s.designation}</div>
-                        <div className="text-[11px] font-bold text-[#8B0000]">{s.subject} ({s.classes_handled})</div>
+                        <div className="text-[11px] font-bold text-[#8B0000]">{s.subject}</div>
+                        <span className="inline-block mt-0.5 px-2 py-0.5 rounded bg-[#FFC928]/30 text-[#650000] text-[10px] font-black">
+                          {s.classes_label || `Sec ${s.classes_handled}`}
+                        </span>
                       </td>
                       <td className="p-3">
                         <div className="font-semibold text-slate-700">{s.location}</div>
