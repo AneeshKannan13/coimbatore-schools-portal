@@ -73,16 +73,18 @@ export const StudentAnalyticsSection: React.FC<{
   schoolId: number;
   zone?: string;
   initialStandard?: string;
+  hideClassFilter?: boolean;
   allowUploads?: boolean;
   title?: string;
   onSelectTeacher?: (teacherId: number) => void;
-}> = ({ schoolId, zone = 'All', initialStandard = 'All', allowUploads = true, title, onSelectTeacher }) => {
+}> = ({ schoolId, zone = 'All', initialStandard = 'All', hideClassFilter = false, allowUploads = true, title, onSelectTeacher }) => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedStandard, setSelectedStandard] = useState<string>(initialStandard);
   const [selectedSection, setSelectedSection] = useState<string>('All');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PASS' | 'FAIL' | 'LOW_SUBJECT'>('ALL');
   const [failedSubjectFilter, setFailedSubjectFilter] = useState<string | null>(null);
+  const [failedCountFilter, setFailedCountFilter] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortMode>('FAIL_DESC');
 
@@ -223,12 +225,32 @@ export const StudentAnalyticsSection: React.FC<{
     }));
   })();
 
+  const matchesFailedCount = (st: any) => {
+    if (failedCountFilter === 'ALL') return true;
+    const { failed } = getSubjCounts(st);
+    if (failedCountFilter === '5+') return failed >= 5;
+    return failed === Number(failedCountFilter);
+  };
+
+  // Students who failed the currently clicked subject in Subject-Wise Failure in Numbers
+  const subjectFailedStudents = failedSubjectFilter
+    ? sortStudentList(
+        students.filter((st: any) => {
+          if (!matchesFailedCount(st)) return false;
+          return st.subject_marks?.some(
+            (m: any) => m.subject_name === failedSubjectFilter && !m.is_pass
+          );
+        })
+      )
+    : [];
+
   const filteredStudents = sortStudentList(
     students.filter((st: any) => {
       const matchesSearch =
         st.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         st.emis_number.toLowerCase().includes(searchTerm.toLowerCase());
       if (!matchesSearch) return false;
+      if (!matchesFailedCount(st)) return false;
       if (failedSubjectFilter) {
         const hasFailedThisSubj = st.subject_marks?.some(
           (m: any) => m.subject_name === failedSubjectFilter && !m.is_pass
@@ -243,36 +265,68 @@ export const StudentAnalyticsSection: React.FC<{
   );
 
   const activeRangeObj = ranges.find((r: any) => r.key === expandedRangeKey);
-  const sortedRangeStudents = activeRangeObj ? sortStudentList(activeRangeObj.students || []) : [];
+  const sortedRangeStudents = activeRangeObj
+    ? sortStudentList((activeRangeObj.students || []).filter(matchesFailedCount))
+    : [];
 
   return (
     <div className="space-y-4 sm:space-y-5">
-      {/* Class (9, 10, 11, 12) & Dynamic Section (A, A1, A2, A3, B, B1, B2, C, D) Filter Bar */}
+      {/* Section (A, A1, A2, A3, B, B1, B2, C, D), Failed Subject Count Filter & Sort Filter Bar */}
       <div className="glass-card p-3 sm:p-4 flex flex-col gap-2.5 border border-slate-200">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5">
-          <div className="table-scroll-container flex items-center gap-1.5 pb-0.5 sm:pb-0">
-            <span className="text-[11px] font-black text-[#650000] uppercase tracking-wider shrink-0 pr-1">
-              Class:
-            </span>
-            {[
-              { val: 'All', label: 'All Classes (9–12)' },
-              { val: '9', label: 'Class 9' },
-              { val: '10', label: 'Class 10' },
-              { val: '11', label: 'Class 11' },
-              { val: '12', label: 'Class 12' },
-            ].map((c) => (
+          {!hideClassFilter ? (
+            <div className="table-scroll-container flex items-center gap-1.5 pb-0.5 sm:pb-0">
+              <span className="text-[11px] font-black text-[#650000] uppercase tracking-wider shrink-0 pr-1">
+                Class:
+              </span>
+              {[
+                { val: 'All', label: 'All Classes (9–12)' },
+                { val: '9', label: 'Class 9' },
+                { val: '10', label: 'Class 10' },
+                { val: '11', label: 'Class 11' },
+                { val: '12', label: 'Class 12' },
+              ].map((c) => (
+                <button
+                  key={c.val}
+                  onClick={() => setSelectedStandard(c.val)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition whitespace-nowrap cursor-pointer shrink-0 ${selectedStandard === c.val
+                    ? 'primary-button shadow-xs'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            /* When Class filter is already in Commissioner top bar, show Section filter on the first row */
+            <div className="table-scroll-container flex items-center gap-1.5 pb-0.5 sm:pb-0">
+              <span className="text-[11px] font-black text-[#650000] uppercase shrink-0 pr-1">
+                Section ({selectedStandard === 'All' ? 'All Classes' : `Class ${selectedStandard}`}):
+              </span>
               <button
-                key={c.val}
-                onClick={() => setSelectedStandard(c.val)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition whitespace-nowrap cursor-pointer shrink-0 ${selectedStandard === c.val
-                  ? 'primary-button shadow-xs'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                onClick={() => setSelectedSection('All')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer shrink-0 ${selectedSection === 'All'
+                  ? 'bg-[#FFC928] text-[#650000] shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
               >
-                {c.label}
+                All Sections ({availableSections.length})
               </button>
-            ))}
-          </div>
+              {availableSections.map((sec) => (
+                <button
+                  key={sec}
+                  onClick={() => setSelectedSection(sec)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${selectedSection === sec
+                    ? 'bg-[#FFC928] text-[#650000] font-black shadow-2xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                >
+                  Sec {sec}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Sort Filter Quick Switcher for Pass, Attendance & Fail Count */}
           <div className="flex flex-wrap items-center gap-1.5 shrink-0">
@@ -323,32 +377,66 @@ export const StudentAnalyticsSection: React.FC<{
           </div>
         </div>
 
-        {/* Dynamic Sections Row (A, A1, A2, A3, B, B1, B2, C, D) */}
-        <div className="pt-2 border-t border-slate-200/70 table-scroll-container flex items-center gap-1.5">
-          <span className="text-[11px] font-black text-slate-600 uppercase shrink-0 pr-1">
-            Section ({selectedStandard === 'All' ? 'All Classes' : `Class ${selectedStandard}`}):
-          </span>
-          <button
-            onClick={() => setSelectedSection('All')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer shrink-0 ${selectedSection === 'All'
-              ? 'bg-[#FFC928] text-[#650000] shadow-2xs'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-          >
-            All Sections ({availableSections.length})
-          </button>
-          {availableSections.map((sec) => (
-            <button
-              key={sec}
-              onClick={() => setSelectedSection(sec)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${selectedSection === sec
-                ? 'bg-[#FFC928] text-[#650000] font-black shadow-2xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+        {/* Dynamic Sections Row (shown here only if Class filter was on row 1) + Failed Subjects Count Filter */}
+        <div className="pt-2 border-t border-slate-200/70 flex flex-col lg:flex-row lg:items-center justify-between gap-2">
+          {!hideClassFilter && (
+            <div className="table-scroll-container flex items-center gap-1.5">
+              <span className="text-[11px] font-black text-slate-600 uppercase shrink-0 pr-1">
+                Section ({selectedStandard === 'All' ? 'All Classes' : `Class ${selectedStandard}`}):
+              </span>
+              <button
+                onClick={() => setSelectedSection('All')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer shrink-0 ${selectedSection === 'All'
+                  ? 'bg-[#FFC928] text-[#650000] shadow-2xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+              >
+                All Sections ({availableSections.length})
+              </button>
+              {availableSections.map((sec) => (
+                <button
+                  key={sec}
+                  onClick={() => setSelectedSection(sec)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer shrink-0 ${selectedSection === sec
+                    ? 'bg-[#FFC928] text-[#650000] font-black shadow-2xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                >
+                  Sec {sec}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Filter by Number of Failed Subjects */}
+          <div className="table-scroll-container flex items-center gap-1.5">
+            <span className="text-[11px] font-black text-rose-700 uppercase shrink-0 pr-1">
+              Failed Subjects Filter:
+            </span>
+            {[
+              { val: 'ALL', label: 'All Students' },
+              { val: '0', label: '0 Failed (All Pass)' },
+              { val: '1', label: '1 Subj Failed' },
+              { val: '2', label: '2 Subj Failed' },
+              { val: '3', label: '3 Subj Failed' },
+              { val: '4', label: '4 Subj Failed' },
+              { val: '5+', label: '5+ Subj Failed' },
+            ].map((fc) => (
+              <button
+                key={fc.val}
+                onClick={() => setFailedCountFilter(fc.val)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer shrink-0 ${
+                  failedCountFilter === fc.val
+                    ? fc.val === '0'
+                      ? 'bg-emerald-600 text-white shadow-2xs'
+                      : 'bg-rose-600 text-white shadow-2xs'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
-            >
-              Sec {sec}
-            </button>
-          ))}
+              >
+                {fc.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -414,33 +502,45 @@ export const StudentAnalyticsSection: React.FC<{
         </div>
       </div>
 
-      {/* Subject-Wise Failure in Numbers Card (Read-Only Display) */}
+      {/* Subject-Wise Failure in Numbers Card with Inline Expandable Student List Below */}
       <div className="glass-card p-3.5 sm:p-5 border border-slate-200">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
           <div>
             <h3 className="text-xs sm:text-base font-black text-[#650000] flex items-center gap-1.5">
               <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-rose-600 shrink-0" />
-              <span>Subject-Wise Failure in Numbers (Quarterly Marks &lt; 35)</span>
+              <span>Subject-Wise Failure in Numbers (Quarterly Marks &lt; 35 — Tap any subject to view failed student list below)</span>
             </h3>
             <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-              Exact number of students who scored below passing mark (&lt; 35 marks) in each subject from uploaded Excel sheets
+              Click any subject card below to immediately expand the list of students who failed (&lt; 35 marks) in that subject
             </p>
           </div>
+          {failedSubjectFilter && (
+            <button
+              onClick={() => setFailedSubjectFilter(null)}
+              className="px-3 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold cursor-pointer self-start sm:self-auto"
+            >
+              Close {failedSubjectFilter} List ✕
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
           {subjectFailures.map((sf: any, idx: number) => {
+            const isSelected = failedSubjectFilter === sf.subject;
             const hasFailures = sf.failed_count > 0;
             const isLastOdd = idx === subjectFailures.length - 1 && subjectFailures.length % 2 === 1;
             return (
-              <div
+              <button
                 key={sf.subject}
-                className={`p-3 rounded-2xl border-2 text-left flex flex-col justify-between ${
+                onClick={() => setFailedSubjectFilter(isSelected ? null : sf.subject)}
+                className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col justify-between ${
                   isLastOdd ? 'col-span-2 sm:col-span-1' : ''
                 } ${
-                  hasFailures
-                    ? 'bg-rose-50/70 border-rose-300'
-                    : 'bg-emerald-50/60 border-emerald-300'
+                  isSelected
+                    ? 'ring-2 ring-rose-600 border-rose-600 bg-rose-100/90 shadow-md'
+                    : hasFailures
+                    ? 'bg-rose-50/70 hover:bg-rose-100/70 border-rose-300'
+                    : 'bg-emerald-50/60 hover:bg-emerald-100/60 border-emerald-300'
                 }`}
               >
                 <div className="flex items-center justify-between w-full gap-1">
@@ -467,10 +567,181 @@ export const StudentAnalyticsSection: React.FC<{
                   <span>Low (&lt;35): <b>{sf.failed_count}</b></span>
                   <span>Evaluated: {sf.total_students}</span>
                 </div>
-              </div>
+
+                <div className="mt-1.5 pt-1 border-t border-black/10 flex items-center justify-between text-[10px] font-bold text-rose-800">
+                  <span>{isSelected ? 'Hide Student List' : 'View Student List'}</span>
+                  {isSelected ? <ChevronUp className="w-3.5 h-3.5 shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 shrink-0" />}
+                </div>
+              </button>
             );
           })}
         </div>
+
+        {/* Inline Dropdown Student List Directly Below Subject-Wise Failure Cards */}
+        {failedSubjectFilter && (
+          <div className="mt-3.5 sm:mt-4 rounded-2xl border-2 border-rose-500 overflow-hidden shadow-md">
+            <div className="px-3 sm:px-4 py-2.5 flex flex-wrap justify-between items-center gap-2 bg-rose-700 text-white">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-black text-xs sm:text-sm uppercase tracking-wider truncate">
+                  {failedSubjectFilter} — Failed Students List ({subjectFailedStudents.length} Students Scored &lt; 35)
+                </span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => setSortBy(sortBy === 'FAIL_DESC' ? 'FAIL_ASC' : 'FAIL_DESC')}
+                  className="text-[10px] sm:text-xs font-black bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg cursor-pointer flex items-center gap-1"
+                >
+                  <ArrowUpDown className="w-3 h-3" />
+                  {sortBy === 'FAIL_DESC' ? 'Failed Subjects: High → Low' : 'Failed Subjects: Low → High'}
+                </button>
+                <button
+                  onClick={() => setFailedSubjectFilter(null)}
+                  className="text-[11px] sm:text-xs font-bold bg-black/20 hover:bg-black/30 px-2.5 py-1 rounded-lg cursor-pointer"
+                >
+                  Close ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile Card List (<768px) */}
+            <div className="md:hidden bg-white max-h-96 overflow-y-auto divide-y divide-slate-200">
+              {subjectFailedStudents.map((st: any) => {
+                const counts = getSubjCounts(st);
+                const thisSubjMark = st.subject_marks?.find((m: any) => m.subject_name === failedSubjectFilter)?.mark;
+                return (
+                  <div
+                    key={st.id}
+                    onClick={() => setSelectedStudent(st)}
+                    className="p-3 cursor-pointer bg-rose-50/50 hover:bg-rose-100/60 transition"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="font-black text-slate-900 text-xs">{st.student_name}</div>
+                        <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                          EMIS: {st.emis_number} • {st.class_name}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="px-2 py-0.5 rounded-md bg-rose-600 text-white text-[10px] font-black">
+                          {counts.failed} Failed ({counts.passed}/{counts.total} Pass)
+                        </span>
+                        <span className="font-black text-xs text-[#650000]">{st.avg_mark}%</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                      <span className="px-2 py-0.5 rounded bg-rose-700 text-white text-[10px] font-black">
+                        {failedSubjectFilter} Mark: {thisSubjMark ?? '<35'} (FAIL)
+                      </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedStudent(st);
+                        }}
+                        className="px-2.5 py-1 bg-[#8B0000] text-white font-bold rounded-lg text-[10px] cursor-pointer"
+                      >
+                        Student &amp; Staff Detail →
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+              {subjectFailedStudents.length === 0 && (
+                <div className="p-6 text-center text-slate-400 text-xs font-bold">
+                  No failed students found for {failedSubjectFilter}.
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Table (>=768px) */}
+            <div className="hidden md:block table-scroll-container bg-white max-h-80 overflow-y-auto">
+              <table className="w-full text-left text-xs min-w-[820px]">
+                <thead className="bg-slate-100 text-slate-700 border-b border-slate-200 sticky top-0">
+                  <tr>
+                    <th className="p-2.5">EMIS No</th>
+                    <th className="p-2.5">Student Name</th>
+                    <th className="p-2.5">Class</th>
+                    <th className="p-2.5 text-center">{failedSubjectFilter} Mark</th>
+                    <th className="p-2.5 text-center">
+                      <button
+                        onClick={() => setSortBy(sortBy === 'FAIL_DESC' ? 'FAIL_ASC' : 'FAIL_DESC')}
+                        className="inline-flex items-center gap-1 font-black text-rose-700 cursor-pointer hover:underline"
+                      >
+                        <span>Failed Subjects</span>
+                        <ArrowUpDown className="w-3 h-3" />
+                      </button>
+                    </th>
+                    <th className="p-2.5 text-center">Overall Avg</th>
+                    <th className="p-2.5">All Failed Subjects (&lt; 35)</th>
+                    <th className="p-2.5 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {subjectFailedStudents.map((st: any) => {
+                    const counts = getSubjCounts(st);
+                    const thisSubjMark = st.subject_marks?.find((m: any) => m.subject_name === failedSubjectFilter)?.mark;
+                    return (
+                      <tr
+                        key={st.id}
+                        onClick={() => setSelectedStudent(st)}
+                        className="cursor-pointer bg-rose-50/50 hover:bg-rose-100/70 transition"
+                      >
+                        <td className="p-2.5 font-mono text-[11px] text-slate-500">{st.emis_number}</td>
+                        <td className="p-2.5">
+                          <div className="font-black text-slate-900">{st.student_name}</div>
+                          <div className="text-[10px] text-slate-500">{st.school_name}</div>
+                        </td>
+                        <td className="p-2.5 font-semibold text-slate-600">{st.class_name}</td>
+                        <td className="p-2.5 text-center">
+                          <span className="px-2.5 py-0.5 rounded-md bg-rose-600 text-white font-black text-xs">
+                            {thisSubjMark ?? '<35'}
+                          </span>
+                        </td>
+                        <td className="p-2.5 text-center">
+                          <span className="px-2.5 py-0.5 rounded-md bg-rose-600 text-white text-[11px] font-black">
+                            {counts.failed} Failed ({counts.passed}/{counts.total} Pass)
+                          </span>
+                        </td>
+                        <td className="p-2.5 text-center font-black text-sm text-[#650000]">{st.avg_mark}%</td>
+                        <td className="p-2.5">
+                          <div className="flex flex-wrap gap-1">
+                            {st.low_mark_subjects?.filter((ls: any) => ls.is_fail).map((ls: any, i: number) => (
+                              <span
+                                key={i}
+                                className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-600 text-white flex items-center gap-1"
+                              >
+                                <AlertTriangle className="w-3 h-3 shrink-0" />
+                                {ls.subject_name}: {ls.mark}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="p-2.5 text-right">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedStudent(st);
+                            }}
+                            className="px-2.5 py-1 bg-[#8B0000] hover:bg-[#650000] text-white font-bold rounded-lg text-[11px] cursor-pointer"
+                          >
+                            Student &amp; Staff Detail →
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {subjectFailedStudents.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="p-6 text-center text-slate-400 font-bold">
+                        No failed students found for {failedSubjectFilter}.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 5 Mark Range Categories with Clickable Dropdown Lists */}
@@ -577,23 +848,18 @@ export const StudentAnalyticsSection: React.FC<{
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="font-black text-slate-900 text-xs">{st.student_name}</span>
-                          <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-black">
-                            Pass: {counts.passed}/{counts.total} Subj
-                          </span>
-                          <span
-                            className={`px-1.5 py-0.5 rounded text-[9px] font-black ${counts.failed > 0 ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600'
-                              }`}
-                          >
-                            Fail: {counts.failed} Subj
-                          </span>
-                        </div>
+                        <div className="font-black text-slate-900 text-xs">{st.student_name}</div>
                         <div className="text-[10px] text-slate-500 font-mono mt-0.5">
                           EMIS: {st.emis_number} • {st.class_name}
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[9px] font-black ${counts.failed > 0 ? 'bg-rose-600 text-white' : 'bg-emerald-100 text-emerald-800'
+                            }`}
+                        >
+                          {counts.failed} Failed ({counts.passed}/{counts.total} Pass)
+                        </span>
                         <span className="font-black text-xs text-[#650000]">{st.avg_mark}%</span>
                         <span
                           className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${st.is_pass ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'
@@ -644,12 +910,21 @@ export const StudentAnalyticsSection: React.FC<{
 
             {/* Desktop Table (>=768px) */}
             <div className="hidden md:block table-scroll-container bg-white max-h-80 overflow-y-auto">
-              <table className="w-full text-left text-xs min-w-[780px]">
+              <table className="w-full text-left text-xs min-w-[820px]">
                 <thead className="bg-slate-100 text-slate-700 border-b border-slate-200 sticky top-0">
                   <tr>
                     <th className="p-2.5">EMIS No</th>
-                    <th className="p-2.5">Student Name &amp; Pass/Fail Subject Count</th>
+                    <th className="p-2.5">Student Name</th>
                     <th className="p-2.5">Class</th>
+                    <th className="p-2.5 text-center">
+                      <button
+                        onClick={() => setSortBy(sortBy === 'FAIL_DESC' ? 'FAIL_ASC' : 'FAIL_DESC')}
+                        className="inline-flex items-center gap-1 font-black text-rose-700 cursor-pointer hover:underline"
+                      >
+                        <span>Failed Subjects</span>
+                        <ArrowUpDown className="w-3 h-3" />
+                      </button>
+                    </th>
                     <th className="p-2.5 text-center">Avg Mark</th>
                     <th className="p-2.5 text-center">Auto Pass / Fail</th>
                     <th className="p-2.5">Low Mark Subject Alert (&lt; 50 / Fail &lt; 35)</th>
@@ -670,22 +945,20 @@ export const StudentAnalyticsSection: React.FC<{
                       >
                         <td className="p-2.5 font-mono text-[11px] text-slate-500">{st.emis_number}</td>
                         <td className="p-2.5">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="font-black text-slate-900">{st.student_name}</span>
-                            <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-300">
-                              Pass: {counts.passed}/{counts.total} Subj
-                            </span>
-                            <span
-                              className={`px-2 py-0.5 rounded-md text-[10px] font-black ${counts.failed > 0
-                                ? 'bg-rose-600 text-white shadow-2xs'
-                                : 'bg-slate-100 text-slate-600'
-                                }`}
-                            >
-                              Fail: {counts.failed} Subj
-                            </span>
-                          </div>
+                          <div className="font-black text-slate-900">{st.student_name}</div>
+                          <div className="text-[10px] text-slate-500">{st.school_name}</div>
                         </td>
                         <td className="p-2.5 font-semibold text-slate-600">{st.class_name}</td>
+                        <td className="p-2.5 text-center">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-md text-[11px] font-black ${counts.failed > 0
+                              ? 'bg-rose-600 text-white shadow-2xs'
+                              : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              }`}
+                          >
+                            {counts.failed} Failed ({counts.passed}/{counts.total} Pass)
+                          </span>
+                        </td>
                         <td className="p-2.5 text-center font-black text-sm text-[#650000]">{st.avg_mark}%</td>
                         <td className="p-2.5 text-center">
                           <span
@@ -733,7 +1006,7 @@ export const StudentAnalyticsSection: React.FC<{
                   })}
                   {sortedRangeStudents.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="p-6 text-center text-slate-400 font-bold">
+                      <td colSpan={8} className="p-6 text-center text-slate-400 font-bold">
                         No students in this range.
                       </td>
                     </tr>
@@ -753,30 +1026,32 @@ export const StudentAnalyticsSection: React.FC<{
               {title || 'Student Master Register — Auto Pass/Fail & Subject-Wise Low Mark Tracker'}
             </h3>
             <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-              Showing Passed &amp; Failed Subject Count next to every student name • Sorted by {sortBy === 'FAIL_DESC' ? 'Failed Subjects (High → Low)' : sortBy}
+              Dedicated Failed Subjects column with filter &amp; sort • Sorted by {sortBy === 'FAIL_DESC' ? 'Failed Subjects (High → Low)' : sortBy}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
             <div className="grid grid-cols-2 sm:flex gap-2">
-              {/* Standard Filter (9, 10, 11, 12) */}
+              {/* Failed Subjects Count Filter */}
               <select
-                value={selectedStandard}
-                onChange={(e) => setSelectedStandard(e.target.value)}
-                className="px-2.5 py-2 sm:py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white w-full sm:w-auto"
+                value={failedCountFilter}
+                onChange={(e) => setFailedCountFilter(e.target.value)}
+                className="px-2.5 py-2 sm:py-1.5 border border-rose-300 rounded-xl text-xs font-black bg-rose-50/70 text-rose-900 w-full sm:w-auto cursor-pointer"
               >
-                <option value="All">All Standards (9–12)</option>
-                <option value="9">9th Standard</option>
-                <option value="10">10th Standard</option>
-                <option value="11">11th Standard</option>
-                <option value="12">12th Standard</option>
+                <option value="ALL">All Failed Counts</option>
+                <option value="0">0 Failed (All Pass)</option>
+                <option value="1">1 Subject Failed</option>
+                <option value="2">2 Subjects Failed</option>
+                <option value="3">3 Subjects Failed</option>
+                <option value="4">4 Subjects Failed</option>
+                <option value="5+">5+ Subjects Failed</option>
               </select>
 
               {/* Dynamic Section Filter (A, A1, A2, A3, B, B1, B2, C, D) */}
               <select
                 value={selectedSection}
                 onChange={(e) => setSelectedSection(e.target.value)}
-                className="px-2.5 py-2 sm:py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white w-full sm:w-auto"
+                className="px-2.5 py-2 sm:py-1.5 border border-slate-300 rounded-xl text-xs font-bold bg-white w-full sm:w-auto cursor-pointer"
               >
                 <option value="All">All Sections ({availableSections.length})</option>
                 {availableSections.map((sec) => (
@@ -820,23 +1095,18 @@ export const StudentAnalyticsSection: React.FC<{
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="font-black text-slate-900 text-xs">{st.student_name}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-black">
-                          Pass: {counts.passed}/{counts.total}
-                        </span>
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-[9px] font-black ${counts.failed > 0 ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600'
-                            }`}
-                        >
-                          Fail: {counts.failed}
-                        </span>
-                      </div>
+                      <div className="font-black text-slate-900 text-xs">{st.student_name}</div>
                       <div className="text-[10px] text-slate-500 font-mono mt-0.5">
                         EMIS: {st.emis_number} • {st.class_name}
                       </div>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
+                      <span
+                        className={`px-1.5 py-0.5 rounded text-[9px] font-black ${counts.failed > 0 ? 'bg-rose-600 text-white' : 'bg-emerald-100 text-emerald-800'
+                          }`}
+                      >
+                        {counts.failed} Failed
+                      </span>
                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${rTheme.badge}`}>
                         {st.range_label}
                       </span>
@@ -868,7 +1138,7 @@ export const StudentAnalyticsSection: React.FC<{
 
                   <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                     <div className="text-xs font-black text-[#650000]">
-                      Avg: {st.avg_mark}%
+                      Avg: {st.avg_mark}% • Att: {st.attendance_pct ?? 90.4}%
                     </div>
                     <button
                       onClick={(e) => {
@@ -888,23 +1158,41 @@ export const StudentAnalyticsSection: React.FC<{
 
         {/* Desktop Table (>=768px) */}
         <div className="hidden md:block table-scroll-container rounded-xl border border-slate-200">
-          <table className="w-full text-left text-xs min-w-[880px]">
+          <table className="w-full text-left text-xs min-w-[940px]">
             <thead className="bg-[#8B0000] text-white">
               <tr>
                 <th className="p-2.5">EMIS ID</th>
                 <th className="p-2.5">
                   <button
-                    onClick={() => setSortBy(sortBy === 'FAIL_DESC' ? 'FAIL_ASC' : 'FAIL_DESC')}
+                    onClick={() => setSortBy('NAME_ASC')}
                     className="flex items-center gap-1 font-black text-white cursor-pointer hover:text-[#FFD700]"
-                    title="Click to sort by Failed Subject Count"
+                    title="Click to sort by Student Name"
                   >
-                    <span>Student Name &amp; Pass / Fail Subject Count</span>
-                    <ArrowUpDown className="w-3.5 h-3.5 text-[#FFD700]" />
+                    <span>Student Name</span>
+                    <ArrowUpDown className="w-3.5 h-3.5 opacity-80" />
                   </button>
                 </th>
                 <th className="p-2.5">Class</th>
                 <th className="p-2.5 text-center">Subject Marks Breakdown</th>
-                <th className="p-2.5 text-center">Avg %</th>
+                <th className="p-2.5 text-center">
+                  <button
+                    onClick={() => setSortBy(sortBy === 'FAIL_DESC' ? 'FAIL_ASC' : 'FAIL_DESC')}
+                    className="inline-flex items-center gap-1 font-black text-[#FFD700] cursor-pointer hover:underline"
+                    title="Click to sort by Number of Failed Subjects"
+                  >
+                    <span>Failed Subjects</span>
+                    <ArrowUpDown className="w-3.5 h-3.5 text-[#FFD700]" />
+                  </button>
+                </th>
+                <th className="p-2.5 text-center">
+                  <button
+                    onClick={() => setSortBy(sortBy === 'AVG_DESC' ? 'AVG_ASC' : 'AVG_DESC')}
+                    className="inline-flex items-center gap-1 font-black text-white cursor-pointer hover:text-[#FFD700]"
+                  >
+                    <span>Avg %</span>
+                    <ArrowUpDown className="w-3 h-3 opacity-80" />
+                  </button>
+                </th>
                 <th className="p-2.5 text-center">Range Category</th>
                 <th className="p-2.5 text-center">Pass / Fail</th>
                 <th className="p-2.5">Low Mark Subject Alert</th>
@@ -914,7 +1202,7 @@ export const StudentAnalyticsSection: React.FC<{
             <tbody className="divide-y divide-slate-100 bg-white">
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center text-slate-500 font-bold">
+                  <td colSpan={10} className="p-8 text-center text-slate-500 font-bold">
                     Loading student records and pass/fail classifications...
                   </td>
                 </tr>
@@ -933,23 +1221,7 @@ export const StudentAnalyticsSection: React.FC<{
                     >
                       <td className="p-2.5 font-mono text-[11px] text-slate-500">{st.emis_number}</td>
                       <td className="p-2.5">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="font-black text-slate-900">{st.student_name}</span>
-                          <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-black border border-emerald-300">
-                            Pass: {counts.passed}/{counts.total} Subj
-                          </span>
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-black ${counts.failed > 0
-                              ? 'bg-rose-600 text-white shadow-2xs'
-                              : 'bg-slate-100 text-slate-600'
-                              }`}
-                          >
-                            Fail: {counts.failed} Subj
-                          </span>
-                          <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 text-[10px] font-bold">
-                            Att: {st.attendance_pct ?? 90.4}%
-                          </span>
-                        </div>
+                        <div className="font-black text-slate-900">{st.student_name}</div>
                         <div className="text-[10px] text-slate-500 mt-0.5">{st.school_name}</div>
                       </td>
                       <td className="p-2.5 font-bold text-slate-700">{st.class_name}</td>
@@ -969,6 +1241,21 @@ export const StudentAnalyticsSection: React.FC<{
                               {m.subject_name.slice(0, 3)}: {m.mark}
                             </span>
                           ))}
+                        </div>
+                      </td>
+                      <td className="p-2.5 text-center">
+                        <div className="inline-flex flex-col items-center gap-0.5">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-md text-[11px] font-black ${counts.failed > 0
+                              ? 'bg-rose-600 text-white shadow-2xs'
+                              : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              }`}
+                          >
+                            {counts.failed} Failed
+                          </span>
+                          <span className="text-[9px] font-bold text-slate-500">
+                            Pass: {counts.passed}/{counts.total} • Att: {st.attendance_pct ?? 90.4}%
+                          </span>
                         </div>
                       </td>
                       <td className="p-2.5 text-center font-black text-sm text-[#650000]">{st.avg_mark}%</td>

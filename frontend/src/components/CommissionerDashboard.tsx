@@ -252,6 +252,7 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
           schoolId={filterSchoolId}
           zone={selectedZone}
           initialStandard={selectedStandard}
+          hideClassFilter={true}
           allowUploads={false}
           title="Corporation Commissioner — Student Pass/Fail Classification & 5-Range Breakdown"
           onSelectTeacher={(tid) => setSelectedTeacherId(tid)}
