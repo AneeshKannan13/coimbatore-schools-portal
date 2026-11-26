@@ -148,8 +148,10 @@ function buildRealStudentsAnalytics(
         subjFailMap[subName] = { subject: subName, failed_count: 0, low_mark_count: 0, total_students: 0, color: '#e11d48' };
       }
       subjFailMap[subName].total_students += 1;
-      if (!subPass) subjFailMap[subName].failed_count += 1;
-      if (isLow) subjFailMap[subName].low_mark_count += 1;
+      if (!subPass) {
+        subjFailMap[subName].failed_count += 1;
+        subjFailMap[subName].low_mark_count += 1;
+      }
 
       const grade = mark >= 90 ? 'A1' : mark >= 75 ? 'A2' : mark >= 60 ? 'B1' : mark >= 50 ? 'B2' : mark >= 35 ? 'C' : 'F (Fail)';
       subjectMarks.push({

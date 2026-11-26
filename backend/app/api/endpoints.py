@@ -836,7 +836,6 @@ def get_commissioner_dashboard(
             subj_fail_map[sname]["total_students"] += 1
             if m.total_mark < 35.0:
                 subj_fail_map[sname]["failed_count"] += 1
-            if m.total_mark < 50.0:
                 subj_fail_map[sname]["low_mark_count"] += 1
 
     subject_failures = []

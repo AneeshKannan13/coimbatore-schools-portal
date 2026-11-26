@@ -610,7 +610,7 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
             </div>
           </div>
 
-          {/* Requirement 4: Subject-Wise Failure in Numbers */}
+          {/* Requirement 4: Subject-Wise Failure in Numbers (Read-Only Detail View) */}
           <div className="glass-card p-4 sm:p-5 border border-slate-200">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3.5">
               <div>
@@ -619,15 +619,9 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
                   <span>Subject-Wise Failure in Numbers ({selectedStandard === 'All' ? 'All Classes 9–12' : `Class ${selectedStandard}`})</span>
                 </h3>
                 <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-                  Exact number of students scoring below passing mark (&lt; 35) in each subject — Click any card to inspect failed students
+                  Exact number of students scoring below passing mark (&lt; 35) in each subject from uploaded Excel sheets
                 </p>
               </div>
-              <button
-                onClick={() => setActiveTab('students')}
-                className="px-3 py-1.5 bg-[#8B0000] text-white rounded-xl text-xs font-bold cursor-pointer self-start sm:self-auto"
-              >
-                Inspect Failed Student List →
-              </button>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
@@ -636,8 +630,7 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
                 return (
                   <div
                     key={sf.subject}
-                    onClick={() => setActiveTab('students')}
-                    className={`p-3.5 rounded-2xl border-2 border-rose-300 bg-rose-50/80 hover:bg-rose-100/80 transition cursor-pointer flex flex-col justify-between ${
+                    className={`p-3.5 rounded-2xl border-2 border-rose-300 bg-rose-50/80 flex flex-col justify-between ${
                       isLastOdd ? 'col-span-2 sm:col-span-1' : ''
                     }`}
                   >
@@ -658,7 +651,7 @@ export const CommissionerDashboard: React.FC<{ user: any }> = ({ user }) => {
                     </div>
 
                     <div className="mt-2 pt-1.5 border-t border-rose-200 flex items-center justify-between text-[10px] font-bold text-slate-600">
-                      <span>Low (&lt;50): {sf.low_mark_count}</span>
+                      <span>Low (&lt;35): {sf.failed_count}</span>
                       <span>Evaluated: {sf.total_students}</span>
                     </div>
                   </div>

@@ -414,50 +414,41 @@ export const StudentAnalyticsSection: React.FC<{
         </div>
       </div>
 
-      {/* Subject-Wise Failure in Numbers Card */}
+      {/* Subject-Wise Failure in Numbers Card (Read-Only Display) */}
       <div className="glass-card p-3.5 sm:p-5 border border-slate-200">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
           <div>
             <h3 className="text-xs sm:text-base font-black text-[#650000] flex items-center gap-1.5">
               <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-rose-600 shrink-0" />
-              <span>Subject-Wise Failure in Numbers (Quarterly Marks &lt; 35 — Tap any subject to filter)</span>
+              <span>Subject-Wise Failure in Numbers (Quarterly Marks &lt; 35)</span>
             </h3>
             <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-              Exact number of students who failed (&lt; 35 marks) or scored low (&lt; 50 marks) in each subject
+              Exact number of students who scored below passing mark (&lt; 35 marks) in each subject from uploaded Excel sheets
             </p>
           </div>
-          {failedSubjectFilter && (
-            <button
-              onClick={() => setFailedSubjectFilter(null)}
-              className="px-3 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-bold cursor-pointer self-start sm:self-auto"
-            >
-              Clear Subject Filter ({failedSubjectFilter}) ✕
-            </button>
-          )}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
           {subjectFailures.map((sf: any, idx: number) => {
-            const isSelected = failedSubjectFilter === sf.subject;
             const hasFailures = sf.failed_count > 0;
             const isLastOdd = idx === subjectFailures.length - 1 && subjectFailures.length % 2 === 1;
             return (
-              <button
+              <div
                 key={sf.subject}
-                onClick={() => setFailedSubjectFilter(isSelected ? null : sf.subject)}
-                className={`p-3 rounded-2xl border-2 text-left transition cursor-pointer flex flex-col justify-between ${isLastOdd ? 'col-span-2 sm:col-span-1' : ''
-                  } ${isSelected
-                    ? 'ring-2 ring-rose-600 border-rose-600 bg-rose-50 shadow-md'
-                    : hasFailures
-                      ? 'bg-rose-50/70 hover:bg-rose-100/70 border-rose-300'
-                      : 'bg-emerald-50/60 hover:bg-emerald-100/60 border-emerald-300'
-                  }`}
+                className={`p-3 rounded-2xl border-2 text-left flex flex-col justify-between ${
+                  isLastOdd ? 'col-span-2 sm:col-span-1' : ''
+                } ${
+                  hasFailures
+                    ? 'bg-rose-50/70 border-rose-300'
+                    : 'bg-emerald-50/60 border-emerald-300'
+                }`}
               >
                 <div className="flex items-center justify-between w-full gap-1">
                   <span className="font-black text-xs text-slate-900 truncate">{sf.subject}</span>
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${hasFailures ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'
-                      }`}
+                    className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                      hasFailures ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'
+                    }`}
                   >
                     {sf.fail_percentage}% Fail
                   </span>
@@ -473,10 +464,10 @@ export const StudentAnalyticsSection: React.FC<{
                 </div>
 
                 <div className="mt-1.5 pt-1.5 border-t border-black/10 flex items-center justify-between text-[10px] font-semibold text-slate-600">
-                  <span>Low (&lt;50): <b>{sf.low_mark_count}</b></span>
-                  <span>Total: {sf.total_students}</span>
+                  <span>Low (&lt;35): <b>{sf.failed_count}</b></span>
+                  <span>Evaluated: {sf.total_students}</span>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
